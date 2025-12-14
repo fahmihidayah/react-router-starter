@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData, useNavigate, useSearchParams, useSubmit } from "react-router";
+import { Link, useLoaderData, useNavigate, useSearchParams, useSubmit } from "react-router";
 import {
   flexRender,
   getCoreRowModel,
@@ -356,10 +356,12 @@ export default function DashboardTasksPage() {
               Manage and organize your tasks efficiently
             </p>
           </div>
-          <Button onClick={() => navigate("/tasks/add")}>
-            <Plus className="mr-2 size-4" />
-            Add Task
-          </Button>
+          <Link to="/dashboard/tasks/add">
+            <Button>
+              <Plus className="mr-2 size-4" />
+              Add Task
+            </Button>
+          </Link>
         </div>
 
         {/* Table Card */}
