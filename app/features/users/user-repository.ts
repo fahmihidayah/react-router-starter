@@ -1,4 +1,4 @@
-import { BaseRepository } from "~/lib/base/base-repository";
+import { BaseRepository } from "~/lib/repository";
 import { user } from "~/db/schema";
 
 /**
