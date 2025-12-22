@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form as ReactRouterForm, redirect, useLoaderData, useSubmit } from "react-router";
-import { taskRepository } from "~/features/tasks/actions/task-actions";
+import { taskRepository } from "~/features/tasks/task-repository";
 import type { Route } from "./+types/dashboard.tasks.$id";
 
 

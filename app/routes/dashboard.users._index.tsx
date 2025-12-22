@@ -3,7 +3,7 @@ import { useLoaderData, useNavigate, useSearchParams, useSubmit } from "react-ro
 import type { ColumnDef } from "@tanstack/react-table";
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { like } from "drizzle-orm/sql";
-import { task } from "~/db/schema";
+import { user } from "~/db/schema";
 import { taskRepository } from "~/features/tasks/task-repository";
 import { Button } from "~/components/ui/button";
 import {
@@ -17,7 +17,8 @@ import {
 import { toast } from "sonner";
 import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table-list";
 import type { Route } from "./+types/dashboard.tasks";
-import type { Task } from "~/features/tasks/type";
+import type { User } from "~/features/users/type";
+import { userRepository } from "~/features/users/user-repository";
 
 // Loader - Fetch tasks with pagination and search using TaskRepository
 export async function loader({ request }: Route.LoaderArgs) {
@@ -27,8 +28,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const search = url.searchParams.get("search") || "";
 
   // Use repository's findManyPaginated method
-  const result = await taskRepository.findManyPaginated({
-    where: search ? like(task.title, `%${search}%`) : undefined,
+  const result = await userRepository.findManyPaginated({
+    where: search ? like(user.name, `%${search}%`) : undefined,
     page,
     pageSize,
   });
@@ -76,7 +77,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 export function meta() {
   return [
-    { title: "Tasks - Dashboard" },
+    { title: "User - Dashboard" },
     { name: "description", content: "Manage your tasks" },
   ];
 }
@@ -89,24 +90,24 @@ export default function DashboardTasksPage() {
 
   // State
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
-  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<User | null>(null);
   const navigate = useNavigate()
 
   // Table columns
-  const columns: ColumnDef<Task>[] = [
+  const columns: ColumnDef<User>[] = [
     {
-      accessorKey: "title",
-      header: "Title",
+      accessorKey: "email",
+      header: "Email",
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("title") || "Untitled"}</div>
+        <div className="font-medium">{row.getValue("email") || "Untitled"}</div>
       ),
     },
     {
-      accessorKey: "description",
-      header: "Description",
+      accessorKey: "name",
+      header: "name",
       cell: ({ row }) => (
         <div className="max-w-[500px] truncate text-muted-foreground">
-          {row.getValue("description") || "No description"}
+          {row.getValue("name") || "No Name"}
         </div>
       ),
     },
@@ -212,8 +213,8 @@ export default function DashboardTasksPage() {
         <PageHeader
           title="Tasks"
           description="Manage and organize your tasks efficiently"
-          addButtonText="Add Task"
-          addButtonLink="/dashboard/tasks/add"
+          addButtonText="Add User"
+          addButtonLink="/dashboard/user/add"
         />
 
         {/* Data Table */}
@@ -284,7 +285,7 @@ export default function DashboardTasksPage() {
         open={!!deletingTask}
         onOpenChange={(open) => !open && setDeletingTask(null)}
         title="Delete Task"
-        itemName={deletingTask?.title || ""}
+        itemName={deletingTask?.email || ""}
         onConfirm={handleDelete}
         onCancel={() => setDeletingTask(null)}
       />
