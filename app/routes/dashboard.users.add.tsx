@@ -1,24 +1,24 @@
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import z, { uuid } from "zod";
+import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form as ReactRouterForm, redirect, useSubmit } from "react-router";
 import { db } from "~/lib/database";
-import { task } from "~/db/schema";
+import { user, account } from "~/db/schema";
 import { randomUUID } from "crypto";
 
 
 // Zod schema
-const taskSchema = z.object({
-    title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
-    description: z.string().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters"),
+const userSchema = z.object({
+    name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters").max(100, "Password must be less than 100 characters"),
 });
 
-type TaskFormData = z.infer<typeof taskSchema>;
+type UserFormData = z.infer<typeof userSchema>;
 
 
 // Server action example
@@ -26,38 +26,66 @@ export async function action({ request }: { request: Request }) {
     const formData = await request.formData();
 
     try {
-        const title = formData.get('title')?.toString()
-        const description = formData.get("description")?.toString()
-        await db.insert(task).values({
-            id: randomUUID(),
-            title,
-            description,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+        const name = formData.get('name')?.toString();
+        const email = formData.get("email")?.toString();
+        const password = formData.get("password")?.toString();
+
+        const userId = randomUUID();
+        const now = new Date();
+
+        // Insert user
+        await db.insert(user).values({
+            id: userId,
+            name: name!,
+            email: email!,
+            emailVerified: false,
+            image: null,
+            createdAt: now,
+            updatedAt: now,
         });
-        return redirect("/dashboard/tasks");
+
+        // Insert account with password
+        await db.insert(account).values({
+            id: randomUUID(),
+            accountId: email!,
+            providerId: "credential",
+            userId: userId,
+            password: password!,
+            accessToken: null,
+            refreshToken: null,
+            idToken: null,
+            accessTokenExpiresAt: null,
+            refreshTokenExpiresAt: null,
+            scope: null,
+            createdAt: now,
+            updatedAt: now,
+        });
+
+        return redirect("/dashboard/users");
     } catch (error) {
         return {
-            error: "Failed to create task. Please try again.",
+            error: "Failed to create user. Please try again.",
         };
     }
 }
 
-export default function AddTaskPage() {
-    const form = useForm<TaskFormData>({
-        resolver: zodResolver(taskSchema),
+export default function AddUserPage() {
+    const form = useForm<UserFormData>({
+        resolver: zodResolver(userSchema),
         defaultValues: {
-            title: "",
-            description: ""
+            name: "",
+            email: "",
+            password: ""
         }
     })
 
     const submit = useSubmit();
 
-    const onSubmit = (data: TaskFormData) => {
+    const onSubmit = (data: UserFormData) => {
         const formData = new FormData();
-        formData.append("title", data.title);
-        formData.append("description", data.description);
+        formData.append("name", data.name);
+        formData.append("email", data.email);
+        formData.append("password", data.password);
 
         // Sends to your `action()` on this route
         submit(formData, {
@@ -67,16 +95,16 @@ export default function AddTaskPage() {
     return <div className="container w-full mx-auto p-5">
         <Card >
             <CardHeader>
-                <CardTitle className="text-2xl">Add New Task</CardTitle>
+                <CardTitle className="text-2xl">Add New User</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
                 <Form {...form}>
                     <ReactRouterForm onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
                         <FormField control={form.control}
-                            name="title"
+                            name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Title</FormLabel>
+                                    <FormLabel>Name</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="text"
@@ -88,12 +116,28 @@ export default function AddTaskPage() {
                                 </FormItem>
                             )} />
                         <FormField control={form.control}
-                            name="description"
+                            name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Description</FormLabel>
+                                    <FormLabel>Email</FormLabel>
                                     <FormControl>
-                                        <Textarea
+                                        <Input
+                                            type="email"
+                                            disabled={field.disabled}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        <FormField control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Password</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="password"
                                             disabled={field.disabled}
                                             {...field}
                                         />

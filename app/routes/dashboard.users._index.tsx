@@ -49,9 +49,10 @@ export async function action({ request }: Route.ActionArgs) {
   const intent = formData.get("intent");
   const taskId = formData.get("taskId")?.toString();
 
+  console.log("user id : ", intent, taskId)
   try {
     if (intent === "delete" && taskId) {
-      await taskRepository.delete(taskId);
+      await userRepository.delete(taskId);
       return { success: true, message: "Task deleted successfully" };
     }
 
@@ -211,19 +212,19 @@ export default function DashboardTasksPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <PageHeader
-          title="Tasks"
-          description="Manage and organize your tasks efficiently"
+          title="Users"
+          description="Manage and organize your users efficiently"
           addButtonText="Add User"
-          addButtonLink="/dashboard/user/add"
+          addButtonLink="/dashboard/users/add"
         />
 
         {/* Data Table */}
         <DataTable
-          title="All Tasks"
+          title="All Users"
           description={`${loaderData.totalCount} task${loaderData.totalCount !== 1 ? "s" : ""} total`}
           data={loaderData.tasks}
           columns={columns}
-          searchPlaceholder="Search tasks..."
+          searchPlaceholder="Search users..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
           emptyMessage="No tasks found."
