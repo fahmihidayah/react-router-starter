@@ -35,7 +35,7 @@ export async function action({ request }: { request: Request }) {
             createdAt: new Date(),
             updatedAt: new Date(),
         });
-        return redirect("/tasks");
+        return redirect("/dashboard/tasks");
     } catch (error) {
         return {
             error: "Failed to create task. Please try again.",
@@ -64,7 +64,7 @@ export default function AddTaskPage() {
             method: "post",
         });
     };
-    return <div className="container w-1/2 mx-auto">
+    return <div className="container w-full mx-auto p-5">
         <Card >
             <CardHeader>
                 <CardTitle className="text-2xl">Add New Task</CardTitle>

@@ -60,16 +60,6 @@ export default function DashboardRoute() {
     <DashboardLayout
       user={user}
       onSignOut={handleSignOut}
-      // You can customize the config here if needed
-      // config={{
-      //   header: {
-      //     appName: "My Custom App",
-      //     appInitial: "M",
-      //     subtitle: "Admin Panel",
-      //   },
-      //   navigationGroups: customNavigationGroups,
-      //   headerTitle: "Custom Dashboard",
-      // }}
     />
   );
 }
