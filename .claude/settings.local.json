@@ -6,7 +6,11 @@
       "Bash(ls:*)",
       "Bash(grep:*)",
       "Bash(cd:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(lsof:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(pnpm list:*)"
     ],
     "deny": [],
     "ask": []

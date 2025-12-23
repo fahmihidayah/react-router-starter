@@ -13,8 +13,8 @@ import { userRepository } from "~/features/users/user-repository";
 // Loader - Fetch tasks with pagination and search using TaskRepository
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
+  const page =  Number.parseInt(url.searchParams.get("page") || "1");
+  const pageSize =  Number.parseInt(url.searchParams.get("pageSize") || "10");
   const search = url.searchParams.get("search") || "";
 
   // Use repository's findManyPaginated method
