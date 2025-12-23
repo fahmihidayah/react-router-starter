@@ -11,7 +11,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
-interface ActionColumnConfig<T> {
+export interface ActionColumnConfig<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onCopyId?: (item: T) => void;

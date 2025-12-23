@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-interface TextColumnConfig<T> {
+export interface TextColumnConfig<T> {
+  type : "text"
   accessorKey: keyof T;
   header: string;
   className?: string;

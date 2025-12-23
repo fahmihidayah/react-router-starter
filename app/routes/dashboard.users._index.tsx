@@ -5,7 +5,7 @@ import { user } from "~/db/schema";
 import { taskRepository } from "~/features/tasks/task-repository";
 import { toast } from "sonner";
 import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table/table-list";
-import { createActionColumn, createDateColumn, createTextColumn } from "~/components/layout/table/column";
+import createColumn from "~/components/layout/table/column/create-column";
 import type { Route } from "./+types/dashboard.tasks";
 import type { User } from "~/features/users/type";
 import { userRepository } from "~/features/users/user-repository";
@@ -85,33 +85,39 @@ export default function DashboardTasksPage() {
   const navigate = useNavigate()
 
   // Table columns
-  const columns = [
-    createTextColumn<User>({
-      accessorKey: "email",
-      header: "Email",
-      fallback: "No email",
-      isBold: true,
-    }),
-    createTextColumn<User>({
-      accessorKey: "name",
-      header: "Name",
-      fallback: "No Name",
-    }),
-    createDateColumn<User>({
-      accessorKey: "createdAt",
-      header: "Created",
-    }),
-    createDateColumn<User>({
-      accessorKey: "updatedAt",
-      header: "Updated",
-    }),
-    createActionColumn<User>({
+  const columns = createColumn<User>({
+    columnConfig: [
+      {
+        type: "text",
+        accessorKey: "email",
+        header: "Email",
+        fallback: "No email",
+        isBold: true,
+      },
+      {
+        type: "text",
+        accessorKey: "name",
+        header: "Name",
+        fallback: "No Name",
+      },
+      {
+        type: "date",
+        accessorKey: "createdAt",
+        header: "Created",
+      },
+      {
+        type: "date",
+        accessorKey: "updatedAt",
+        header: "Updated",
+      },
+    ],
+    actionColumnConfig: {
       getItemId: (user) => user.id,
       onCopyId: () => {},
       onEdit: (user) => navigate(`${user.id}`),
       onDelete: (user) => setDeletingTask(user),
-    }),
-  ];
+    }
+  });
 
   // Handle search
   const handleSearch = (value: string) => {

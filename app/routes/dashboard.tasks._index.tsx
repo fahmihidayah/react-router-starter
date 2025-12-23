@@ -8,6 +8,7 @@ import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/componen
 import { createActionColumn, createDateColumn, createTextColumn } from "~/components/layout/table/column";
 import type { Route } from "./+types/dashboard.tasks";
 import type { Task } from "~/features/tasks/type";
+import createColumn from "~/components/layout/table/column/create-column";
 
 // Loader - Fetch tasks with pagination and search using TaskRepository
 export async function loader({ request }: Route.LoaderArgs) {
@@ -74,7 +75,7 @@ export function meta() {
 export default function DashboardTasksPage() {
   const loaderData = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const submit = useSubmit();
 
   // State
@@ -83,34 +84,42 @@ export default function DashboardTasksPage() {
   const navigate = useNavigate()
 
   // Table columns
-  const columns = [
-    createTextColumn<Task>({
-      accessorKey: "title",
-      header: "Title",
-      fallback: "Untitled",
-      isBold: true,
-    }),
-    createTextColumn<Task>({
-      accessorKey: "description",
-      header: "Description",
-      className: "max-w-[500px] truncate text-muted-foreground",
-      fallback: "No description",
-    }),
-    createDateColumn<Task>({
-      accessorKey: "createdAt",
-      header: "Created",
-    }),
-    createDateColumn<Task>({
-      accessorKey: "updatedAt",
-      header: "Updated",
-    }),
-    createActionColumn<Task>({
+  const columns = createColumn<Task>({
+    columnConfig: [
+      // {
+      //   type: "text",
+      //   accessorKey: "title",
+      //   header: "Title",
+      //   fallback: "Untitled",
+      //   isBold: true,
+      // },
+      "title",
+      "description",
+      // {
+      //   type: "text",
+      //   accessorKey: "description",
+      //   header: "Description",
+      //   className: "max-w-[500px] truncate text-muted-foreground",
+      //   fallback: "No description",
+      // },
+      {
+        type: "date",
+        accessorKey: "createdAt",
+        header: "Created",
+      },
+      {
+        type: "date",
+        accessorKey: "updatedAt",
+        header: "Updated",
+      },
+    ],
+    actionColumnConfig: {
       getItemId: (task) => task.id,
-      onCopyId: () => {},
+      onCopyId: () => { },
       onEdit: (task) => navigate(`${task.id}`),
       onDelete: (task) => setDeletingTask(task),
-    }),
-  ];
+    }
+  })
 
   // Handle search
   const handleSearch = (value: any) => {

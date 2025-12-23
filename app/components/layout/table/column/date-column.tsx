@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-interface DateColumnConfig<T> {
+export interface DateColumnConfig<T> {
+  type : "date"
   accessorKey: keyof T;
   header: string;
   formatDate?: (date: Date) => string;
