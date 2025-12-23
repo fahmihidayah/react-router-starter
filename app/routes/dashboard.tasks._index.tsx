@@ -1,21 +1,11 @@
 import { useState } from "react";
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from "react-router";
-import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { like } from "drizzle-orm/sql";
+import { toast } from "sonner";
 import { task } from "~/db/schema";
 import { taskRepository } from "~/features/tasks/task-repository";
-import { Button } from "~/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { toast } from "sonner";
-import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table-list";
+import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table/table-list";
+import { createActionColumn, createDateColumn, createTextColumn } from "~/components/layout/table/column";
 import type { Route } from "./+types/dashboard.tasks";
 import type { Task } from "~/features/tasks/type";
 
@@ -93,87 +83,37 @@ export default function DashboardTasksPage() {
   const navigate = useNavigate()
 
   // Table columns
-  const columns: ColumnDef<Task>[] = [
-    {
+  const columns = [
+    createTextColumn<Task>({
       accessorKey: "title",
       header: "Title",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("title") || "Untitled"}</div>
-      ),
-    },
-    {
+      fallback: "Untitled",
+      isBold: true,
+    }),
+    createTextColumn<Task>({
       accessorKey: "description",
       header: "Description",
-      cell: ({ row }) => (
-        <div className="max-w-[500px] truncate text-muted-foreground">
-          {row.getValue("description") || "No description"}
-        </div>
-      ),
-    },
-    {
+      className: "max-w-[500px] truncate text-muted-foreground",
+      fallback: "No description",
+    }),
+    createDateColumn<Task>({
       accessorKey: "createdAt",
       header: "Created",
-      cell: ({ row }) => {
-        const date = row.getValue("createdAt") as Date | null;
-        return date ? new Date(date).toLocaleDateString() : "-";
-      },
-    },
-    {
+    }),
+    createDateColumn<Task>({
       accessorKey: "updatedAt",
       header: "Updated",
-      cell: ({ row }) => {
-        const date = row.getValue("updatedAt") as Date | null;
-        return date ? new Date(date).toLocaleDateString() : "-";
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const task = row.original;
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(task.id);
-                  toast.success("Task ID copied to clipboard");
-                }}
-              >
-                Copy ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  navigate(`${task.id}`)
-                }}
-              >
-                <Edit className="mr-2 size-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDeletingTask(task)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
+    }),
+    createActionColumn<Task>({
+      getItemId: (task) => task.id,
+      onCopyId: () => {},
+      onEdit: (task) => navigate(`${task.id}`),
+      onDelete: (task) => setDeletingTask(task),
+    }),
   ];
 
   // Handle search
-  const handleSearch = (value: string) => {
+  const handleSearch = (value: any) => {
     setSearchValue(value);
     const params = new URLSearchParams(searchParams);
     if (value) {

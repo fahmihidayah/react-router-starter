@@ -30,11 +30,6 @@ export const defaultNavigationGroups: NavigationGroup[] = [
         icon: Users,
       },
       {
-        title: "Products",
-        url: "/dashboard/products",
-        icon: Package,
-      },
-      {
         title: "Settings",
         url: "/dashboard/settings",
         icon: Settings,

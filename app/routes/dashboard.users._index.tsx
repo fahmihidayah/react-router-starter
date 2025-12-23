@@ -1,21 +1,11 @@
 import { useState } from "react";
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from "react-router";
-import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { like } from "drizzle-orm/sql";
 import { user } from "~/db/schema";
 import { taskRepository } from "~/features/tasks/task-repository";
-import { Button } from "~/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table-list";
+import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table/table-list";
+import { createActionColumn, createDateColumn, createTextColumn } from "~/components/layout/table/column";
 import type { Route } from "./+types/dashboard.tasks";
 import type { User } from "~/features/users/type";
 import { userRepository } from "~/features/users/user-repository";
@@ -95,83 +85,32 @@ export default function DashboardTasksPage() {
   const navigate = useNavigate()
 
   // Table columns
-  const columns: ColumnDef<User>[] = [
-    {
+  const columns = [
+    createTextColumn<User>({
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("email") || "Untitled"}</div>
-      ),
-    },
-    {
+      fallback: "No email",
+      isBold: true,
+    }),
+    createTextColumn<User>({
       accessorKey: "name",
-      header: "name",
-      cell: ({ row }) => (
-        <div className="max-w-[500px] truncate text-muted-foreground">
-          {row.getValue("name") || "No Name"}
-        </div>
-      ),
-    },
-    {
+      header: "Name",
+      fallback: "No Name",
+    }),
+    createDateColumn<User>({
       accessorKey: "createdAt",
       header: "Created",
-      cell: ({ row }) => {
-        const date = row.getValue("createdAt") as Date | null;
-        return date ? new Date(date).toLocaleDateString() : "-";
-      },
-    },
-    {
+    }),
+    createDateColumn<User>({
       accessorKey: "updatedAt",
       header: "Updated",
-      cell: ({ row }) => {
-        const date = row.getValue("updatedAt") as Date | null;
-        return date ? new Date(date).toLocaleDateString() : "-";
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const task = row.original;
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(task.id);
-                  toast.success("Task ID copied to clipboard");
-                }}
-              >
-                Copy ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  navigate(`${task.id}`)
-                }}
-              >
-                <Edit className="mr-2 size-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDeletingTask(task)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
+    }),
+    createActionColumn<User>({
+      getItemId: (user) => user.id,
+      onCopyId: () => {},
+      onEdit: (user) => navigate(`${user.id}`),
+      onDelete: (user) => setDeletingTask(user),
+    }),
   ];
 
   // Handle search
