@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import { authLogger } from "~/utils/logger";
 
-const baseURL = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:5173";
+const baseURL = import.meta.env.BETTER_AUTH_URL || "http://localhost:5173";
 
 authLogger.info("Initializing auth client", { baseURL });
 
