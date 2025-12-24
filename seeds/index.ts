@@ -3,7 +3,8 @@ import { drizzle } from 'drizzle-orm/libsql';
 import { user } from '../app/db/schema';
 import { randomUUID } from 'crypto';
 
-const db = drizzle(process.env.DB_FILE_NAME!);
+
+const db = drizzle(process.env.DATABASE_URL??"");
 
 const now = new Date();
 

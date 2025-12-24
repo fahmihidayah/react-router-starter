@@ -1,64 +1,63 @@
-import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
-
+import { integer, pgTable, varchar,boolean, timestamp } from "drizzle-orm/pg-core";
 // Better-auth tables
-export const user = sqliteTable("user", {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    email: text("email").notNull().unique(),
-    emailVerified: int("emailVerified", { mode: "boolean" }).notNull(),
-    image: text("image"),
-    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
-    updatedAt: int("updatedAt", { mode: "timestamp" }).notNull(),
+export const user = pgTable("user", {
+    id: varchar("id").primaryKey(),
+    name: varchar("name").notNull(),
+    email: varchar("email").notNull().unique(),
+    emailVerified: boolean("emailVerified", ).notNull(),
+    image: varchar("image"),
+    createdAt: timestamp("createdAt",).notNull(),
+    updatedAt: timestamp("updatedAt",).notNull(),
 });
 
-export const session = sqliteTable("session", {
-    id: text("id").primaryKey(),
-    expiresAt: int("expiresAt", { mode: "timestamp" }).notNull(),
-    token: text("token").notNull().unique(),
-    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
-    updatedAt: int("updatedAt", { mode: "timestamp" }).notNull(),
-    ipAddress: text("ipAddress"),
-    userAgent: text("userAgent"),
-    userId: text("userId")
+export const session = pgTable("session", {
+    id: varchar("id").primaryKey(),
+    expiresAt: timestamp("expiresAt",).notNull(),
+    token: varchar("token").notNull().unique(),
+    createdAt: timestamp("createdAt", ).notNull(),
+    updatedAt: timestamp("updatedAt", ).notNull(),
+    ipAddress: varchar("ipAddress"),
+    userAgent: varchar("userAgent"),
+    userId: varchar("userId")
         .notNull()
         .references(() => user.id,{
             onDelete: 'cascade'
         }),
 });
 
-export const account = sqliteTable("account", {
-    id: text("id").primaryKey(),
-    accountId: text("accountId").notNull(),
-    providerId: text("providerId").notNull(),
-    userId: text("userId")
+export const account = pgTable("account", {
+    id: varchar("id").primaryKey(),
+    accountId: varchar("accountId").notNull(),
+    providerId: varchar("providerId").notNull(),
+    userId: varchar("userId")
         .notNull()
         .references(() => user.id, {
             onDelete: 'cascade'
         }),
-    accessToken: text("accessToken"),
-    refreshToken: text("refreshToken"),
-    idToken: text("idToken"),
-    accessTokenExpiresAt: int("accessTokenExpiresAt", { mode: "timestamp" }),
-    refreshTokenExpiresAt: int("refreshTokenExpiresAt", { mode: "timestamp" }),
-    scope: text("scope"),
-    password: text("password"),
-    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
-    updatedAt: int("updatedAt", { mode: "timestamp" }).notNull(),
+    accessToken: varchar("accessToken"),
+    refreshToken: varchar("refreshToken"),
+    idToken: varchar("idToken"),
+    accessTokenExpiresAt: timestamp("accessTokenExpiresAt", ),
+    refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt", ),
+    scope: varchar("scope"),
+    password: varchar("password"),
+    createdAt: timestamp("createdAt", ).notNull(),
+    updatedAt: timestamp("updatedAt", ).notNull(),
 });
 
-export const verification = sqliteTable("verification", {
-    id: text("id").primaryKey(),
-    identifier: text("identifier").notNull(),
-    value: text("value").notNull(),
-    expiresAt: int("expiresAt", { mode: "timestamp" }).notNull(),
-    createdAt: int("createdAt", { mode: "timestamp" }),
-    updatedAt: int("updatedAt", { mode: "timestamp" }),
+export const verification = pgTable("verification", {
+    id: varchar("id").primaryKey(),
+    identifier: varchar("identifier").notNull(),
+    value: varchar("value").notNull(),
+    expiresAt: timestamp("expiresAt",).notNull(),
+    createdAt: timestamp("createdAt", ),
+    updatedAt: timestamp("updatedAt", ),
 });
 
-export const task = sqliteTable("tasks", {
-    id: text("id").primaryKey(),
-    title: text("title"),
-    description: text("description"),
-    createdAt: int("createdAt", { mode: "timestamp" }),
-    updatedAt: int("updatedAt", { mode: "timestamp" }),
+export const task = pgTable("tasks", {
+    id: varchar("id").primaryKey(),
+    title: varchar("title"),
+    description: varchar("description"),
+    createdAt: timestamp("createdAt", ),
+    updatedAt: timestamp("updatedAt",),
 })
