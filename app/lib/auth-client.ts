@@ -1,7 +1,20 @@
 import { createAuthClient } from "better-auth/react";
 import { authLogger } from "~/utils/logger";
 
-const baseURL = import.meta.env.BETTER_AUTH_URL || "http://localhost:5173";
+// Get base URL from environment or use window location in browser
+const getBaseURL = () => {
+  // In production, use the current domain
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    return `${protocol}//${host}`;
+  }
+
+  // Fallback for SSR or development
+  return import.meta.env.BETTER_AUTH_URL || "http://localhost:5173";
+};
+
+const baseURL = getBaseURL();
 
 authLogger.info("Initializing auth client", { baseURL });
 
