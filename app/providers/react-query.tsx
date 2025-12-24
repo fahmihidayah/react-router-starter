@@ -1,8 +1,7 @@
 'use client'
 
+import * as React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { useState } from 'react'
 import { toast } from 'sonner'
 import { logger } from '~/utils/logger'
 
@@ -111,17 +110,27 @@ function createQueryClient() {
 }
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => createQueryClient())
+  const [queryClient] = React.useState(() => createQueryClient())
 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {/* React Query DevTools - Only visible in development */}
-      <ReactQueryDevtools
-        initialIsOpen={false}
-        position="bottom"
-        buttonPosition="bottom-right"
-      />
+      {/* React Query DevTools - Only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <React.Suspense fallback={null}>
+          <ReactQueryDevtoolsLazy />
+        </React.Suspense>
+      )}
     </QueryClientProvider>
   )
 }
+
+// Lazy load devtools only in development
+const ReactQueryDevtoolsLazy =
+  process.env.NODE_ENV === 'development'
+    ? React.lazy(() =>
+        import('@tanstack/react-query-devtools').then((d) => ({
+          default: d.ReactQueryDevtools,
+        }))
+      )
+    : () => null
