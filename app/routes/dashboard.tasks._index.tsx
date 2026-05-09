@@ -1,29 +1,24 @@
+import { like } from 'drizzle-orm/sql'
 import { useState } from 'react'
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
-import { like } from 'drizzle-orm/sql'
 import { toast } from 'sonner'
+import createColumn from '~/components/common/table/column/create-column'
+import {
+  DataTable,
+  DeleteDialog,
+  PageHeader,
+  TablePagination,
+} from '~/components/common/table/table-list'
 import { task } from '~/db/schema'
 import { taskRepository } from '~/features/tasks/task-repository'
-import {
-  PageHeader,
-  DataTable,
-  TablePagination,
-  DeleteDialog,
-} from '~/components/layout/table/table-list'
-import {
-  createActionColumn,
-  createDateColumn,
-  createTextColumn,
-} from '~/components/layout/table/column'
-import type { Route } from './+types/dashboard.tasks'
 import type { Task } from '~/features/tasks/type'
-import createColumn from '~/components/layout/table/column/create-column'
+import type { Route } from './+types/dashboard.tasks'
 
 // Loader - Fetch tasks with pagination and search using TaskRepository
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
-  const page = Number.parseInt(url.searchParams.get('page') || '1')
-  const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10')
+  const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
+  const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10', 10)
   const search = url.searchParams.get('search') || ''
 
   // Use repository's findManyPaginated method
