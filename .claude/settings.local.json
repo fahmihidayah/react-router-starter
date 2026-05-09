@@ -10,7 +10,17 @@
       "Bash(lsof:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm biome:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm outdated:*)",
+      "Bash(pnpm update:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(pnpm install)",
+      "Bash(pnpm exec tsc:*)"
     ],
     "deny": [],
     "ask": []

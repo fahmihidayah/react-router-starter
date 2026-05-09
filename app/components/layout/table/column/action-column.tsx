@@ -1,6 +1,6 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import type { ColumnDef } from '@tanstack/react-table'
+import { Edit, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,23 +8,23 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { toast } from "sonner";
+} from '~/components/ui/dropdown-menu'
+import { toast } from 'sonner'
 
 export interface ActionColumnConfig<T> {
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  onCopyId?: (item: T) => void;
-  getItemId: (item: T) => string;
-  getItemName?: (item: T) => string;
+  onEdit?: (item: T) => void
+  onDelete?: (item: T) => void
+  onCopyId?: (item: T) => void
+  getItemId: (item: T) => string
+  getItemName?: (item: T) => string
 }
 
 export function createActionColumn<T>(config: ActionColumnConfig<T>): ColumnDef<T> {
   return {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => {
-      const item = row.original;
-      const itemId = config.getItemId(item);
+      const item = row.original
+      const itemId = config.getItemId(item)
 
       return (
         <DropdownMenu>
@@ -39,8 +39,8 @@ export function createActionColumn<T>(config: ActionColumnConfig<T>): ColumnDef<
             {config.onCopyId && (
               <DropdownMenuItem
                 onClick={() => {
-                  navigator.clipboard.writeText(itemId);
-                  toast.success("ID copied to clipboard");
+                  navigator.clipboard.writeText(itemId)
+                  toast.success('ID copied to clipboard')
                 }}
               >
                 Copy ID
@@ -64,7 +64,7 @@ export function createActionColumn<T>(config: ActionColumnConfig<T>): ColumnDef<
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-      );
+      )
     },
-  };
+  }
 }

@@ -131,6 +131,6 @@ const ReactQueryDevtoolsLazy =
     ? React.lazy(() =>
         import('@tanstack/react-query-devtools').then((d) => ({
           default: d.ReactQueryDevtools,
-        }))
+        })),
       )
     : () => null

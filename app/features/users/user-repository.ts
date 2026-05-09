@@ -1,5 +1,5 @@
-import { BaseRepository } from "~/lib/repository";
-import { user } from "~/db/schema";
+import { BaseRepository } from '~/lib/repository'
+import { user } from '~/db/schema'
 
 /**
  * Task Repository
@@ -13,4 +13,4 @@ class UserRepository extends BaseRepository<typeof user> {
   // }
 }
 
-export const userRepository = new UserRepository(user);
+export const userRepository = new UserRepository(user)

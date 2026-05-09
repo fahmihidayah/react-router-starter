@@ -6,42 +6,46 @@ import {
   PaginationNext,
   PaginationPrevious,
   PaginationEllipsis,
-} from "~/components/ui/pagination";
+} from '~/components/ui/pagination'
 
 export interface TablePaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
 }
 
-export function TablePagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: TablePaginationProps) {
+export function TablePagination({ currentPage, totalPages, onPageChange }: TablePaginationProps) {
   // Generate pagination items
   const generatePaginationItems = () => {
-    const items: (number | "ellipsis")[] = [];
+    const items: (number | 'ellipsis')[] = []
 
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
-        items.push(i);
+        items.push(i)
       }
     } else {
       if (currentPage <= 3) {
-        items.push(1, 2, 3, 4, "ellipsis", totalPages);
+        items.push(1, 2, 3, 4, 'ellipsis', totalPages)
       } else if (currentPage >= totalPages - 2) {
-        items.push(1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        items.push(1, 'ellipsis', totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
       } else {
-        items.push(1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", totalPages);
+        items.push(
+          1,
+          'ellipsis',
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          'ellipsis',
+          totalPages,
+        )
       }
     }
 
-    return items;
-  };
+    return items
+  }
 
   if (totalPages <= 1) {
-    return null;
+    return null
   }
 
   return (
@@ -52,29 +56,25 @@ export function TablePagination({
             <PaginationPrevious
               href="#"
               onClick={(e) => {
-                e.preventDefault();
+                e.preventDefault()
                 if (currentPage > 1) {
-                  onPageChange(currentPage - 1);
+                  onPageChange(currentPage - 1)
                 }
               }}
-              className={
-                currentPage === 1
-                  ? "pointer-events-none opacity-50"
-                  : ""
-              }
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
             />
           </PaginationItem>
 
           {generatePaginationItems().map((item, index) => (
             <PaginationItem key={index}>
-              {item === "ellipsis" ? (
+              {item === 'ellipsis' ? (
                 <PaginationEllipsis />
               ) : (
                 <PaginationLink
                   href="#"
                   onClick={(e) => {
-                    e.preventDefault();
-                    onPageChange(item as number);
+                    e.preventDefault()
+                    onPageChange(item as number)
                   }}
                   isActive={currentPage === item}
                 >
@@ -88,20 +88,16 @@ export function TablePagination({
             <PaginationNext
               href="#"
               onClick={(e) => {
-                e.preventDefault();
+                e.preventDefault()
                 if (currentPage < totalPages) {
-                  onPageChange(currentPage + 1);
+                  onPageChange(currentPage + 1)
                 }
               }}
-              className={
-                currentPage === totalPages
-                  ? "pointer-events-none opacity-50"
-                  : ""
-              }
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
             />
           </PaginationItem>
         </PaginationContent>
       </Pagination>
     </div>
-  );
+  )
 }

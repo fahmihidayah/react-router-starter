@@ -1,32 +1,27 @@
-import { Outlet } from "react-router";
-import {
-  Sidebar,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "~/components/ui/sidebar";
-import { Separator } from "~/components/ui/separator";
-import { DashboardSidebarHeader, type SidebarHeaderConfig } from "./sidebar-header";
-import { DashboardSidebarNavigation, type NavigationGroup } from "./sidebar-navigation";
-import { DashboardSidebarFooter, type UserSession } from "./sidebar-footer";
-import { defaultHeaderConfig, defaultNavigationGroups } from "./config";
+import { Outlet } from 'react-router'
+import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar'
+import { Separator } from '~/components/ui/separator'
+import { DashboardSidebarHeader, type SidebarHeaderConfig } from './sidebar-header'
+import { DashboardSidebarNavigation, type NavigationGroup } from './sidebar-navigation'
+import { DashboardSidebarFooter, type UserSession } from './sidebar-footer'
+import { defaultHeaderConfig, defaultNavigationGroups } from './config'
 
 export interface DashboardLayoutConfig {
-  header?: SidebarHeaderConfig;
-  navigationGroups?: NavigationGroup[];
-  headerTitle?: string;
+  header?: SidebarHeaderConfig
+  navigationGroups?: NavigationGroup[]
+  headerTitle?: string
 }
 
 interface DashboardLayoutProps {
-  user: UserSession;
-  onSignOut: () => void;
-  config?: DashboardLayoutConfig;
+  user: UserSession
+  onSignOut: () => void
+  config?: DashboardLayoutConfig
 }
 
 export function DashboardLayout({ user, onSignOut, config = {} }: DashboardLayoutProps) {
-  const headerConfig = config.header || defaultHeaderConfig;
-  const navigationGroups = config.navigationGroups || defaultNavigationGroups;
-  const headerTitle = config.headerTitle || "Dashboard";
+  const headerConfig = config.header || defaultHeaderConfig
+  const navigationGroups = config.navigationGroups || defaultNavigationGroups
+  const headerTitle = config.headerTitle || 'Dashboard'
 
   return (
     <SidebarProvider>
@@ -54,5 +49,5 @@ export function DashboardLayout({ user, onSignOut, config = {} }: DashboardLayou
         </div>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }

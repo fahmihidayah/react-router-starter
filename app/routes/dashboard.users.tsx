@@ -1,22 +1,20 @@
-import { Outlet } from "react-router";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { useSession } from "~/lib/auth-client";
+import { Outlet } from 'react-router'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import { useSession } from '~/lib/auth-client'
 
 export function meta() {
   return [
-    { title: "Dashboard - Starter App" },
-    { name: "description", content: "Your personal dashboard" },
-  ];
+    { title: 'Dashboard - Starter App' },
+    { name: 'description', content: 'Your personal dashboard' },
+  ]
 }
 
 export default function DashboardIndex() {
-  const { data: session } = useSession();
+  const { data: session } = useSession()
 
   if (!session) {
-    return null;
+    return null
   }
 
-  return (
-    <Outlet />
-  );
+  return <Outlet />
 }

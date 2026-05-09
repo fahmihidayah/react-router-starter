@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from 'react-router'
 import {
   SidebarContent,
   SidebarGroup,
@@ -7,27 +7,27 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "~/components/ui/sidebar";
-import { Separator } from "~/components/ui/separator";
-import type { LucideIcon } from "lucide-react";
+} from '~/components/ui/sidebar'
+import { Separator } from '~/components/ui/separator'
+import type { LucideIcon } from 'lucide-react'
 
 export interface NavigationItem {
-  title: string;
-  url: string;
-  icon: LucideIcon;
+  title: string
+  url: string
+  icon: LucideIcon
 }
 
 export interface NavigationGroup {
-  label: string;
-  items: NavigationItem[];
+  label: string
+  items: NavigationItem[]
 }
 
 interface DashboardSidebarNavigationProps {
-  groups: NavigationGroup[];
+  groups: NavigationGroup[]
 }
 
 export function DashboardSidebarNavigation({ groups }: DashboardSidebarNavigationProps) {
-  const location = useLocation();
+  const location = useLocation()
 
   return (
     <SidebarContent>
@@ -58,5 +58,5 @@ export function DashboardSidebarNavigation({ groups }: DashboardSidebarNavigatio
         </div>
       ))}
     </SidebarContent>
-  );
+  )
 }

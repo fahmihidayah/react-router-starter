@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -6,14 +6,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   getFilteredRowModel,
-} from "@tanstack/react-table";
-import type {
-  ColumnDef,
-  SortingState,
-  ColumnFiltersState,
-} from "@tanstack/react-table";
-import { Search } from "lucide-react";
-import { Input } from "~/components/ui/input";
+} from '@tanstack/react-table'
+import type { ColumnDef, SortingState, ColumnFiltersState } from '@tanstack/react-table'
+import { Search } from 'lucide-react'
+import { Input } from '~/components/ui/input'
 import {
   Table,
   TableBody,
@@ -21,21 +17,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+} from '~/components/ui/table'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 
 export interface DataTableProps<TData> {
-  title: string;
-  description?: string;
-  data: TData[];
-  columns: ColumnDef<TData>[];
-  searchable?: boolean;
-  searchPlaceholder?: string;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  emptyMessage?: string;
-  totalPages?: number;
-  manualPagination?: boolean;
+  title: string
+  description?: string
+  data: TData[]
+  columns: ColumnDef<TData>[]
+  searchable?: boolean
+  searchPlaceholder?: string
+  searchValue?: string
+  onSearchChange?: (value: string) => void
+  emptyMessage?: string
+  totalPages?: number
+  manualPagination?: boolean
 }
 
 export function DataTable<TData>({
@@ -44,15 +40,15 @@ export function DataTable<TData>({
   data,
   columns,
   searchable = true,
-  searchPlaceholder = "Search...",
-  searchValue = "",
+  searchPlaceholder = 'Search...',
+  searchValue = '',
   onSearchChange,
-  emptyMessage = "No results found.",
+  emptyMessage = 'No results found.',
   totalPages,
   manualPagination = false,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const table = useReactTable({
     data,
@@ -69,7 +65,7 @@ export function DataTable<TData>({
     },
     manualPagination,
     pageCount: totalPages,
-  });
+  })
 
   return (
     <Card>
@@ -102,10 +98,7 @@ export function DataTable<TData>({
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -114,26 +107,17 @@ export function DataTable<TData>({
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
                     {emptyMessage}
                   </TableCell>
                 </TableRow>
@@ -143,5 +127,5 @@ export function DataTable<TData>({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

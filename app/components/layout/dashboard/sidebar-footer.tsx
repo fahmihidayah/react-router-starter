@@ -1,19 +1,15 @@
-import { LogOut } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import {
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-} from "~/components/ui/sidebar";
+import { LogOut } from 'lucide-react'
+import { Button } from '~/components/ui/button'
+import { SidebarFooter, SidebarMenu, SidebarMenuItem } from '~/components/ui/sidebar'
 
 export interface UserSession {
-  name: string;
-  email: string;
+  name: string
+  email: string
 }
 
 interface DashboardSidebarFooterProps {
-  user: UserSession;
-  onSignOut: () => void;
+  user: UserSession
+  onSignOut: () => void
 }
 
 export function DashboardSidebarFooter({ user, onSignOut }: DashboardSidebarFooterProps) {
@@ -24,15 +20,11 @@ export function DashboardSidebarFooter({ user, onSignOut }: DashboardSidebarFoot
           <div className="flex flex-col gap-2 p-2">
             <div className="flex items-center gap-2 px-1">
               <div className="size-8 rounded-full bg-muted flex items-center justify-center">
-                <span className="text-sm font-medium">
-                  {user.name?.charAt(0).toUpperCase()}
-                </span>
+                <span className="text-sm font-medium">{user.name?.charAt(0).toUpperCase()}</span>
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-medium truncate">{user.name}</span>
-                <span className="text-xs text-muted-foreground truncate">
-                  {user.email}
-                </span>
+                <span className="text-xs text-muted-foreground truncate">{user.email}</span>
               </div>
             </div>
             <Button
@@ -48,5 +40,5 @@ export function DashboardSidebarFooter({ user, onSignOut }: DashboardSidebarFoot
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>
-  );
+  )
 }

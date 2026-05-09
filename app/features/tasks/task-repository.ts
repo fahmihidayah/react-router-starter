@@ -1,11 +1,12 @@
-import { BaseRepository } from "~/lib/repository";
-import { task } from "~/db/schema";
+import { BaseRepository } from '~/lib/repository'
+import { task } from '~/db/schema'
 
 /**
  * Task Repository
  * Extends BaseRepository with task-specific methods
  */
 class TaskRepository extends BaseRepository<typeof task> {
+  
   // Add custom task-specific methods here if needed
   // Example:
   // async findByTitle(title: string) {
@@ -13,4 +14,6 @@ class TaskRepository extends BaseRepository<typeof task> {
   // }
 }
 
-export const taskRepository = new TaskRepository(task);
+export const taskRepository = new TaskRepository(task)
+
+
