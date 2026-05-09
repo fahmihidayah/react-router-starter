@@ -1,5 +1,5 @@
 import { redirect, useNavigate } from 'react-router'
-import { DashboardLayout } from '~/components/common/dashboard'
+import { DashboardLayout } from '~/components/admin/dashboard'
 import { auth } from '~/lib/auth'
 import { authClient } from '~/lib/auth-client'
 import type { Route } from './+types/dashboard'

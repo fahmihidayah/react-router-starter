@@ -2,13 +2,13 @@ import { like } from 'drizzle-orm/sql'
 import { useState } from 'react'
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
 import { toast } from 'sonner'
-import createColumn from '~/components/common/table/column/create-column'
+import createColumn from '~/components/admin/table/column/create-column'
 import {
   DataTable,
   DeleteDialog,
   PageHeader,
   TablePagination,
-} from '~/components/common/table/table-list'
+} from '~/components/admin/table/table-list'
 import { user } from '~/db/schema'
 import { taskRepository } from '~/features/tasks/task-repository'
 import type { User } from '~/features/users/type'
