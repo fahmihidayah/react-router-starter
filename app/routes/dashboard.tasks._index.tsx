@@ -1,28 +1,32 @@
-import { useState } from "react";
-import { useLoaderData, useNavigate, useSearchParams, useSubmit } from "react-router";
-import { like } from "drizzle-orm/sql";
-import { toast } from "sonner";
-import { task } from "~/db/schema";
-import { taskRepository } from "~/features/tasks/task-repository";
-import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table/table-list";
-import { createActionColumn, createDateColumn, createTextColumn } from "~/components/layout/table/column";
-import type { Route } from "./+types/dashboard.tasks";
-import type { Task } from "~/features/tasks/type";
-import createColumn from "~/components/layout/table/column/create-column";
+import { like } from 'drizzle-orm/sql'
+import { useState } from 'react'
+import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
+import { toast } from 'sonner'
+import createColumn from '~/components/admin/table/column/create-column'
+import {
+  DataTable,
+  DeleteDialog,
+  PageHeader,
+  TablePagination,
+} from '~/components/admin/table/table-list'
+import { task } from '~/db/schema'
+import { taskRepository } from '~/features/tasks/task-repository'
+import type { Task } from '~/features/tasks/type'
+import type { Route } from './+types/dashboard.tasks'
 
 // Loader - Fetch tasks with pagination and search using TaskRepository
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const page = Number.parseInt(url.searchParams.get("page") || "1");
-  const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "10");
-  const search = url.searchParams.get("search") || "";
+  const url = new URL(request.url)
+  const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
+  const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10', 10)
+  const search = url.searchParams.get('search') || ''
 
   // Use repository's findManyPaginated method
   const result = await taskRepository.findManyPaginated({
     where: search ? like(task.title, `%${search}%`) : undefined,
     page,
     pageSize,
-  });
+  })
 
   return {
     tasks: result.data,
@@ -30,57 +34,54 @@ export async function loader({ request }: Route.LoaderArgs) {
     page: result.pagination.currentPage,
     pageSize: result.pagination.pageSize,
     totalPages: result.pagination.totalPages,
-  };
+  }
 }
 
 // Action - Handle delete and update operations using TaskRepository
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-  const taskId = formData.get("taskId")?.toString();
+  const formData = await request.formData()
+  const intent = formData.get('intent')
+  const taskId = formData.get('taskId')?.toString()
 
   try {
-    if (intent === "delete" && taskId) {
-      await taskRepository.delete(taskId);
-      return { success: true, message: "Task deleted successfully" };
+    if (intent === 'delete' && taskId) {
+      await taskRepository.delete(taskId)
+      return { success: true, message: 'Task deleted successfully' }
     }
 
-    if (intent === "update" && taskId) {
-      const title = formData.get("title")?.toString();
-      const description = formData.get("description")?.toString();
+    if (intent === 'update' && taskId) {
+      const title = formData.get('title')?.toString()
+      const description = formData.get('description')?.toString()
 
       await taskRepository.update(taskId, {
         title,
         description,
         updatedAt: new Date(),
-      });
+      })
 
-      return { success: true, message: "Task updated successfully" };
+      return { success: true, message: 'Task updated successfully' }
     }
 
-    return { success: false, message: "Invalid action" };
+    return { success: false, message: 'Invalid action' }
   } catch (error) {
-    console.error("Action error:", error);
-    return { success: false, message: "An error occurred" };
+    console.error('Action error:', error)
+    return { success: false, message: 'An error occurred' }
   }
 }
 
 export function meta() {
-  return [
-    { title: "Tasks - Dashboard" },
-    { name: "description", content: "Manage your tasks" },
-  ];
+  return [{ title: 'Tasks - Dashboard' }, { name: 'description', content: 'Manage your tasks' }]
 }
 
 export default function DashboardTasksPage() {
-  const loaderData = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const loaderData = useLoaderData<typeof loader>()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const submit = useSubmit();
+  const submit = useSubmit()
 
   // State
-  const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
-  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null)
   const navigate = useNavigate()
 
   // Table columns
@@ -93,8 +94,8 @@ export default function DashboardTasksPage() {
       //   fallback: "Untitled",
       //   isBold: true,
       // },
-      "title",
-      "description",
+      'title',
+      'description',
       // {
       //   type: "text",
       //   accessorKey: "description",
@@ -103,56 +104,56 @@ export default function DashboardTasksPage() {
       //   fallback: "No description",
       // },
       {
-        type: "date",
-        accessorKey: "createdAt",
-        header: "Created",
+        type: 'date',
+        accessorKey: 'createdAt',
+        header: 'Created',
       },
       {
-        type: "date",
-        accessorKey: "updatedAt",
-        header: "Updated",
+        type: 'date',
+        accessorKey: 'updatedAt',
+        header: 'Updated',
       },
     ],
     actionColumnConfig: {
       getItemId: (task) => task.id,
-      onCopyId: () => { },
+      onCopyId: () => {},
       onEdit: (task) => navigate(`${task.id}`),
       onDelete: (task) => setDeletingTask(task),
-    }
+    },
   })
 
   // Handle search
   const handleSearch = (value: string) => {
-    setSearchValue(value);
-    const params = new URLSearchParams(searchParams);
+    setSearchValue(value)
+    const params = new URLSearchParams(searchParams)
     if (value) {
-      params.set("search", value);
+      params.set('search', value)
     } else {
-      params.delete("search");
+      params.delete('search')
     }
-    params.set("page", "1"); // Reset to first page
-    setSearchParams(params);
-  };
+    params.set('page', '1') // Reset to first page
+    setSearchParams(params)
+  }
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", newPage.toString());
-    setSearchParams(params);
-  };
+    const params = new URLSearchParams(searchParams)
+    params.set('page', newPage.toString())
+    setSearchParams(params)
+  }
 
   // Handle delete
   const handleDelete = () => {
-    if (!deletingTask) return;
+    if (!deletingTask) return
 
-    const formData = new FormData();
-    formData.append("intent", "delete");
-    formData.append("taskId", deletingTask.id);
+    const formData = new FormData()
+    formData.append('intent', 'delete')
+    formData.append('taskId', deletingTask.id)
 
-    submit(formData, { method: "post" });
-    setDeletingTask(null);
-    toast.success("Task deleted successfully");
-  };
+    submit(formData, { method: 'post' })
+    setDeletingTask(null)
+    toast.success('Task deleted successfully')
+  }
 
   return (
     <div className="flex-1 p-6">
@@ -168,7 +169,7 @@ export default function DashboardTasksPage() {
         {/* Data Table */}
         <DataTable
           title="All Tasks"
-          description={`${loaderData.totalCount} task${loaderData.totalCount !== 1 ? "s" : ""} total`}
+          description={`${loaderData.totalCount} task${loaderData.totalCount !== 1 ? 's' : ''} total`}
           data={loaderData.tasks}
           columns={columns}
           searchPlaceholder="Search tasks..."
@@ -192,10 +193,10 @@ export default function DashboardTasksPage() {
         open={!!deletingTask}
         onOpenChange={(open) => !open && setDeletingTask(null)}
         title="Delete Task"
-        itemName={deletingTask?.title || ""}
+        itemName={deletingTask?.title || ''}
         onConfirm={handleDelete}
         onCancel={() => setDeletingTask(null)}
       />
     </div>
-  );
+  )
 }

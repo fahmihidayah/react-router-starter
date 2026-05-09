@@ -1,20 +1,33 @@
-import { createAuthClient } from "better-auth/react";
-import { authLogger } from "~/utils/logger";
+import { createAuthClient } from 'better-auth/react'
+import { authLogger } from '~/utils/logger'
 
-const baseURL = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:5173";
+// Get base URL from environment or use window location in browser
+const getBaseURL = () => {
+  // In production, use the current domain
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol
+    const host = window.location.host
+    return `${protocol}//${host}`
+  }
 
-authLogger.info("Initializing auth client", { baseURL });
+  // Fallback for SSR or development
+  return import.meta.env.BETTER_AUTH_URL || 'http://localhost:5173'
+}
+
+const baseURL = getBaseURL()
+
+authLogger.info('Initializing auth client', { baseURL })
 
 export const authClient = createAuthClient({
   baseURL,
-});
+})
 
-authLogger.info("Auth client initialized successfully");
+authLogger.info('Auth client initialized successfully')
 
 // Wrap auth methods with logging
-const originalSignIn = authClient.signIn;
-const originalSignUp = authClient.signUp;
-const originalSignOut = authClient.signOut;
+const originalSignIn = authClient.signIn
+const originalSignUp = authClient.signUp
+const originalSignOut = authClient.signOut
 
 // Enhanced signIn with logging
 // authClient.signIn = {
@@ -69,9 +82,4 @@ const originalSignOut = authClient.signOut;
 //   }
 // };
 
-export const {
-  signIn,
-  signUp,
-  signOut,
-  useSession,
-} = authClient;
+export const { signIn, signUp, signOut, useSession } = authClient

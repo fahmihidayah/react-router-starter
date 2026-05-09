@@ -1,128 +1,130 @@
 // repositories/BaseRepository.ts
-import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
-import { and, eq, sql, type SQL } from 'drizzle-orm/sql';
-import { db } from '../database';
+import { and, eq, type SQL, sql } from 'drizzle-orm'
+import type { SQLiteTableWithColumns, SQLiteColumn } from 'drizzle-orm/sqlite-core'
+import { db } from '../database'
 
-type InferInsertModel<T extends SQLiteTable> = T['$inferInsert'];
-type InferSelectModel<T extends SQLiteTable> = T['$inferSelect'];
+type AnyTable = SQLiteTableWithColumns<any>
 
-type WhereCondition = SQL<unknown> | SQL<unknown>[];
+type InferInsertModel<T extends AnyTable> = T['$inferInsert']
+type InferSelectModel<T extends AnyTable> = T['$inferSelect']
 
-export interface PaginationResult<T> {
-  data: T[];
-  pagination: {
-    currentPage: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-    nextPage: number | null;
-    prevPage: number | null;
-  };
+// Constraint for tables with an id column
+type TableWithId = AnyTable & {
+  id: SQLiteColumn<any>
 }
 
-export class BaseRepository<TTable extends SQLiteTable & {
-    id : any
-}> {
+type WhereCondition = SQL<unknown> | SQL<unknown>[]
+
+export interface PaginationResult<T> {
+  data: T[]
+  pagination: {
+    currentPage: number
+    pageSize: number
+    totalItems: number
+    totalPages: number
+    hasNextPage: boolean
+    hasPrevPage: boolean
+    nextPage: number | null
+    prevPage: number | null
+  }
+}
+
+export class BaseRepository<TTable extends TableWithId> {
   constructor(protected table: TTable) {}
 
   // CREATE
   async create(data: InferInsertModel<TTable>): Promise<InferSelectModel<TTable>> {
-    const [result] = await db.insert(this.table).values(data).returning();
-    return result;
+    const [result] = await db
+      .insert(this.table)
+      .values(data)
+      .returning()
+    return result as InferSelectModel<TTable>
   }
 
   async createMany(data: InferInsertModel<TTable>[]): Promise<InferSelectModel<TTable>[]> {
-    return await db.insert(this.table).values(data).returning();
+    return (await db
+      .insert(this.table)
+      .values(data)
+      .returning()) as InferSelectModel<TTable>[]
   }
 
-  // READ
   async findById(id: number | string): Promise<InferSelectModel<TTable> | undefined> {
     const [result] = await db
       .select()
       .from(this.table)
       .where(eq(this.table.id, id))
-      .limit(1);
-    return result;
+      .limit(1)
+    return result as InferSelectModel<TTable> | undefined
   }
 
   async findOne(where: WhereCondition): Promise<InferSelectModel<TTable> | undefined> {
-    const condition = Array.isArray(where) ? and(...where) : where;
+    const condition = Array.isArray(where) ? and(...where) : where
     const [result] = await db
       .select()
       .from(this.table)
       .where(condition)
-      .limit(1);
-    return result;
+      .limit(1)
+    return result as InferSelectModel<TTable> | undefined
   }
 
   async findMany(where?: WhereCondition): Promise<InferSelectModel<TTable>[]> {
-    const query = db.select().from(this.table);
+    const query = db.select().from(this.table)
 
     if (where) {
-      const condition = Array.isArray(where) ? and(...where) : where;
-      return await query.where(condition);
+      const condition = Array.isArray(where) ? and(...where) : where
+      return (await query.where(condition)) as InferSelectModel<TTable>[]
     }
 
-    return await query;
+    return (await query) as InferSelectModel<TTable>[]
   }
 
-  // findMany with pagination support
   async findManyPaginated(
-    options: {
-      where?: WhereCondition;
-      page?: number;
-      pageSize?: number;
-    } = {}
+    options: { where?: WhereCondition; page?: number; pageSize?: number } = {},
   ): Promise<PaginationResult<InferSelectModel<TTable>>> {
-    const { where, page = 1, pageSize = 10 } = options;
-    return this.findPaginated(page, pageSize, where);
+    const { where, page = 1, pageSize = 10 } = options
+    return this.findPaginated(page, pageSize, where)
   }
 
   async findAll(): Promise<InferSelectModel<TTable>[]> {
-    return await db.select().from(this.table);
+    return (await db.select().from(this.table)) as InferSelectModel<TTable>[]
   }
 
-  // findAll with pagination support
   async findAllPaginated(
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
   ): Promise<PaginationResult<InferSelectModel<TTable>>> {
-    return this.findPaginated(page, pageSize);
+    return this.findPaginated(page, pageSize)
   }
 
-  // Paginated read with enhanced pagination info
   async findPaginated(
     page: number = 1,
     pageSize: number = 10,
-    where?: WhereCondition
+    where?: WhereCondition,
   ): Promise<PaginationResult<InferSelectModel<TTable>>> {
-    // Ensure page is at least 1
-    const currentPage = Math.max(1, page);
-    const offset = (currentPage - 1) * pageSize;
+    const currentPage = Math.max(1, page)
+    const offset = (currentPage - 1) * pageSize
 
-    const query = db.select().from(this.table);
-    const countQuery = db.select({ count: sql<number>`count(*)` }).from(this.table);
+    const query = db.select().from(this.table)
+    const countQuery = db.select({ count: sql<number>`count(*)` }).from(this.table)
 
     if (where) {
-      const condition = Array.isArray(where) ? and(...where) : where;
-      query.where(condition);
-      countQuery.where(condition);
+      const condition = Array.isArray(where) ? and(...where) : where
+      query.where(condition)
+      countQuery.where(condition)
     }
 
     const [data, [{ count }]] = await Promise.all([
       query.limit(pageSize).offset(offset),
-      countQuery
-    ]);
+      countQuery,
+    ])
 
-    const totalItems = Number(count);
-    const totalPages = Math.ceil(totalItems / pageSize);
-    const hasNextPage = currentPage < totalPages;
-    const hasPrevPage = currentPage > 1;
+    const totalItems = Number(count)
+    const totalPages = Math.ceil(totalItems / pageSize)
+    const hasNextPage = currentPage < totalPages
+    const hasPrevPage = currentPage > 1
 
     return {
-      data,
+      data: data as InferSelectModel<TTable>[],
       pagination: {
         currentPage,
         pageSize,
@@ -132,67 +134,66 @@ export class BaseRepository<TTable extends SQLiteTable & {
         hasPrevPage,
         nextPage: hasNextPage ? currentPage + 1 : null,
         prevPage: hasPrevPage ? currentPage - 1 : null,
-      }
-    };
+      },
+    }
   }
 
   // UPDATE
   async update(
     id: number | string,
-    data: Partial<InferInsertModel<TTable>>
+    data: Partial<InferInsertModel<TTable>>,
   ): Promise<InferSelectModel<TTable> | undefined> {
-    const [result] = await db
+    
+    const result = await db
       .update(this.table)
       .set(data)
       .where(eq(this.table.id, id))
-      .returning();
-    return result;
+      .returning()
+    return result as InferSelectModel<TTable> | undefined
   }
 
   async updateMany(
     where: WhereCondition,
-    data: Partial<InferInsertModel<TTable>>
+    data: Partial<InferInsertModel<TTable>>,
   ): Promise<InferSelectModel<TTable>[]> {
-    const condition = Array.isArray(where) ? and(...where) : where;
-    return await db
+    const condition = Array.isArray(where) ? and(...where) : where
+    return (await db
       .update(this.table)
       .set(data)
       .where(condition)
-      .returning();
+      .returning()) as InferSelectModel<TTable>[]
   }
 
   // DELETE
   async delete(id: number | string): Promise<InferSelectModel<TTable> | undefined> {
+    // biome-ignore lint/suspicious/noExplicitAny: Required for Drizzle ORM generic type compatibility
     const [result] = await db
       .delete(this.table)
-      .where(eq(this.table.id, id))
-      .returning();
-    return result;
+      .where(eq(this.table.id, id as any))
+      .returning()
+    return result as InferSelectModel<TTable> | undefined
   }
 
   async deleteMany(where: WhereCondition): Promise<InferSelectModel<TTable>[]> {
-    const condition = Array.isArray(where) ? and(...where) : where;
-    return await db
-      .delete(this.table)
-      .where(condition)
-      .returning();
+    const condition = Array.isArray(where) ? and(...where) : where
+    return (await db.delete(this.table).where(condition).returning()) as InferSelectModel<TTable>[]
   }
 
   // Utility
   async exists(where: WhereCondition): Promise<boolean> {
-    const result = await this.findOne(where);
-    return !!result;
+    const result = await this.findOne(where)
+    return !!result
   }
 
   async count(where?: WhereCondition): Promise<number> {
-    const query = db.select({ count: sql<number>`count(*)` }).from(this.table);
-    
+    const query = db.select({ count: sql<number>`count(*)` }).from(this.table)
+
     if (where) {
-      const condition = Array.isArray(where) ? and(...where) : where;
-      query.where(condition);
+      const condition = Array.isArray(where) ? and(...where) : where
+      query.where(condition)
     }
-    
-    const [{ count }] = await query;
-    return Number(count);
+
+    const [{ count }] = await query
+    return Number(count)
   }
 }

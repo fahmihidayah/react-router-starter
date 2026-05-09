@@ -1,11 +1,11 @@
-import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/libsql';
-import { user } from '../app/db/schema';
-import { randomUUID } from 'crypto';
+import 'dotenv/config'
+import { drizzle } from 'drizzle-orm/libsql'
+import { user } from '../app/db/schema'
+import { randomUUID } from 'crypto'
 
-const db = drizzle(process.env.DB_FILE_NAME!);
+const db = drizzle(process.env.DATABASE_URL ?? '')
 
-const now = new Date();
+const now = new Date()
 
 const seedUsers = [
   {
@@ -98,26 +98,26 @@ const seedUsers = [
     createdAt: now,
     updatedAt: now,
   },
-];
+]
 
 async function seed() {
   try {
-    console.log('🌱 Seeding database...');
+    console.log('🌱 Seeding database...')
 
     // Clear existing data (optional)
-    console.log('🗑️  Clearing existing users...');
-    await db.delete(user);
+    console.log('🗑️  Clearing existing users...')
+    await db.delete(user)
 
     // Insert seed data
-    console.log('📝 Inserting seed users...');
-    await db.insert(user).values(seedUsers);
+    console.log('📝 Inserting seed users...')
+    await db.insert(user).values(seedUsers)
 
-    console.log('✅ Seeding completed successfully!');
-    console.log(`📊 Inserted ${seedUsers.length} users`);
+    console.log('✅ Seeding completed successfully!')
+    console.log(`📊 Inserted ${seedUsers.length} users`)
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
-    process.exit(1);
+    console.error('❌ Error seeding database:', error)
+    process.exit(1)
   }
 }
 
-seed();
+seed()
