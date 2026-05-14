@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Form as ReactRouterForm, redirect, useLoaderData, useSubmit } from 'react-router'
+import { Form as ReactRouterForm, useLoaderData, useSubmit } from 'react-router'
 import { z } from 'zod'
 import { Button } from '~/components/ui/button'
 import {
@@ -12,47 +12,25 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { userRepository } from '~/features/users/user-repository'
+import { updateUserAction } from '~/features/users/actions/update-user-action'
+import { getUserByIdLoader } from '~/features/users/loaders/get-user-by-id-loader'
 import type { Route } from './+types/dashboard.users.$id'
 
 // Zod schema
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().email(),
 })
 
 type UserFormData = z.infer<typeof userSchema>
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const user = await userRepository.findById(params.id)
-
-  if (!user) {
-    throw new Response('User not found', { status: 404 })
-  }
-
-  return user
+  return getUserByIdLoader(params.id)
 }
 
 // Server action - Update user using UserRepository
 export async function action({ request, params }: Route.ActionArgs) {
-  const formData = await request.formData()
-
-  try {
-    const name = formData.get('name')?.toString()
-    const email = formData.get('email')?.toString()
-
-    await userRepository.update(params.id, {
-      name,
-      email,
-      updatedAt: new Date(),
-    })
-
-    return redirect('/dashboard/users')
-  } catch (_error) {
-    return {
-      error: 'Failed to update user. Please try again.',
-    }
-  }
+  return updateUserAction(request, params.id)
 }
 
 export default function EditUserPage() {

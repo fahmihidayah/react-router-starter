@@ -1,47 +1,45 @@
-import { like } from 'drizzle-orm/sql'
 import { useState } from 'react'
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
 import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
-import { user } from '~/db/schema'
-import type { User } from '~/features/users/type'
-import { userRepository } from '~/features/users/user-repository'
+import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
+import { deleteUserAction } from '~/features/users/actions/delete-user-action'
+import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
+import type { TUser } from '~/features/users/type'
 import type { Route } from './+types/dashboard.users._index'
 
-// Loader - Fetch tasks with pagination and search using TaskRepository
+// Loader - Fetch users with pagination and search
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url)
-  const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
-  const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10', 10)
-  const search = url.searchParams.get('search') || ''
-
-  // Use repository's findManyPaginated method
-  const result = await userRepository.findManyPaginated({
-    where: search ? like(user.name, `%${search}%`) : undefined,
-    page,
-    pageSize,
-  })
-
+  const data = await getUsersLoader(request)
   return {
-    tasks: result.data,
-    totalCount: result.pagination.totalItems,
-    page: result.pagination.currentPage,
-    pageSize: result.pagination.pageSize,
-    totalPages: result.pagination.totalPages,
+    tasks: data.users,
+    totalCount: data.totalCount,
+    page: data.page,
+    pageSize: data.pageSize,
+    totalPages: data.totalPages,
   }
 }
 
-// Action - Handle delete and update operations using TaskRepository
+// Action - Handle delete and delete-many operations
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const intent = formData.get('intent')
-  const taskId = formData.get('taskId')?.toString()
 
   try {
-    if (intent === 'delete' && taskId) {
-      await userRepository.delete(taskId)
-      return { success: true, message: 'Task deleted successfully' }
+    if (intent === 'delete') {
+      const userId = formData.get('userId')?.toString()
+      if (userId) {
+        return deleteUserAction(userId)
+      }
+    }
+
+    if (intent === 'deleteMany') {
+      const idsJson = formData.get('ids')?.toString()
+      if (idsJson) {
+        const ids = JSON.parse(idsJson) as string[]
+        return deleteManyUsersAction(ids)
+      }
     }
 
     return { success: false, message: 'Invalid action' }
@@ -52,10 +50,10 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function meta() {
-  return [{ title: 'User - Dashboard' }, { name: 'description', content: 'Manage your tasks' }]
+  return [{ title: 'Users - Dashboard' }, { name: 'description', content: 'Manage your users' }]
 }
 
-export default function DashboardTasksPage() {
+export default function DashboardUsersPage() {
   const loaderData = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -63,11 +61,12 @@ export default function DashboardTasksPage() {
 
   // State
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
-  const [deletingTask, setDeletingTask] = useState<User | null>(null)
+  const [deletingUser, setDeletingUser] = useState<TUser | null>(null)
+  const [deletingMultiple, setDeletingMultiple] = useState<TUser[]>([])
   const _navigate = useNavigate()
 
   // Table columns
-  const columns = createColumn<User>({
+  const columns = createColumn<TUser>({
     tableName: 'users',
 
     columnConfig: [
@@ -97,9 +96,7 @@ export default function DashboardTasksPage() {
     ],
     actionColumnConfig: {
       getItemId: (user) => user.id,
-      // onCopyId: () => {},
-      // onEdit: (user) => navigate(`${user.id}`),
-      onDelete: (user) => setDeletingTask(user),
+      onDelete: (user) => setDeletingUser(user),
     },
   })
 
@@ -123,17 +120,35 @@ export default function DashboardTasksPage() {
     setSearchParams(params)
   }
 
-  // Handle delete
-  const handleDelete = () => {
-    if (!deletingTask) return
+  // Handle delete single user
+  const handleDeleteUser = () => {
+    if (!deletingUser) return
 
     const formData = new FormData()
     formData.append('intent', 'delete')
-    formData.append('taskId', deletingTask.id)
+    formData.append('userId', deletingUser.id)
 
     submit(formData, { method: 'post' })
-    setDeletingTask(null)
-    toast.success('Task deleted successfully')
+    setDeletingUser(null)
+    toast.success('User deleted successfully')
+  }
+
+  // Handle delete multiple users
+  const handleDeleteMultipleUsers = () => {
+    if (deletingMultiple.length === 0) return
+
+    const formData = new FormData()
+    formData.append('intent', 'deleteMany')
+    formData.append('ids', JSON.stringify(deletingMultiple.map((u) => u.id)))
+
+    submit(formData, { method: 'post' })
+    setDeletingMultiple([])
+    toast.success(`${deletingMultiple.length} user(s) deleted successfully`)
+  }
+
+  // Handle selected rows for bulk delete
+  const handleDeleteSelected = (selectedUsers: TUser[]) => {
+    setDeletingMultiple(selectedUsers)
   }
 
   return (
@@ -146,10 +161,10 @@ export default function DashboardTasksPage() {
           searchPlaceholder="Search users..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
-          emptyMessage="No tasks found."
+          emptyMessage="No users found."
           enableRowSelection
           tableName="users"
-          onDeleteSelected={() => {}}
+          onDeleteSelected={handleDeleteSelected}
           totalPages={loaderData.totalPages}
           manualPagination
         />
@@ -164,53 +179,24 @@ export default function DashboardTasksPage() {
         )}
       </div>
 
-      {/* Edit Dialog */}
-      {/* <Dialog open={!!editingTask} onOpenChange={() => setEditingTask(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Task</DialogTitle>
-            <DialogDescription>
-              Make changes to your task here. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-title">Title</Label>
-              <Input
-                id="edit-title"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Task title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                placeholder="Task description"
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingTask(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdate}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
-
-      {/* Delete Dialog */}
+      {/* Delete Single User Dialog */}
       <DeleteDialog
-        open={!!deletingTask}
-        onOpenChange={(open) => !open && setDeletingTask(null)}
-        title="Delete Task"
-        itemName={deletingTask?.email || ''}
-        onConfirm={handleDelete}
-        onCancel={() => setDeletingTask(null)}
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && setDeletingUser(null)}
+        title="Delete User"
+        itemName={deletingUser?.email || ''}
+        onConfirm={handleDeleteUser}
+        onCancel={() => setDeletingUser(null)}
+      />
+
+      {/* Delete Multiple Users Dialog */}
+      <DeleteDialog
+        open={deletingMultiple.length > 0}
+        onOpenChange={(open) => !open && setDeletingMultiple([])}
+        title="Delete Users"
+        itemName={`${deletingMultiple.length} user${deletingMultiple.length !== 1 ? 's' : ''}`}
+        onConfirm={handleDeleteMultipleUsers}
+        onCancel={() => setDeletingMultiple([])}
       />
     </div>
   )
