@@ -1,6 +1,6 @@
-import { Home, LayoutDashboard, Users, Settings, Package, CheckSquare } from 'lucide-react'
-import type { NavigationGroup } from './sidebar-navigation'
+import { Home, LayoutDashboard, Users, Settings } from 'lucide-react'
 import type { SidebarHeaderConfig } from './sidebar-header'
+import type { NavigationGroup } from './sidebar-navigation'
 
 // Default header configuration
 export const defaultHeaderConfig: SidebarHeaderConfig = {
@@ -18,11 +18,6 @@ export const defaultNavigationGroups: NavigationGroup[] = [
         title: 'Overview',
         url: '/dashboard',
         icon: LayoutDashboard,
-      },
-      {
-        title: 'Tasks',
-        url: '/dashboard/tasks',
-        icon: CheckSquare,
       },
       {
         title: 'Users',

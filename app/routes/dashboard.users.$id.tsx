@@ -1,8 +1,7 @@
-import { randomUUID } from 'node:crypto'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Form as ReactRouterForm, redirect, useSubmit } from 'react-router'
-import z from 'zod'
+import { Form as ReactRouterForm, redirect, useLoaderData, useSubmit } from 'react-router'
+import { z } from 'zod'
 import { Button } from '~/components/ui/button'
 import {
   Form,
@@ -13,76 +12,56 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { account, user } from '~/db/schema'
-import { db } from '~/lib/database'
+import { userRepository } from '~/features/users/user-repository'
+import type { Route } from './+types/dashboard.users.$id'
 
 // Zod schema
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must be less than 100 characters'),
+  email: z.string().email('Please enter a valid email address'),
 })
 
 type UserFormData = z.infer<typeof userSchema>
 
-// Server action example
-export async function action({ request }: { request: Request }) {
+export async function loader({ params }: Route.LoaderArgs) {
+  const user = await userRepository.findById(params.id)
+
+  if (!user) {
+    throw new Response('User not found', { status: 404 })
+  }
+
+  return user
+}
+
+// Server action - Update user using UserRepository
+export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData()
 
   try {
     const name = formData.get('name')?.toString()
     const email = formData.get('email')?.toString()
-    const password = formData.get('password')?.toString()
 
-    const userId = randomUUID()
-    const now = new Date()
-
-    // Insert user
-    await db.insert(user).values({
-      id: userId,
-      name: name!,
-      email: email!,
-      emailVerified: false,
-      image: null,
-      createdAt: now,
-      updatedAt: now,
-    })
-
-    // Insert account with password
-    await db.insert(account).values({
-      id: randomUUID(),
-      accountId: email!,
-      providerId: 'credential',
-      userId: userId,
-      password: password!,
-      accessToken: null,
-      refreshToken: null,
-      idToken: null,
-      accessTokenExpiresAt: null,
-      refreshTokenExpiresAt: null,
-      scope: null,
-      createdAt: now,
-      updatedAt: now,
+    await userRepository.update(params.id, {
+      name,
+      email,
+      updatedAt: new Date(),
     })
 
     return redirect('/dashboard/users')
   } catch (_error) {
     return {
-      error: 'Failed to create user. Please try again.',
+      error: 'Failed to update user. Please try again.',
     }
   }
 }
 
-export default function AddUserPage() {
+export default function EditUserPage() {
+  const loaderData = useLoaderData<typeof loader>()
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      password: '',
+      name: loaderData.name || '',
+      email: loaderData.email || '',
     },
   })
 
@@ -92,18 +71,16 @@ export default function AddUserPage() {
     const formData = new FormData()
     formData.append('name', data.name)
     formData.append('email', data.email)
-    formData.append('password', data.password)
 
-    // Sends to your `action()` on this route
     submit(formData, {
       method: 'post',
     })
   }
   return (
     <div className="container w-full mx-auto p-5 flex flex-col gap-5">
-      <h3 className="text-2xl">Add New User</h3>
+      <h3 className="text-2xl">Edit User</h3>
       <Form {...form}>
-        <ReactRouterForm onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+        <ReactRouterForm method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <FormField
             control={form.control}
             name="name"
@@ -130,20 +107,7 @@ export default function AddUserPage() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input type="password" disabled={field.disabled} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button>Submit</Button>
+          <Button type="submit">Update User</Button>
         </ReactRouterForm>
       </Form>
     </div>

@@ -1,4 +1,4 @@
-import { redirect, useNavigate } from 'react-router'
+import { Outlet, redirect, useNavigate } from 'react-router'
 import { DashboardLayout } from '~/components/admin/dashboard'
 import { auth } from '~/lib/auth'
 import { authClient } from '~/lib/auth-client'
@@ -25,5 +25,9 @@ export default function DashboardRoute({ loaderData }: Route.ComponentProps) {
     navigate('/login')
   }
 
-  return <DashboardLayout user={user} onSignOut={handleSignOut} />
+  return (
+    <DashboardLayout user={user} onSignOut={handleSignOut}>
+      <Outlet />
+    </DashboardLayout>
+  )
 }

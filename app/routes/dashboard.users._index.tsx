@@ -3,17 +3,11 @@ import { useState } from 'react'
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
-import {
-  DataTable,
-  DeleteDialog,
-  PageHeader,
-  TablePagination,
-} from '~/components/admin/table/table-list'
+import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
 import { user } from '~/db/schema'
-import { taskRepository } from '~/features/tasks/task-repository'
 import type { User } from '~/features/users/type'
 import { userRepository } from '~/features/users/user-repository'
-import type { Route } from './+types/dashboard.tasks'
+import type { Route } from './+types/dashboard.users._index'
 
 // Loader - Fetch tasks with pagination and search using TaskRepository
 export async function loader({ request }: Route.LoaderArgs) {
@@ -44,24 +38,10 @@ export async function action({ request }: Route.ActionArgs) {
   const intent = formData.get('intent')
   const taskId = formData.get('taskId')?.toString()
 
-  console.log('user id : ', intent, taskId)
   try {
     if (intent === 'delete' && taskId) {
       await userRepository.delete(taskId)
       return { success: true, message: 'Task deleted successfully' }
-    }
-
-    if (intent === 'update' && taskId) {
-      const title = formData.get('title')?.toString()
-      const description = formData.get('description')?.toString()
-
-      await taskRepository.update(taskId, {
-        title,
-        description,
-        updatedAt: new Date(),
-      })
-
-      return { success: true, message: 'Task updated successfully' }
     }
 
     return { success: false, message: 'Invalid action' }
@@ -84,10 +64,12 @@ export default function DashboardTasksPage() {
   // State
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
   const [deletingTask, setDeletingTask] = useState<User | null>(null)
-  const navigate = useNavigate()
+  const _navigate = useNavigate()
 
   // Table columns
   const columns = createColumn<User>({
+    tableName: 'users',
+
     columnConfig: [
       {
         type: 'text',
@@ -115,8 +97,8 @@ export default function DashboardTasksPage() {
     ],
     actionColumnConfig: {
       getItemId: (user) => user.id,
-      onCopyId: () => {},
-      onEdit: (user) => navigate(`${user.id}`),
+      // onCopyId: () => {},
+      // onEdit: (user) => navigate(`${user.id}`),
       onDelete: (user) => setDeletingTask(user),
     },
   })
@@ -157,24 +139,17 @@ export default function DashboardTasksPage() {
   return (
     <div className="flex-1 p-6">
       <div className="space-y-6">
-        {/* Page Header */}
-        <PageHeader
-          title="Users"
-          description="Manage and organize your users efficiently"
-          addButtonText="Add User"
-          addButtonLink="/dashboard/users/add"
-        />
-
         {/* Data Table */}
         <DataTable
-          title="All Users"
-          description={`${loaderData.totalCount} task${loaderData.totalCount !== 1 ? 's' : ''} total`}
           data={loaderData.tasks}
           columns={columns}
           searchPlaceholder="Search users..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
           emptyMessage="No tasks found."
+          enableRowSelection
+          tableName="users"
+          onDeleteSelected={() => {}}
           totalPages={loaderData.totalPages}
           manualPagination
         />
