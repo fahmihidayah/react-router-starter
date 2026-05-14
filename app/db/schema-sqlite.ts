@@ -54,11 +54,3 @@ export const verification = sqliteTable('verification', {
   createdAt: int('createdAt', { mode: 'timestamp' }),
   updatedAt: int('updatedAt', { mode: 'timestamp' }),
 })
-
-export const task = sqliteTable('tasks', {
-  id: text('id').primaryKey(),
-  title: text('title'),
-  description: text('description'),
-  createdAt: int('createdAt', { mode: 'timestamp' }),
-  updatedAt: int('updatedAt', { mode: 'timestamp' }),
-})
