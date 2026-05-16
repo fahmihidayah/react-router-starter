@@ -25,7 +25,8 @@
       "Bash(pnpm exec vitest:*)",
       "Bash(pnpm db:push:*)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm vitest:*)"
+      "Bash(pnpm vitest:*)",
+      "Bash(pnpm ls:*)"
     ],
     "deny": [],
     "ask": []
