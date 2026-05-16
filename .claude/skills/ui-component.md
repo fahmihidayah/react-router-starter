@@ -19,7 +19,8 @@ This project has 25+ pre-built Radix UI components including:
 button, card, dialog, dropdown-menu, input, label, select,
 table, tabs, textarea, tooltip, badge, checkbox, radio-group,
 separator, sheet, sidebar, skeleton, switch, toast (sonner),
-command (cmdk), drawer (vaul), popover, scroll-area, avatar
+command (cmdk), drawer (vaul), popover, scroll-area, avatar,
+form (RHF), error-display (validation errors)
 ```
 
 Rule: **Always reuse before creating.** If a component exists in `components/ui/`,
@@ -223,4 +224,71 @@ When a list/table has no data:
     </Link>
   </Button>
 </div>
+```
+
+## ErrorDisplay Component
+
+Display server-side validation errors from form actions in a consistent alert box:
+
+```typescript
+import { ErrorDisplay } from '~/components/ui/error-display'
+
+interface ErrorDisplayProps {
+  errors: Record<string, string[] | undefined>
+}
+
+export function ErrorDisplay({ errors }: ErrorDisplayProps) {
+  const errorMessages = Object.entries(errors)
+    .filter(([, messages]) => messages && messages.length > 0)
+    .flatMap(([field, messages]) => messages?.map((msg) => `${field}: ${msg}`) || [])
+
+  if (errorMessages.length === 0) return null
+
+  return (
+    <div className="rounded-md bg-red-50 p-4">
+      <div className="flex">
+        <AlertCircle className="h-5 w-5 text-red-400" />
+        <div className="ml-3">
+          <h3 className="text-sm font-medium text-red-800">Validation errors</h3>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
+            {errorMessages.map((msg) => (
+              <li key={`${msg}`}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### Usage in Forms
+
+Display errors at the top of the form when server validation fails:
+
+```typescript
+const AddUserForm = ({ errors, onSubmit }) => {
+  return (
+    <>
+      {errors && <ErrorDisplay errors={errors} />}
+      <Form {...form}>
+        {/* form fields */}
+      </Form>
+    </>
+  )
+}
+```
+
+The `errors` object comes from server action validation:
+- Key: field name (e.g., `'email'`, `'name'`)
+- Value: array of error messages (or undefined if no errors)
+
+Example return from action:
+```typescript
+return {
+  errors: {
+    email: ['Invalid email format'],
+    name: [],
+  },
+}
 ```

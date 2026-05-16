@@ -72,10 +72,17 @@ export default function DashboardUsersPage() {
     columnConfig: [
       {
         type: 'text',
+        accessorKey: 'id',
+        header: 'ID',
+        fallback: 'No ID',
+        isBold: false,
+      },
+      {
+        type: 'text',
         accessorKey: 'email',
         header: 'Email',
         fallback: 'No email',
-        isBold: true,
+        isBold: false,
       },
       {
         type: 'text',

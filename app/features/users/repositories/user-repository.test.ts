@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { userRepository } from './repositories'
-import { db } from '~/lib/database'
-import { user } from '~/db/schema'
 import { like } from 'drizzle-orm/sql'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { user } from '~/db/schema'
+import { db } from '~/lib/database'
+import { userRepository } from './'
 
 describe('UserRepository', () => {
   // Seed a known state before each test
@@ -66,9 +66,7 @@ describe('UserRepository', () => {
       const result = await userRepository.findAll()
 
       expect(result).toHaveLength(3)
-      expect(result.map((u) => u.id)).toEqual(
-        expect.arrayContaining(['u1', 'u2', 'u3'])
-      )
+      expect(result.map((u) => u.id)).toEqual(expect.arrayContaining(['u1', 'u2', 'u3']))
     })
 
     it('returns empty array when no users exist', async () => {

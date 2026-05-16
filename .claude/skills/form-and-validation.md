@@ -10,126 +10,244 @@ description: >
 
 # Form & Validation Patterns
 
-## Standard Form Setup
+## Zod Schema Organization
 
-Every form follows this pattern: Zod schema → RHF with zodResolver → Radix UI components.
+Schemas are centralized in `features/[name]/schemas/` directory and exported as reusable types:
 
 ```typescript
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+// app/features/users/schemas/user-schema.ts
+import z from 'zod'
 
-// 1. Define Zod schema
-const productSchema = z.object({
+export const createUserSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  price: z.coerce.number().min(0, 'Price must be positive'),
-  description: z.string().optional(),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
-// 2. Infer type from schema (T prefix)
-type TProductFormData = z.infer<typeof productSchema>
+export type TCreateUser = z.infer<typeof createUserSchema>
 
-// 3. Component with RHF
-export function ProductForm({ onSubmit }: { onSubmit: (data: TProductFormData) => void }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<TProductFormData>({
-    resolver: zodResolver(productSchema),
+export const updateUserSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  email: z.string().email('Invalid email'),
+})
+
+export type TUpdateUser = z.infer<typeof updateUserSchema>
+```
+
+## Standard Form Component Pattern
+
+Forms are extracted to `features/[name]/components/admin/form/` as pure presentational components that accept errors and callbacks as props:
+
+```typescript
+// app/features/users/components/admin/form/add-user-form.tsx
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { Button } from '~/components/ui/button'
+import { ErrorDisplay } from '~/components/ui/error-display'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { createUserSchema, type TCreateUser } from '~/features/users/schemas/user-schema'
+
+interface AddUserFormProps {
+  errors?: Record<string, string[] | undefined>
+  onSubmit?: (formData: FormData) => void | Promise<void>
+}
+
+type UserFormData = TCreateUser
+
+export function AddUserForm({ errors, onSubmit }: AddUserFormProps) {
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(createUserSchema),
     defaultValues: {
       name: '',
-      price: 0,
-      description: '',
+      email: '',
+      password: '',
     },
   })
 
+  const handleSubmit = async (data: UserFormData) => {
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('email', data.email)
+    formData.append('password', data.password)
+
+    if (onSubmit) {
+      await onSubmit(formData)
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Label htmlFor="name">Name</Label>
-        <Input id="name" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-destructive mt-1">{errors.name.message}</p>
-        )}
-      </div>
-
-      <div>
-        <Label htmlFor="price">Price</Label>
-        <Input id="price" type="number" {...register('price')} />
-        {errors.price && (
-          <p className="text-sm text-destructive mt-1">{errors.price.message}</p>
-        )}
-      </div>
-
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Saving...' : 'Save'}
-      </Button>
-    </form>
+    <>
+      {errors && <ErrorDisplay errors={errors} />}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
+          <div className="flex flex-row justify-end">
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    disabled={field.disabled || form.formState.isSubmitting}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* more fields... */}
+        </form>
+      </Form>
+    </>
   )
 }
 ```
 
 ## Rules
 
-- Zod schemas are the single source of truth for validation.
-- Always use `zodResolver` — never manual validation in onSubmit.
-- Type form data with `z.infer<typeof schema>` and prefix with `T`.
+- Zod schemas are centralized in `features/[name]/schemas/[name]-schema.ts`.
+- Export both the schema and inferred types (with `T` prefix) from schema files.
+- Use `zodResolver` in forms — never manual validation in onSubmit.
 - Use `z.coerce.number()` for numeric inputs (HTML inputs return strings).
-- Place the schema in the same file as the form, or in `lib/[feature].schema.ts` if shared.
 - Use `defaultValues` in useForm to avoid uncontrolled → controlled warnings.
+- Form components are pure presentational: accept `errors` and `onSubmit` as props.
+- No React Router hooks in form components (`useActionData`, `useSubmit`).
+- Route components orchestrate: handle hooks, pass props to form components.
+- Always show loading state with `form.formState.isSubmitting` to disable inputs during submission.
 
 ## Edit Form Pattern (Pre-filled)
 
 ```typescript
-type TEditProductFormProps = {
-  product: TProduct
-  onSubmit: (data: TProductFormData) => void
+interface EditUserFormProps {
+  user: TUser
+  errors?: Record<string, string[] | undefined>
+  onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-export function EditProductForm({ product, onSubmit }: TEditProductFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<TProductFormData>({
-    resolver: zodResolver(productSchema),
+type UserFormData = TUpdateUser
+
+export function EditUserForm({ user, errors, onSubmit }: EditUserFormProps) {
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(updateUserSchema),
     defaultValues: {
-      name: product.name,
-      price: product.price,
-      description: product.description || '',
+      name: user.name || '',
+      email: user.email || '',
     },
   })
 
-  return <form onSubmit={handleSubmit(onSubmit)}>{/* fields */}</form>
+  const handleSubmit = async (data: UserFormData) => {
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('email', data.email)
+
+    if (onSubmit) {
+      await onSubmit(formData)
+    }
+  }
+
+  return (
+    <>
+      {errors && <ErrorDisplay errors={errors} />}
+      <Form {...form}>
+        <form method="post" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
+          <div className="flex flex-row justify-end">
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+          {/* form fields */}
+        </form>
+      </Form>
+    </>
+  )
 }
 ```
 
-## Submitting to Server Actions
+## Server-Side Action Validation
 
-Forms in route pages submit via React Router's `useSubmit` or native form POST:
+Actions use `Zod.safeParse()` to validate form data and return field errors:
 
 ```typescript
-// In the route component
-const submit = useSubmit()
+// app/features/users/actions/update-user-action.ts
+import { updateUserSchema } from '../schemas/user-schema'
+import { userRepository } from '../repositories'
 
-const handleFormSubmit = (data: TProductFormData) => {
-  const formData = new FormData()
-  formData.append('intent', 'create')
-  Object.entries(data).forEach(([key, value]) => {
-    formData.append(key, String(value))
-  })
-  submit(formData, { method: 'post' })
+export async function updateUserAction(request: Request, id: string) {
+  const formData = await request.formData()
+  const result = updateUserSchema.safeParse(Object.fromEntries(formData))
+
+  // Return validation errors if invalid
+  if (!result.success) {
+    return { errors: result.error.flatten().fieldErrors }
+  }
+
+  try {
+    const { name, email } = result.data
+    await userRepository.update(id, { name, email, updatedAt: new Date() })
+    return redirect('/dashboard/users')
+  } catch (_error) {
+    return {
+      errors: {
+        name: ['Failed to update user. Please try again.'],
+        email: [],
+      },
+    }
+  }
 }
 ```
 
-Or for simpler cases, use native form action with hidden intent field:
+The form component receives validation errors via `useActionData()` and displays them with `<ErrorDisplay />`.
+
+## ErrorDisplay Component
+
+Display server-side validation errors consistently:
 
 ```typescript
-<form method="post">
-  <input type="hidden" name="intent" value="delete" />
-  <input type="hidden" name="id" value={item.id} />
-  <Button type="submit" variant="destructive">Delete</Button>
-</form>
+// app/components/ui/error-display.tsx
+import { AlertCircle } from 'lucide-react'
+
+interface ErrorDisplayProps {
+  errors: Record<string, string[] | undefined>
+}
+
+export function ErrorDisplay({ errors }: ErrorDisplayProps) {
+  const errorMessages = Object.entries(errors)
+    .filter(([, messages]) => messages && messages.length > 0)
+    .flatMap(([field, messages]) => messages?.map((msg) => `${field}: ${msg}`) || [])
+
+  if (errorMessages.length === 0) return null
+
+  return (
+    <div className="rounded-md bg-red-50 p-4">
+      <div className="flex">
+        <AlertCircle className="h-5 w-5 text-red-400" />
+        <div className="ml-3">
+          <h3 className="text-sm font-medium text-red-800">Validation errors</h3>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
+            {errorMessages.map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
 ```
 
 ## Common Zod Patterns
@@ -160,25 +278,39 @@ z.object({
 )
 ```
 
-## Error Display Convention
+## Client-Side Error Display
 
-Always show field errors below the input with consistent styling:
-
-```typescript
-{errors.fieldName && (
-  <p className="text-sm text-destructive mt-1">{errors.fieldName.message}</p>
-)}
-```
-
-For server-side action errors (returned from action), use toast:
+React Hook Form automatically displays field errors via `<FormMessage />`:
 
 ```typescript
-import { toast } from 'sonner'
-
-// After action returns
-if (!result.success) {
-  toast.error(result.message)
-} else {
-  toast.success(result.message)
-}
+<FormField
+  control={form.control}
+  name="email"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Email</FormLabel>
+      <FormControl>
+        <Input type="email" {...field} />
+      </FormControl>
+      <FormMessage /> {/* Automatically shows RHF validation errors */}
+    </FormItem>
+  )}
+/>
 ```
+
+## Server-Side Error Display
+
+Server validation errors from actions are displayed at the top of the form using `<ErrorDisplay />`:
+
+```typescript
+const actionData = useActionData()
+
+return (
+  <>
+    {actionData?.errors && <ErrorDisplay errors={actionData.errors} />}
+    <Form {...form}>{/* form fields */}</Form>
+  </>
+)
+```
+
+This separates concerns: client validates (RHF), server validates (Zod), both show errors clearly.
