@@ -1,24 +1,20 @@
 import { like } from 'drizzle-orm/sql'
 import { user } from '~/db/schema'
+import type { PaginateDocs } from '~/types/pagination'
+import type { TUser } from '../type'
 import { userRepository } from '../repositories'
 
-export async function getUsersLoader(request: Request) {
+export async function getUsersLoader(
+  request: Request,
+): Promise<PaginateDocs<TUser>> {
   const url = new URL(request.url)
   const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
-  const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10', 10)
+  const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)
   const search = url.searchParams.get('search') || ''
 
-  const result = await userRepository.findManyPaginated({
+  return await userRepository.findManyPaginated({
     where: search ? like(user.name, `%${search}%`) : undefined,
     page,
-    pageSize,
+    limit,
   })
-
-  return {
-    users: result.data,
-    totalCount: result.pagination.totalItems,
-    page: result.pagination.currentPage,
-    pageSize: result.pagination.pageSize,
-    totalPages: result.pagination.totalPages,
-  }
 }

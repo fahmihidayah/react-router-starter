@@ -45,18 +45,34 @@ All repositories extend `BaseRepository<T>`. It provides typed CRUD methods.
 ### Available Methods
 
 ```
-findById(id: string)                        → single record or null
-findOne(where: SQL)                         → single record matching condition
-findMany(where?: SQL)                       → array of records
-findAll()                                   → all records
-findManyPaginated({ where?, page, pageSize }) → { data, pagination }
-create(data: NewRecord)                     → created record
-createMany(data: NewRecord[])               → created records
-update(id: string, data: Partial<Record>)   → updated record
-delete(id: string)                          → void
-deleteMany(where: SQL)                      → void (use inArray for bulk)
-exists(where: SQL)                          → boolean
-count(where?: SQL)                          → number
+findById(id: string)                    → single record or null
+findOne(where: SQL)                     → single record matching condition
+findMany(where?: SQL)                   → array of records
+findAll()                               → all records
+findManyPaginated({ where?, page, limit }) → PaginateDocs<T>
+create(data: NewRecord)                 → created record
+createMany(data: NewRecord[])           → created records
+update(id: string, data: Partial<Record>) → updated record
+delete(id: string)                      → void
+deleteMany(where: SQL)                  → void (use inArray for bulk)
+exists(where: SQL)                      → boolean
+count(where?: SQL)                      → number
+```
+
+### Pagination Response
+
+The `findManyPaginated()` method returns a `PaginateDocs<T>` object:
+
+```typescript
+interface PaginateDocs<T> {
+  docs: T[]              // Array of records
+  page: number           // Current page number (1-indexed)
+  limit: number          // Items per page
+  totalDocs: number      // Total count of items
+  totalPages: number     // Total number of pages
+  hasNextPage: boolean   // Whether there is a next page
+  hasPrevPage: boolean   // Whether there is a previous page
+}
 ```
 
 ### Repository Directory Organization
@@ -147,28 +163,26 @@ await productRepository.deleteMany(inArray(products.id, selectedIds))
 ### Paginated Queries in Loaders
 
 ```typescript
+import type { PaginateDocs } from '~/types/pagination'
+
 export async function getItemsLoader(request: Request) {
   const url = new URL(request.url)
   const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
-  const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10', 10)
+  const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)
   const search = url.searchParams.get('search') || ''
 
   const result = await itemRepository.findManyPaginated({
     where: search ? like(items.name, `%${search}%`) : undefined,
     page,
-    pageSize,
+    limit,
   })
 
-  // Return flat structure for the route
-  return {
-    items: result.data,
-    totalCount: result.pagination.totalItems,
-    page: result.pagination.currentPage,
-    pageSize: result.pagination.pageSize,
-    totalPages: result.pagination.totalPages,
-  }
+  // Return paginated response
+  return result
 }
 ```
+
+The `PaginateDocs<T>` type is defined in `app/types/pagination.ts` and provides a consistent pagination response format across all endpoints.
 
 ## Database Client (`app/lib/database.ts`)
 

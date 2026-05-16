@@ -11,14 +11,7 @@ import type { Route } from './+types/dashboard.users._index'
 
 // Loader - Fetch users with pagination and search
 export async function loader({ request }: Route.LoaderArgs) {
-  const data = await getUsersLoader(request)
-  return {
-    tasks: data.users,
-    totalCount: data.totalCount,
-    page: data.page,
-    pageSize: data.pageSize,
-    totalPages: data.totalPages,
-  }
+  return await getUsersLoader(request)
 }
 
 // Action - Handle delete and delete-many operations
@@ -163,7 +156,7 @@ export default function DashboardUsersPage() {
       <div className="space-y-6">
         {/* Data Table */}
         <DataTable
-          data={loaderData.tasks}
+          data={loaderData.docs}
           columns={columns}
           searchPlaceholder="Search users..."
           searchValue={searchValue}

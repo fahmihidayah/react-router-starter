@@ -81,47 +81,52 @@ describe('UserRepository', () => {
     it('returns paginated results with correct metadata', async () => {
       const result = await userRepository.findManyPaginated({
         page: 1,
-        pageSize: 2,
+        limit: 2,
       })
 
-      expect(result.data).toHaveLength(2)
-      expect(result.pagination.totalItems).toBe(3)
-      expect(result.pagination.totalPages).toBe(2)
-      expect(result.pagination.currentPage).toBe(1)
+      expect(result.docs).toHaveLength(2)
+      expect(result.totalDocs).toBe(3)
+      expect(result.totalPages).toBe(2)
+      expect(result.page).toBe(1)
+      expect(result.hasNextPage).toBe(true)
+      expect(result.hasPrevPage).toBe(false)
     })
 
     it('returns correct page 2 results', async () => {
       const result = await userRepository.findManyPaginated({
         page: 2,
-        pageSize: 2,
+        limit: 2,
       })
 
-      expect(result.data).toHaveLength(1)
-      expect(result.pagination.currentPage).toBe(2)
-      expect(result.pagination.totalPages).toBe(2)
+      expect(result.docs).toHaveLength(1)
+      expect(result.page).toBe(2)
+      expect(result.totalPages).toBe(2)
+      expect(result.hasNextPage).toBe(false)
+      expect(result.hasPrevPage).toBe(true)
     })
 
     it('filters results with where clause', async () => {
       const result = await userRepository.findManyPaginated({
         where: like(user.name, '%Charlie%'),
         page: 1,
-        pageSize: 10,
+        limit: 10,
       })
 
-      expect(result.data).toHaveLength(1)
-      expect(result.data[0].name).toBe('Charlie Brown')
+      expect(result.docs).toHaveLength(1)
+      expect(result.docs[0].name).toBe('Charlie Brown')
+      expect(result.totalDocs).toBe(1)
     })
 
     it('returns empty results when filter matches nothing', async () => {
       const result = await userRepository.findManyPaginated({
         where: like(user.name, '%NonExistent%'),
         page: 1,
-        pageSize: 10,
+        limit: 10,
       })
 
-      expect(result.data).toHaveLength(0)
-      expect(result.pagination.totalItems).toBe(0)
-      expect(result.pagination.totalPages).toBe(0)
+      expect(result.docs).toHaveLength(0)
+      expect(result.totalDocs).toBe(0)
+      expect(result.totalPages).toBe(0)
     })
   })
 
