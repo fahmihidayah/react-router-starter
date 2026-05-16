@@ -1,4 +1,4 @@
-import { userRepository } from '../user-repository'
+import { userRepository } from '../repositories'
 
 export async function deleteUserAction(id: string) {
   try {

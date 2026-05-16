@@ -1,4 +1,4 @@
-import { userRepository } from '../user-repository'
+import { userRepository } from '../repositories'
 
 export async function getUserByIdLoader(id: string) {
   const user = await userRepository.findById(id)

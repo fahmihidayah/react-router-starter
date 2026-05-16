@@ -1,6 +1,6 @@
 import { like } from 'drizzle-orm/sql'
 import { user } from '~/db/schema'
-import { userRepository } from '../user-repository'
+import { userRepository } from '../repositories'
 
 export async function getUsersLoader(request: Request) {
   const url = new URL(request.url)

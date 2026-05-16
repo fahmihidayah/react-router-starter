@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { redirect } from 'react-router'
-import { account, user } from '~/db/schema'
-import { db } from '~/lib/database'
+import { accountRepository, userRepository } from '../repositories'
 
 export async function createUserAction(request: Request) {
   const formData = await request.formData()
@@ -14,8 +13,8 @@ export async function createUserAction(request: Request) {
     const userId = randomUUID()
     const now = new Date()
 
-    // Insert user
-    await db.insert(user).values({
+    // Create user via repository
+    await userRepository.create({
       id: userId,
       name: name!,
       email: email!,
@@ -25,8 +24,8 @@ export async function createUserAction(request: Request) {
       updatedAt: now,
     })
 
-    // Insert account with password
-    await db.insert(account).values({
+    // Create account via repository
+    await accountRepository.create({
       id: randomUUID(),
       accountId: email!,
       providerId: 'credential',

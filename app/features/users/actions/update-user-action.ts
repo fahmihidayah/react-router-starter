@@ -1,5 +1,5 @@
 import { redirect } from 'react-router'
-import { userRepository } from '../user-repository'
+import { userRepository } from '../repositories'
 
 export async function updateUserAction(request: Request, id: string) {
   const formData = await request.formData()
