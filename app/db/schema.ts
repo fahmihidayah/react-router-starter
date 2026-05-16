@@ -54,3 +54,14 @@ export const verification = sqliteTable('verification', {
   createdAt: int('createdAt', { mode: 'timestamp' }),
   updatedAt: int('updatedAt', { mode: 'timestamp' }),
 })
+
+export const media = sqliteTable('media', {
+  id: text('id').primaryKey(),
+  url: text('url').notNull(),
+  alt: text('alt'),
+  filename: text('filename').notNull(),
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
+})
+
+export type TMedia = typeof media.$inferSelect
