@@ -18,7 +18,7 @@ export default function EditUserPage() {
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
 
-  const handleFormSubmit = (_data: unknown, formData: FormData) => {
+  const handleFormSubmit = (formData: FormData) => {
     submit(formData, { method: 'post' })
   }
 
