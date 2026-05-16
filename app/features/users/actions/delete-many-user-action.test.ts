@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteManyUsersAction } from './delete-many-user-action'
 
 vi.mock('../repositories', () => ({
@@ -11,11 +11,11 @@ import { userRepository } from '../repositories'
 
 describe('deleteManyUsersAction', () => {
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
   it('deletes multiple users and returns success', async () => {
-    vi.mocked(userRepository.deleteMany).mockResolvedValue(undefined)
+    vi.mocked(userRepository.deleteMany).mockResolvedValue(Array.of())
 
     const result = await deleteManyUsersAction(['u1', 'u2', 'u3'])
 
@@ -24,7 +24,7 @@ describe('deleteManyUsersAction', () => {
   })
 
   it('calls repository deleteMany with correct IDs', async () => {
-    vi.mocked(userRepository.deleteMany).mockResolvedValue(undefined)
+    vi.mocked(userRepository.deleteMany).mockResolvedValue(Array.of())
 
     await deleteManyUsersAction(['u1', 'u2'])
 
@@ -41,9 +41,7 @@ describe('deleteManyUsersAction', () => {
   })
 
   it('returns failure when repository throws', async () => {
-    vi.mocked(userRepository.deleteMany).mockRejectedValue(
-      new Error('DB error')
-    )
+    vi.mocked(userRepository.deleteMany).mockRejectedValue(new Error('DB error'))
 
     const result = await deleteManyUsersAction(['u1'])
 
@@ -52,7 +50,7 @@ describe('deleteManyUsersAction', () => {
   })
 
   it('handles single user deletion', async () => {
-    vi.mocked(userRepository.deleteMany).mockResolvedValue(undefined)
+    vi.mocked(userRepository.deleteMany).mockResolvedValue(Array.of())
 
     const result = await deleteManyUsersAction(['u1'])
 
@@ -61,7 +59,7 @@ describe('deleteManyUsersAction', () => {
   })
 
   it('handles large batch of user IDs', async () => {
-    vi.mocked(userRepository.deleteMany).mockResolvedValue(undefined)
+    vi.mocked(userRepository.deleteMany).mockResolvedValue(Array.of())
 
     const ids = Array.from({ length: 100 }, (_, i) => `u${i}`)
     const result = await deleteManyUsersAction(ids)
@@ -71,9 +69,7 @@ describe('deleteManyUsersAction', () => {
   })
 
   it('returns specific error message on database failure', async () => {
-    vi.mocked(userRepository.deleteMany).mockRejectedValue(
-      new Error('Constraint violation')
-    )
+    vi.mocked(userRepository.deleteMany).mockRejectedValue(new Error('Constraint violation'))
 
     const result = await deleteManyUsersAction(['u1', 'u2'])
 
@@ -99,7 +95,7 @@ describe('deleteManyUsersAction', () => {
   })
 
   it('calls repository when array has at least one element', async () => {
-    vi.mocked(userRepository.deleteMany).mockResolvedValue(undefined)
+    vi.mocked(userRepository.deleteMany).mockResolvedValue(Array.of())
 
     await deleteManyUsersAction(['u1'])
 

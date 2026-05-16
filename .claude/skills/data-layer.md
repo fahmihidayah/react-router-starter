@@ -59,25 +59,60 @@ exists(where: SQL)                          → boolean
 count(where?: SQL)                          → number
 ```
 
+### Repository Directory Organization
+
+For features with multiple repositories, organize them in a dedicated `repositories/` folder:
+
+```
+app/features/users/
+├── repositories/
+│   ├── index.ts                  # Barrel export
+│   ├── user-repository.ts
+│   ├── account-repository.ts
+│   ├── user-repository.test.ts
+│   └── account-repository.test.ts
+├── actions/
+├── loaders/
+├── components/
+└── type.ts
+```
+
 ### Creating a Repository
 
 ```typescript
-// app/features/tasks/task-repository.ts
+// app/features/users/repositories/user-repository.ts
 import { BaseRepository } from '~/lib/repository'
-import { tasks } from '~/db/schema'
+import { user } from '~/db/schema'
 
-class TaskRepository extends BaseRepository<typeof tasks> {
+class UserRepository extends BaseRepository<typeof user> {
   // Add custom methods only when BaseRepository doesn't cover the use case
-  async findByStatus(status: string) {
-    return this.findMany(eq(tasks.status, status))
+  async findByEmail(email: string) {
+    return this.findOne(eq(user.email, email))
   }
 }
 
-export const taskRepository = new TaskRepository(tasks)
+export const userRepository = new UserRepository(user)
+```
+
+Barrel export for clean imports:
+
+```typescript
+// app/features/users/repositories/index.ts
+export { userRepository } from './user-repository'
+export { accountRepository } from './account-repository'
+```
+
+Then import repositories in actions/loaders:
+
+```typescript
+// app/features/users/actions/create-user-action.ts
+import { userRepository, accountRepository } from '../repositories'
 ```
 
 Rules:
-- One repository per feature, one file.
+- One repository per entity in the feature.
+- When a feature has 2+ repositories, create a `repositories/` folder.
+- Use barrel export (`index.ts`) for cleaner imports throughout the feature.
 - Export a singleton instance, not the class.
 - Only add custom methods when BaseRepository methods aren't sufficient.
 - Name file: `[entity]-repository.ts` (kebab-case).

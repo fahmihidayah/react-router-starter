@@ -11,7 +11,7 @@ import { userRepository } from '../repositories'
 
 describe('deleteUserAction', () => {
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
   it('deletes a user and returns success', async () => {
