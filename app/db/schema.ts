@@ -55,10 +55,36 @@ export const verification = sqliteTable('verification', {
   updatedAt: int('updatedAt', { mode: 'timestamp' }),
 })
 
-export const task = sqliteTable('tasks', {
+export const media = sqliteTable('media', {
   id: text('id').primaryKey(),
-  title: text('title'),
-  description: text('description'),
-  createdAt: int('createdAt', { mode: 'timestamp' }),
-  updatedAt: int('updatedAt', { mode: 'timestamp' }),
+  url: text('url').notNull(),
+  alt: text('alt'),
+  filename: text('filename').notNull(),
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
 })
+
+export const categories = sqliteTable('category', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
+})
+
+export const posts = sqliteTable('post', {
+  id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  categoryId: text('categoryId')
+    .notNull()
+    .references(() => categories.id, {
+      onDelete: 'cascade',
+    }),
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
+})
+
+export type TMedia = typeof media.$inferSelect
+export type TCategory = typeof categories.$inferSelect
+export type TPost = typeof posts.$inferSelect

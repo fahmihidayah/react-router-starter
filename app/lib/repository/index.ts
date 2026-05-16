@@ -2,6 +2,7 @@
 import { and, eq, type SQL, sql } from 'drizzle-orm'
 import type { SQLiteTableWithColumns, SQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { db } from '../database'
+import type { PaginateDocs } from '~/types/pagination'
 
 type AnyTable = SQLiteTableWithColumns<any>
 
@@ -14,20 +15,6 @@ type TableWithId = AnyTable & {
 }
 
 type WhereCondition = SQL<unknown> | SQL<unknown>[]
-
-export interface PaginationResult<T> {
-  data: T[]
-  pagination: {
-    currentPage: number
-    pageSize: number
-    totalItems: number
-    totalPages: number
-    hasNextPage: boolean
-    hasPrevPage: boolean
-    nextPage: number | null
-    prevPage: number | null
-  }
-}
 
 export class BaseRepository<TTable extends TableWithId> {
   constructor(protected table: TTable) {}
@@ -79,10 +66,10 @@ export class BaseRepository<TTable extends TableWithId> {
   }
 
   async findManyPaginated(
-    options: { where?: WhereCondition; page?: number; pageSize?: number } = {},
-  ): Promise<PaginationResult<InferSelectModel<TTable>>> {
-    const { where, page = 1, pageSize = 10 } = options
-    return this.findPaginated(page, pageSize, where)
+    options: { where?: WhereCondition; page?: number; limit?: number } = {},
+  ): Promise<PaginateDocs<InferSelectModel<TTable>>> {
+    const { where, page = 1, limit = 10 } = options
+    return this.findPaginated(page, limit, where)
   }
 
   async findAll(): Promise<InferSelectModel<TTable>[]> {
@@ -91,18 +78,18 @@ export class BaseRepository<TTable extends TableWithId> {
 
   async findAllPaginated(
     page: number = 1,
-    pageSize: number = 10,
-  ): Promise<PaginationResult<InferSelectModel<TTable>>> {
-    return this.findPaginated(page, pageSize)
+    limit: number = 10,
+  ): Promise<PaginateDocs<InferSelectModel<TTable>>> {
+    return this.findPaginated(page, limit)
   }
 
   async findPaginated(
     page: number = 1,
-    pageSize: number = 10,
+    limit: number = 10,
     where?: WhereCondition,
-  ): Promise<PaginationResult<InferSelectModel<TTable>>> {
+  ): Promise<PaginateDocs<InferSelectModel<TTable>>> {
     const currentPage = Math.max(1, page)
-    const offset = (currentPage - 1) * pageSize
+    const offset = (currentPage - 1) * limit
 
     const query = db.select().from(this.table)
     const countQuery = db.select({ count: sql<number>`count(*)` }).from(this.table)
@@ -114,27 +101,23 @@ export class BaseRepository<TTable extends TableWithId> {
     }
 
     const [data, [{ count }]] = await Promise.all([
-      query.limit(pageSize).offset(offset),
+      query.limit(limit).offset(offset),
       countQuery,
     ])
 
-    const totalItems = Number(count)
-    const totalPages = Math.ceil(totalItems / pageSize)
+    const totalDocs = Number(count)
+    const totalPages = Math.ceil(totalDocs / limit)
     const hasNextPage = currentPage < totalPages
     const hasPrevPage = currentPage > 1
 
     return {
-      data: data as InferSelectModel<TTable>[],
-      pagination: {
-        currentPage,
-        pageSize,
-        totalItems,
-        totalPages,
-        hasNextPage,
-        hasPrevPage,
-        nextPage: hasNextPage ? currentPage + 1 : null,
-        prevPage: hasPrevPage ? currentPage - 1 : null,
-      },
+      docs: data as InferSelectModel<TTable>[],
+      page: currentPage,
+      limit,
+      totalDocs,
+      totalPages,
+      hasNextPage,
+      hasPrevPage,
     }
   }
 

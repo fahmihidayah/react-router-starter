@@ -20,7 +20,14 @@
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm approve-builds:*)",
       "Bash(pnpm install)",
-      "Bash(pnpm exec tsc:*)"
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm exec vitest:*)",
+      "Bash(pnpm db:push:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm vitest:*)",
+      "Bash(pnpm ls:*)",
+      "Bash(timeout 10 pnpm dev:*)"
     ],
     "deny": [],
     "ask": []

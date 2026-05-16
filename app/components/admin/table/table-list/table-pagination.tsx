@@ -1,11 +1,11 @@
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-  PaginationEllipsis,
 } from '~/components/ui/pagination'
 
 export interface TablePaginationProps {
@@ -65,8 +65,9 @@ export function TablePagination({ currentPage, totalPages, onPageChange }: Table
             />
           </PaginationItem>
 
-          {generatePaginationItems().map((item, index) => (
-            <PaginationItem key={index}>
+          {generatePaginationItems().map((item, _index) => (
+
+            <PaginationItem key={`${item}`}>
               {item === 'ellipsis' ? (
                 <PaginationEllipsis />
               ) : (

@@ -1,10 +1,10 @@
-import { Outlet } from 'react-router'
-import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar'
+import type { ReactNode } from 'react'
 import { Separator } from '~/components/ui/separator'
+import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar'
+import { defaultHeaderConfig, defaultNavigationGroups } from './config'
+import { DashboardSidebarFooter, type UserSession } from './sidebar-footer'
 import { DashboardSidebarHeader, type SidebarHeaderConfig } from './sidebar-header'
 import { DashboardSidebarNavigation, type NavigationGroup } from './sidebar-navigation'
-import { DashboardSidebarFooter, type UserSession } from './sidebar-footer'
-import { defaultHeaderConfig, defaultNavigationGroups } from './config'
 
 export interface DashboardLayoutConfig {
   header?: SidebarHeaderConfig
@@ -16,9 +16,10 @@ interface DashboardLayoutProps {
   user: UserSession
   onSignOut: () => void
   config?: DashboardLayoutConfig
+  children?: ReactNode
 }
 
-export function DashboardLayout({ user, onSignOut, config = {} }: DashboardLayoutProps) {
+export function DashboardLayout({ user, onSignOut, config = {}, children }: DashboardLayoutProps) {
   const headerConfig = config.header || defaultHeaderConfig
   const navigationGroups = config.navigationGroups || defaultNavigationGroups
   const headerTitle = config.headerTitle || 'Dashboard'
@@ -44,9 +45,7 @@ export function DashboardLayout({ user, onSignOut, config = {} }: DashboardLayou
         </header>
 
         {/* Page Content */}
-        <div className="flex flex-1 flex-col">
-          <Outlet />
-        </div>
+        <div className="flex flex-1 flex-col">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )
