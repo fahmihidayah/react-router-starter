@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
 import {
   Card,
   CardContent,
@@ -11,11 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import { authClient } from '~/lib/auth-client'
-import { toast } from 'sonner'
 import type { Route } from './+types/login'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
     { title: 'Login - Starter App' },
     { name: 'description', content: 'Sign in to your account' },

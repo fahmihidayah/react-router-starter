@@ -7,7 +7,10 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { ListNode, ListItemNode } from '@lexical/list'
 import type { InitialConfigType } from '@lexical/react/LexicalComposer'
-import { forwardRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+import { $createParagraphNode, $createTextNode, $getRoot } from 'lexical'
+import type { LexicalEditor } from 'lexical'
 import { cn } from '~/lib/utils'
 import { RichEditorToolbar } from '~/components/ui/rich-editor-toolbar'
 
@@ -43,14 +46,106 @@ const editorConfig: InitialConfigType = {
 
 interface RichEditorProps extends React.HTMLAttributes<HTMLDivElement> {
   placeholder?: string
+  initialContent?: string
+  onContentChange?: (json: string) => void
 }
 
-const RichEditor = forwardRef<HTMLDivElement, RichEditorProps>(
-  ({ placeholder = 'Start typing...', className, ...props }, ref) => {
+interface RichEditorHandle {
+  getJSON: () => string
+  setJSON: (json: string) => void
+}
+
+/**
+ * Helper component to load initial JSON content into Lexical editor
+ */
+function InitialContentLoader({
+  content,
+}: {
+  content?: string
+}) {
+  const [editor] = useLexicalComposerContext()
+
+  useEffect(() => {
+    if (!content) return
+
+    try {
+      const editorState = editor.parseEditorState(content)
+      editor.setEditorState(editorState)
+    } catch (error) {
+      console.error('Failed to parse initial content:', error)
+      // Fallback: if content is invalid JSON, treat as plain text
+      editor.update(() => {
+        const root = $getRoot()
+        root.clear()
+        const paragraph = $createParagraphNode()
+        paragraph.append($createTextNode(content))
+        root.append(paragraph)
+      })
+    }
+  }, [editor, content])
+
+  return null
+}
+
+/**
+ * Plugin to handle content changes and emit JSON
+ */
+function ContentChangePlugin({ onContentChange }: { onContentChange?: (json: string) => void }) {
+  const [editor] = useLexicalComposerContext()
+
+  useEffect(() => {
+    if (!onContentChange) return
+
+    const removeUpdateListener = editor.registerUpdateListener(({ editorState }) => {
+      const json = JSON.stringify(editorState.toJSON())
+      onContentChange(json)
+    })
+
+    return () => removeUpdateListener()
+  }, [editor, onContentChange])
+
+  return null
+}
+
+const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(
+  (
+    {
+      placeholder = 'Start typing...',
+      initialContent,
+      onContentChange,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
+    const editorRef = useRef<LexicalEditor | null>(null)
+
+    // Expose methods to parent via ref
+    useImperativeHandle(
+      ref,
+      () => ({
+        getJSON: () => {
+          if (!editorRef.current) return '{}'
+          const editorState = editorRef.current.getEditorState()
+          return JSON.stringify(editorState.toJSON())
+        },
+        setJSON: (json: string) => {
+          if (!editorRef.current) return
+          try {
+            const editorState = editorRef.current.parseEditorState(json)
+            editorRef.current.setEditorState(editorState)
+          } catch (error) {
+            console.error('Failed to set editor JSON:', error)
+          }
+        },
+      }),
+      [editorRef],
+    )
+
     return (
       <LexicalComposer initialConfig={editorConfig}>
+        <EditorInitializer editorRef={editorRef} />
         <div
-          ref={ref}
           className={cn(
             'border-input focus-within:border-ring focus-within:ring-ring/50 dark:bg-input/30 relative flex flex-col min-h-64 w-full rounded-md border bg-transparent shadow-xs overflow-hidden',
             className,
@@ -73,12 +168,32 @@ const RichEditor = forwardRef<HTMLDivElement, RichEditorProps>(
           </div>
           <HistoryPlugin />
           <ListPlugin />
+          <InitialContentLoader content={initialContent} />
+          <ContentChangePlugin onContentChange={onContentChange} />
         </div>
       </LexicalComposer>
     )
   },
 )
 
+/**
+ * Helper to capture editor instance for imperative handle
+ */
+function EditorInitializer({
+  editorRef,
+}: {
+  editorRef: React.MutableRefObject<LexicalEditor | null>
+}) {
+  const [editor] = useLexicalComposerContext()
+
+  useEffect(() => {
+    editorRef.current = editor
+  }, [editor, editorRef])
+
+  return null
+}
+
 RichEditor.displayName = 'RichEditor'
 
 export { RichEditor }
+export type { RichEditorHandle }

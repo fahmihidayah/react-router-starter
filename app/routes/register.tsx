@@ -1,16 +1,19 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import {
-  Link,
-  useNavigate,
-  Form as ReactRouterForm,
-  useActionData,
   type ActionFunctionArgs,
-  redirect,
   data,
+  Link,
+  Form as ReactRouterForm,
+  redirect,
+  useActionData,
+  useNavigate,
   useSubmit,
 } from 'react-router'
+import { toast } from 'sonner'
+import z from 'zod'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 import {
   Card,
   CardContent,
@@ -19,11 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
-import { toast } from 'sonner'
-import type { Route } from './+types/register'
-import z from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Form,
   FormControl,
@@ -32,7 +30,9 @@ import {
   FormLabel,
   FormMessage,
 } from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
 import { auth } from '~/lib/auth'
+import type { Route } from './+types/register'
 
 const registerSchema = z
   .object({
@@ -196,7 +196,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
     { title: 'Register - Starter App' },
     { name: 'description', content: 'Create a new account' },

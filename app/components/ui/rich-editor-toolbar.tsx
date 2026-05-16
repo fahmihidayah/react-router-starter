@@ -1,4 +1,12 @@
 import {
+  INSERT_ORDERED_LIST_COMMAND,
+  INSERT_UNORDERED_LIST_COMMAND,
+  REMOVE_LIST_COMMAND,
+} from '@lexical/list'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+import { HeadingNode, QuoteNode } from '@lexical/rich-text'
+import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type LexicalCommand } from 'lexical'
+import {
   Bold,
   Heading1,
   Heading2,
@@ -10,20 +18,6 @@ import {
   Underline,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-
-import {
-  FORMAT_TEXT_COMMAND,
-  $getSelection,
-  $isRangeSelection,
-  type LexicalCommand,
-} from 'lexical'
-import {
-  INSERT_ORDERED_LIST_COMMAND,
-  INSERT_UNORDERED_LIST_COMMAND,
-  REMOVE_LIST_COMMAND,
-} from '@lexical/list'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 
 import { Button } from '~/components/ui/button'
 import {
@@ -97,10 +91,7 @@ export function RichEditorToolbar() {
   }
 
   const handleRemoveList = () => {
-    editor.dispatchCommand(
-      REMOVE_LIST_COMMAND as unknown as LexicalCommand<undefined>,
-      undefined,
-    )
+    editor.dispatchCommand(REMOVE_LIST_COMMAND as unknown as LexicalCommand<undefined>, undefined)
   }
 
   const handleQuote = () => {
@@ -126,6 +117,7 @@ export function RichEditorToolbar() {
     <div className="border-input flex flex-wrap items-center gap-1 border-b bg-muted/40 p-2">
       {/* Text Formatting */}
       <Button
+        type="button"
         size="sm"
         variant={isBold ? 'default' : 'ghost'}
         onClick={() => handleFormatText('bold')}
@@ -136,6 +128,7 @@ export function RichEditorToolbar() {
       </Button>
 
       <Button
+        type="button"
         size="sm"
         variant={isItalic ? 'default' : 'ghost'}
         onClick={() => handleFormatText('italic')}
@@ -146,6 +139,7 @@ export function RichEditorToolbar() {
       </Button>
 
       <Button
+        type="button"
         size="sm"
         variant={isUnderline ? 'default' : 'ghost'}
         onClick={() => handleFormatText('underline')}
@@ -160,12 +154,7 @@ export function RichEditorToolbar() {
       {/* Heading Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            title="Headings"
-            className="h-8 gap-1"
-          >
+          <Button size="sm" variant="ghost" title="Headings" className="h-8 gap-1">
             <Heading1 className="h-4 w-4" />
             <span className="text-xs">Heading</span>
           </Button>
@@ -190,6 +179,7 @@ export function RichEditorToolbar() {
 
       {/* List Buttons */}
       <Button
+        type="button"
         size="sm"
         variant="ghost"
         onClick={handleUnorderedList}
@@ -200,6 +190,7 @@ export function RichEditorToolbar() {
       </Button>
 
       <Button
+        type="button"
         size="sm"
         variant="ghost"
         onClick={handleOrderedList}
@@ -210,6 +201,7 @@ export function RichEditorToolbar() {
       </Button>
 
       <Button
+        type="button"
         size="sm"
         variant="ghost"
         onClick={handleRemoveList}
@@ -223,6 +215,7 @@ export function RichEditorToolbar() {
 
       {/* Quote */}
       <Button
+        type="button"
         size="sm"
         variant="ghost"
         onClick={handleQuote}

@@ -1,4 +1,4 @@
-import { Home, Image, LayoutDashboard, Settings, SquaresUnite, Users } from 'lucide-react'
+import { Home, Image, LayoutDashboard, Settings, SquaresUnite, Users, FileText } from 'lucide-react'
 import type { SidebarHeaderConfig } from './sidebar-header'
 import type { NavigationGroup } from './sidebar-navigation'
 
@@ -33,6 +33,11 @@ export const defaultNavigationGroups: NavigationGroup[] = [
         title: 'Categories',
         url: '/dashboard/categories',
         icon: SquaresUnite,
+      },
+      {
+        title: 'Posts',
+        url: '/dashboard/posts',
+        icon: FileText,
       },
       {
         title: 'Settings',
