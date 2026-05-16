@@ -1,10 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { type ActionColumnConfig, createActionColumn } from './action-column'
 import { createDateColumn, type DateColumnConfig } from './date-column'
+import { createImageColumn, type ImageColumnConfig } from './image-column'
 import { createTextColumn, type TextColumnConfig } from './text-column'
 
 interface CreateColumnProps<T> {
-  columnConfig: (string | TextColumnConfig<T> | DateColumnConfig<T>)[]
+  columnConfig: (string | TextColumnConfig<T> | DateColumnConfig<T> | ImageColumnConfig<T>)[]
   actionColumnConfig: ActionColumnConfig<T>
   tableName?: string
   idKey?: keyof T
@@ -39,6 +40,8 @@ export default function createColumn<T>(props: CreateColumnProps<T>): ColumnDef<
       )
     } else if (e.type === 'date') {
       columns.push(createDateColumn(e))
+    } else if (e.type === 'image') {
+      columns.push(createImageColumn(e))
     }
   })
 

@@ -41,7 +41,10 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function meta() {
-  return [{ title: 'Media - Dashboard' }, { name: 'description', content: 'Manage your media files' }]
+  return [
+    { title: 'Media - Dashboard' },
+    { name: 'description', content: 'Manage your media files' },
+  ]
 }
 
 export default function DashboardMediaPage() {
@@ -52,7 +55,7 @@ export default function DashboardMediaPage() {
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
   const [deletingMedia, setDeletingMedia] = useState<TMedia | null>(null)
   const [deletingMultiple, setDeletingMultiple] = useState<TMedia[]>([])
-  const navigate = useNavigate()
+  const _navigate = useNavigate()
 
   const columns = createColumn<TMedia>({
     tableName: 'media',
@@ -63,14 +66,9 @@ export default function DashboardMediaPage() {
         header: 'ID',
         fallback: 'No ID',
       },
+
       {
-        type: 'text',
-        accessorKey: 'filename',
-        header: 'Filename',
-        fallback: 'No filename',
-      },
-      {
-        type: 'text',
+        type: 'image',
         accessorKey: 'url',
         header: 'URL',
         fallback: 'No URL',
@@ -85,6 +83,11 @@ export default function DashboardMediaPage() {
         type: 'date',
         accessorKey: 'createdAt',
         header: 'Created',
+      },
+      {
+        type: 'date',
+        accessorKey: 'updatedAt',
+        header: 'Updated',
       },
     ],
     actionColumnConfig: {
