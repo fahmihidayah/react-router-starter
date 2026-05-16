@@ -64,4 +64,12 @@ export const media = sqliteTable('media', {
   updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
 })
 
+export const categories = sqliteTable('category', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
+})
+
 export type TMedia = typeof media.$inferSelect
+export type TCategory = typeof categories.$inferSelect
