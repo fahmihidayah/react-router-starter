@@ -1,18 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useRef } from 'react'
-import { useForm } from 'react-hook-form'
 import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { RichEditor, type RichEditorHandle } from '~/components/ui/rich-editor'
+import { Label } from '~/components/ui/label'
+import type { RichEditorHandle } from '~/components/ui/rich-editor'
+import { RichEditor } from '~/components/ui/rich-editor'
 import {
   Select,
   SelectContent,
@@ -21,7 +13,6 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import type { TCategory } from '~/features/categories/type'
-import { type TUpdatePost, updatePostSchema } from '~/features/posts/schemas/post-schema'
 import type { TPost } from '~/features/posts/type'
 
 interface EditPostFormProps {
@@ -32,24 +23,13 @@ interface EditPostFormProps {
 }
 
 export function EditPostForm({ post, categories, errors, onSubmit }: EditPostFormProps) {
-  const form = useForm<TUpdatePost>({
-    resolver: zodResolver(updatePostSchema),
-    defaultValues: {
-      title: post.title || '',
-      content: post.content || '',
-      categoryId: post.categoryId || '',
-    },
-  })
-
   const editorRef = useRef<RichEditorHandle>(null)
+  const categoryRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = async (data: TUpdatePost) => {
-    const editorJSON = editorRef.current?.getJSON() || '{}'
-
-    const formData = new FormData()
-    formData.append('title', data.title)
-    formData.append('content', editorJSON)
-    formData.append('categoryId', data.categoryId)
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    formData.set('content', editorRef.current?.getJSON() ?? '')
 
     if (onSubmit) {
       await onSubmit(formData)
@@ -59,74 +39,53 @@ export function EditPostForm({ post, categories, errors, onSubmit }: EditPostFor
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-row justify-end">
+          <Button type="submit">Save</Button>
+        </div>
 
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Post title"
-                    disabled={form.formState.isSubmitting}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="title">Title</Label>
+          <Input id="title" name="title" placeholder="Post title" defaultValue={post.title || ''} />
+        </div>
 
-          <FormField
-            control={form.control}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="categoryId">Category</Label>
+          <Select
             name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={form.formState.isSubmitting}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            defaultValue={post.categoryId || ''}
+            onValueChange={(value) => {
+              if (categoryRef.current) categoryRef.current.value = value
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input
+            ref={categoryRef}
+            name="categoryId"
+            type="hidden"
+            defaultValue={post.categoryId || ''}
           />
+        </div>
 
-          <FormItem>
-            <FormLabel>Content</FormLabel>
-            <FormControl>
-              <RichEditor
-                ref={editorRef}
-                initialContent={post.content}
-                placeholder="Write your post content here... Use the toolbar to format your text"
-              />
-            </FormControl>
-            <FormMessage>{errors?.content?.[0]}</FormMessage>
-          </FormItem>
-        </form>
-      </Form>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="content">Content</Label>
+          <RichEditor
+            ref={editorRef}
+            placeholder="Write your post content here... Use the toolbar to format your text"
+            initialContent={post.content || ''}
+          />
+        </div>
+      </form>
     </>
   )
 }

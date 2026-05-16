@@ -1,7 +1,7 @@
 import { useActionData, useSubmit } from 'react-router'
+import { categoryRepository } from '~/features/categories/repositories'
 import { createPostAction } from '~/features/posts/actions/create-post-action'
 import { AddPostForm } from '~/features/posts/components/admin/form/add-post-form'
-import { categoryRepository } from '~/features/categories/repositories'
 import type { Route } from './+types/dashboard.posts.add'
 
 export async function loader() {
@@ -13,10 +13,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function meta() {
-  return [
-    { title: 'Add Post - Dashboard' },
-    { name: 'description', content: 'Add a new post' },
-  ]
+  return [{ title: 'Add Post - Dashboard' }, { name: 'description', content: 'Add a new post' }]
 }
 
 export default function AddPostPage({ loaderData }: Route.ComponentProps) {
@@ -29,7 +26,10 @@ export default function AddPostPage({ loaderData }: Route.ComponentProps) {
       <AddPostForm
         categories={loaderData}
         errors={actionData?.errors}
-        onSubmit={(fd) => submit(fd, { method: 'post' })}
+        onSubmit={(fd) => {
+          console.log(`log fd :${fd}`)
+          submit(fd, { method: 'post' })
+        }}
       />
     </div>
   )

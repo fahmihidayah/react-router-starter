@@ -1,18 +1,18 @@
-import { LexicalComposer } from '@lexical/react/LexicalComposer'
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
-import { ContentEditable } from '@lexical/react/LexicalContentEditable'
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
-import { ListPlugin } from '@lexical/react/LexicalListPlugin'
-import { HeadingNode, QuoteNode } from '@lexical/rich-text'
-import { ListNode, ListItemNode } from '@lexical/list'
+import { ListItemNode, ListNode } from '@lexical/list'
 import type { InitialConfigType } from '@lexical/react/LexicalComposer'
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { $createParagraphNode, $createTextNode, $getRoot } from 'lexical'
+import { ContentEditable } from '@lexical/react/LexicalContentEditable'
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
+import { ListPlugin } from '@lexical/react/LexicalListPlugin'
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
+import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import type { LexicalEditor } from 'lexical'
-import { cn } from '~/lib/utils'
+import { $createParagraphNode, $createTextNode, $getRoot } from 'lexical'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { RichEditorToolbar } from '~/components/ui/rich-editor-toolbar'
+import { cn } from '~/lib/utils'
 
 const editorConfig: InitialConfigType = {
   namespace: 'RichEditor',
@@ -44,10 +44,13 @@ const editorConfig: InitialConfigType = {
   },
 }
 
-interface RichEditorProps extends React.HTMLAttributes<HTMLDivElement> {
+interface RichEditorProps {
   placeholder?: string
   initialContent?: string
+  value?: string
   onContentChange?: (json: string) => void
+  onChange?: (json: string) => void
+  className?: string
 }
 
 interface RichEditorHandle {
@@ -58,11 +61,7 @@ interface RichEditorHandle {
 /**
  * Helper component to load initial JSON content into Lexical editor
  */
-function InitialContentLoader({
-  content,
-}: {
-  content?: string
-}) {
+function InitialContentLoader({ content }: { content?: string }) {
   const [editor] = useLexicalComposerContext()
 
   useEffect(() => {
@@ -98,7 +97,9 @@ function ContentChangePlugin({ onContentChange }: { onContentChange?: (json: str
 
     const removeUpdateListener = editor.registerUpdateListener(({ editorState }) => {
       const json = JSON.stringify(editorState.toJSON())
-      onContentChange(json)
+      queueMicrotask(() => {
+        onContentChange(json)
+      })
     })
 
     return () => removeUpdateListener()
@@ -112,13 +113,15 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(
     {
       placeholder = 'Start typing...',
       initialContent,
+      value,
       onContentChange,
+      onChange,
       className,
-      ...props
     },
     ref,
   ) => {
     const editorRef = useRef<LexicalEditor | null>(null)
+    const content = initialContent || value
 
     // Expose methods to parent via ref
     useImperativeHandle(
@@ -139,8 +142,10 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(
           }
         },
       }),
-      [editorRef],
+      [],
     )
+
+    const handleChange = onContentChange || onChange
 
     return (
       <LexicalComposer initialConfig={editorConfig}>
@@ -150,7 +155,6 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(
             'border-input focus-within:border-ring focus-within:ring-ring/50 dark:bg-input/30 relative flex flex-col min-h-64 w-full rounded-md border bg-transparent shadow-xs overflow-hidden',
             className,
           )}
-          {...props}
         >
           <RichEditorToolbar />
           <div className="relative flex-1 overflow-y-auto">
@@ -168,8 +172,8 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(
           </div>
           <HistoryPlugin />
           <ListPlugin />
-          <InitialContentLoader content={initialContent} />
-          <ContentChangePlugin onContentChange={onContentChange} />
+          <InitialContentLoader content={content} />
+          <ContentChangePlugin onContentChange={handleChange} />
         </div>
       </LexicalComposer>
     )
@@ -195,5 +199,5 @@ function EditorInitializer({
 
 RichEditor.displayName = 'RichEditor'
 
-export { RichEditor }
 export type { RichEditorHandle }
+export { RichEditor }
