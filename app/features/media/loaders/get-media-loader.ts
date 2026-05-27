@@ -1,7 +1,7 @@
 import { like } from 'drizzle-orm'
 import { media } from '~/db/schema'
 import type { PaginateDocs } from '~/types/pagination'
-import type { TMedia } from '../type'
+import type { TMedia } from '~/db/schema'
 import { mediaRepository } from '../repositories'
 
 export async function getMediaLoader(request: Request): Promise<PaginateDocs<TMedia>> {

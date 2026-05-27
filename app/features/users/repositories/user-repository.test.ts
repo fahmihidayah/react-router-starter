@@ -1,6 +1,6 @@
 import { like } from 'drizzle-orm/sql'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { user } from '~/db/schema'
+import { users } from '~/db/schema'
 import { db } from '~/lib/database'
 import { userRepository } from './'
 

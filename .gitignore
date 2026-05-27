@@ -6,3 +6,11 @@
 /.react-router/
 /build/
 /uploads/*
+
+# Database
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+/backups/*
+!backups/.gitkeep

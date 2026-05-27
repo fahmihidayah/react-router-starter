@@ -643,18 +643,311 @@ export default function EditProductPage() {
 }
 ```
 
+## Many-to-Many Relationships
+
+Use this pattern when entities have a many-to-many relationship (e.g., congregations ↔ tags, posts ↔ categories, users ↔ roles).
+
+### 1. Define Junction Table Schema
+
+**Junction table** (`app/db/schema/congregation-tags.ts`):
+```typescript
+import { relations } from 'drizzle-orm'
+import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { congregations } from './congregations'
+import { tags } from './tags'
+
+// Junction table for many-to-many relationship
+export const congregationTags = sqliteTable(
+  'congregation_tags',
+  {
+    congregationId: text('congregationId')
+      .notNull()
+      .references(() => congregations.id, {
+        onDelete: 'cascade',  // Delete junction records when parent is deleted
+      }),
+    tagId: text('tagId')
+      .notNull()
+      .references(() => tags.id, {
+        onDelete: 'cascade',
+      }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.congregationId, table.tagId] }),
+  }),
+)
+
+// Relations for query builder
+export const congregationTagsRelations = relations(congregationTags, ({ one }) => ({
+  congregation: one(congregations, {
+    fields: [congregationTags.congregationId],
+    references: [congregations.id],
+  }),
+  tag: one(tags, {
+    fields: [congregationTags.tagId],
+    references: [tags.id],
+  }),
+}))
+
+export type TCongregationTag = typeof congregationTags.$inferSelect
+export type TInsertCongregationTag = typeof congregationTags.$inferInsert
+```
+
+**Parent table** (`app/db/schema/congregations.ts`):
+```typescript
+import { relations } from 'drizzle-orm'
+import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { congregationTags } from './congregation-tags'
+
+export const congregations = sqliteTable('congregations', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  // ... other fields
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
+})
+
+// Define the "many" side of the relationship
+export const congregationsRelations = relations(congregations, ({ many }) => ({
+  congregationTags: many(congregationTags)
+}))
+
+export type TCongregation = typeof congregations.$inferSelect
+export type TInsertCongregation = typeof congregations.$inferInsert
+```
+
+### 2. Create Combined Type
+
+Define a type that includes the related entities in `app/features/[name]/types/[name].ts`:
+
+```typescript
+import type { TCongregation, TTag } from '~/db/schema'
+
+export type TypeCongregation = Omit<TCongregation, 'congregationTags'> & {
+  tags: TTag[]
+}
+```
+
+### 3. Override Repository Methods
+
+Override `findById` and `findAll` to include related entities:
+
+```typescript
+import { congregations } from '~/db/schema'
+import { db } from '~/lib/database'
+import { BaseRepository } from '~/lib/repository'
+import type { TypeCongregation } from '../types/congregation'
+
+class CongregationRepository extends BaseRepository<typeof congregations> {
+  override async findById(id: number | string): Promise<TypeCongregation | undefined> {
+    const result = await db.query.congregations.findFirst({
+      where: (congregation, { eq }) => eq(congregation.id, id as string),
+      with: {
+        congregationTags: {
+          with: {
+            tag: true,
+          },
+        },
+      },
+    })
+    if (!result) return undefined
+
+    // Transform junction records into flat tags array
+    return {
+      ...result,
+      tags: result.congregationTags.map((ct) => ct.tag),
+    }
+  }
+
+  override async findAll(): Promise<TypeCongregation[]> {
+    const results = await db.query.congregations.findMany({
+      with: {
+        congregationTags: {
+          with: {
+            tag: true,
+          },
+        },
+      },
+    })
+
+    return results.map((congregation) => ({
+      ...congregation,
+      congregationTags: undefined,
+      tags: congregation.congregationTags.map((ct) => ct.tag),
+    }))
+  }
+}
+
+export const congregationRepository = new CongregationRepository(congregations)
+```
+
+### 4. Create Action (Insert Junction Records)
+
+```typescript
+import { randomUUID } from 'node:crypto'
+import { redirect } from 'react-router'
+import { db } from '~/lib/database'
+import { congregationTags } from '~/db/schema'
+import { congregationRepository } from '../repositories'
+import { createCongregationSchema } from '../schemas/congregation-schema'
+
+export async function createCongregationAction(request: Request) {
+  const formData = await request.formData()
+  const result = createCongregationSchema.safeParse(Object.fromEntries(formData))
+
+  if (!result.success) {
+    return { errors: result.error.flatten().fieldErrors }
+  }
+
+  try {
+    const { name, phone, address, tagIds } = result.data
+    const now = new Date()
+    const congregationId = randomUUID()
+
+    // 1. Create the parent entity
+    await congregationRepository.create({
+      id: congregationId,
+      name,
+      phone,
+      address,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    // 2. Insert junction records if tags selected
+    if (tagIds && tagIds.length > 0) {
+      await db.insert(congregationTags).values(
+        tagIds.map((tagId) => ({
+          congregationId,
+          tagId,
+        }))
+      )
+    }
+
+    return redirect('/dashboard/congregations')
+  } catch (error) {
+    return {
+      errors: {
+        name: ['Failed to create congregation. Please try again.'],
+      },
+    }
+  }
+}
+```
+
+### 5. Update Action (Replace Junction Records)
+
+```typescript
+import { eq } from 'drizzle-orm'
+import { redirect } from 'react-router'
+import { db } from '~/lib/database'
+import { congregationTags } from '~/db/schema'
+import { congregationRepository } from '../repositories'
+import { updateCongregationSchema } from '../schemas/congregation-schema'
+
+export async function updateCongregationAction(request: Request, id: string) {
+  const formData = await request.formData()
+  const result = updateCongregationSchema.safeParse(Object.fromEntries(formData))
+
+  if (!result.success) {
+    return { errors: result.error.flatten().fieldErrors }
+  }
+
+  try {
+    const { name, phone, address, tagIds } = result.data
+
+    // 1. Update the parent entity
+    await congregationRepository.update(id, {
+      name,
+      phone,
+      address,
+      updatedAt: new Date(),
+    })
+
+    // 2. Delete existing junction records
+    await db.delete(congregationTags).where(eq(congregationTags.congregationId, id))
+
+    // 3. Insert new junction records if tags selected
+    if (tagIds && tagIds.length > 0) {
+      await db.insert(congregationTags).values(
+        tagIds.map((tagId) => ({
+          congregationId: id,
+          tagId,
+        }))
+      )
+    }
+
+    return redirect('/dashboard/congregations')
+  } catch (error) {
+    return {
+      errors: {
+        name: ['Failed to update congregation. Please try again.'],
+      },
+    }
+  }
+}
+```
+
+### 6. Loader with Relations
+
+```typescript
+import { eq } from 'drizzle-orm'
+import { congregations } from '~/db/schema'
+import { db } from '~/lib/database'
+
+export async function getCongregationByIdLoader(id: string, withTags = false) {
+  if (withTags) {
+    const result = await db.query.congregations.findFirst({
+      where: eq(congregations.id, id),
+      with: {
+        congregationTags: {
+          with: {
+            tag: true,
+          },
+        },
+      },
+    })
+
+    return {
+      ...result,
+      congregationTags: undefined,
+      tags: result?.congregationTags.map((ct) => ct.tag) || [],
+    }
+  }
+
+  return db.query.congregations.findFirst({
+    where: eq(congregations.id, id),
+  })
+}
+```
+
+### Many-to-Many Best Practices
+
+1. **Junction table naming**: Use singular form of both entities separated by hyphen (e.g., `congregation-tags`, `post-categories`)
+2. **Cascade deletes**: Always use `onDelete: 'cascade'` in junction table foreign keys
+3. **Composite primary key**: Use both foreign keys as composite primary key
+4. **Type transformation**: Create a combined type that replaces junction records with the related entities
+5. **Repository overrides**: Override `findById` and `findAll` to automatically include relations
+6. **Update pattern**: Always delete existing junction records before inserting new ones
+7. **Batch inserts**: Use `values(array.map(...))` for inserting multiple junction records
+
 ## Implementation Checklist
 
-- [ ] Schema added to `app/db/schema.ts` with correct Drizzle field types
+- [ ] Schema added to `app/db/schema.ts` or `app/db/schema/[name].ts` with correct Drizzle field types
+- [ ] Junction table created for many-to-many relationships (if needed)
+- [ ] Relations defined using `relations()` for Drizzle query builder
 - [ ] `pnpm db:push` executed successfully
-- [ ] Type file created in `app/features/[name]/type.ts` with `T` prefix
+- [ ] Type file created in `app/features/[name]/types/[name].ts` with `T` prefix
+- [ ] Combined type created for entities with many-to-many relations
 - [ ] Repository class extends `BaseRepository` in `repositories/[name]-repository.ts`
+- [ ] Repository methods overridden to include relations (if needed)
 - [ ] Repositories exported from `repositories/index.ts`
 - [ ] Zod schemas created for create and update operations
 - [ ] List loader with pagination (page, limit) and search
-- [ ] Single item loader by ID
+- [ ] Single item loader by ID (with relations if needed)
 - [ ] Create action validates with Zod and handles errors
+- [ ] Create action inserts junction records for many-to-many
 - [ ] Update action validates with Zod and handles errors
+- [ ] Update action replaces junction records (delete + insert)
 - [ ] Delete action for single item
 - [ ] Bulk delete action using `inArray()` for safety
 - [ ] Create form component with React Hook Form + Zod resolver

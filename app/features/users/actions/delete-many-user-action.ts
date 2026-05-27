@@ -1,5 +1,5 @@
 import { inArray } from 'drizzle-orm'
-import { user } from '~/db/schema'
+import { users } from '~/db/schema'
 import { userRepository } from '../repositories'
 
 export async function deleteManyUsersAction(ids: string[]) {

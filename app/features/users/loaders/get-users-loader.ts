@@ -1,7 +1,7 @@
 import { like } from 'drizzle-orm/sql'
-import { user } from '~/db/schema'
+import { users } from '~/db/schema'
 import type { PaginateDocs } from '~/types/pagination'
-import type { TUser } from '../type'
+import type { TUser } from '~/db/schema'
 import { userRepository } from '../repositories'
 
 export async function getUsersLoader(

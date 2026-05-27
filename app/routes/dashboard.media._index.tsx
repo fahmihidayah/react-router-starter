@@ -6,7 +6,7 @@ import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/tab
 import { deleteManyMediaAction } from '~/features/media/actions/delete-many-media-action'
 import { deleteMediaAction } from '~/features/media/actions/delete-media-action'
 import { getMediaLoader } from '~/features/media/loaders/get-media-loader'
-import type { TMedia } from '~/features/media/type'
+import type { TMedia } from '~/db/schema'
 import type { Route } from './+types/dashboard.media._index'
 
 export async function loader({ request }: Route.LoaderArgs) {

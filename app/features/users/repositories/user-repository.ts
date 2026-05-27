@@ -1,12 +1,12 @@
 import { BaseRepository } from '~/lib/repository'
-import { user } from '~/db/schema'
+import { users } from '~/db/schema'
 
 /**
  * User Repository
  * Extends BaseRepository with user-specific methods
  */
-class UserRepository extends BaseRepository<typeof user> {
+class UserRepository extends BaseRepository<typeof users> {
   // Add custom user-specific methods here if needed
 }
 
-export const userRepository = new UserRepository(user)
+export const userRepository = new UserRepository(users)

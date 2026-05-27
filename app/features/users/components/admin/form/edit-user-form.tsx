@@ -12,7 +12,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { type TUpdateUser, updateUserSchema } from '~/features/users/schemas/user-schema'
-import type { TUser } from '~/features/users/type'
+import type { TUser } from '~/db/schema'
 
 interface EditUserFormProps {
   user: TUser

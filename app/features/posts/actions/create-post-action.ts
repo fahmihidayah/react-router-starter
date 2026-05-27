@@ -15,7 +15,9 @@ export async function createPostAction(request: Request) {
   try {
     const { title, content, categoryId } = result.data
     const slug = createSlugFrom(title)
-
+    console.log("log for create post action :", JSON.stringify(formData));
+    
+    
     // Check if slug already exists
     const exists = await postRepository.slugExists(slug)
     if (exists) {

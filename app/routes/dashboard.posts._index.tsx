@@ -6,7 +6,7 @@ import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/tab
 import { deletePostAction } from '~/features/posts/actions/delete-post-action'
 import { deleteManyPostsAction } from '~/features/posts/actions/delete-many-posts-action'
 import { getPostsLoader } from '~/features/posts/loaders/get-posts-loader'
-import type { TPost } from '~/features/posts/type'
+import type { TPost } from '~/db/schema'
 import type { Route } from './+types/dashboard.posts._index'
 
 export async function loader({ request }: Route.LoaderArgs) {

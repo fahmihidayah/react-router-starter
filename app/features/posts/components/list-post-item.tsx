@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { Card } from '~/components/ui/card'
-import type { TPost } from '~/features/posts/type'
+import type { TPost } from '~/db/schema'
 import { formatDate } from '~/lib/utils'
 
 interface IListPostItemProps {

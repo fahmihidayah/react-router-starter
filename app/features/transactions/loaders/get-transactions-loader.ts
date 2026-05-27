@@ -1,0 +1,20 @@
+import { like } from 'drizzle-orm/sql'
+import { congregations, transactions } from '~/db/schema'
+import type { PaginateDocs } from '~/types/pagination'
+import type { TTransaction } from '~/db/schema'
+import { transactionRepository } from '../repositories'
+
+export async function getTransactionsLoader(
+  request: Request,
+): Promise<PaginateDocs<TTransaction>> {
+  const url = new URL(request.url)
+  const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
+  const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)
+  const search = url.searchParams.get('search') || ''
+
+  return await transactionRepository.findManyPaginated({
+    where: search ? like(congregations.name, `%${search}%`) : undefined,
+    page,
+    limit,
+  })
+}

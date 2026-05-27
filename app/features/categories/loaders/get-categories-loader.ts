@@ -1,7 +1,7 @@
 import { like } from 'drizzle-orm/sql'
 import { categories } from '~/db/schema'
 import type { PaginateDocs } from '~/types/pagination'
-import type { TCategory } from '../type'
+import type { TCategory } from '~/db/schema'
 import { categoryRepository } from '../repositories'
 
 export async function getCategoriesLoader(

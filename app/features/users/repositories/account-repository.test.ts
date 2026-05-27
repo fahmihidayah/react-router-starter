@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { accountRepository } from './account-repository'
 import { userRepository } from './user-repository'
 import { db } from '~/lib/database'
-import { account, user } from '~/db/schema'
+import { accounts, users } from '~/db/schema'
 import { eq } from 'drizzle-orm'
 
 describe('AccountRepository', () => {

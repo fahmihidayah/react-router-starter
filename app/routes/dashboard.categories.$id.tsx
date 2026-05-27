@@ -24,6 +24,14 @@ export default function EditCategoryPage() {
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
 
+  if (!loaderData) {
+    return (
+      <div className="container w-full mx-auto p-5">
+        <p>Category not found</p>
+      </div>
+    )
+  }
+
   return (
     <div className="container w-full mx-auto p-5 flex flex-col gap-5">
       <h3 className="text-2xl">Edit Category</h3>

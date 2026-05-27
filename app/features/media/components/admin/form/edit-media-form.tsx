@@ -2,7 +2,7 @@ import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
 import { UploadField } from '~/components/ui/upload-field'
-import type { TMedia } from '~/features/media/type'
+import type { TMedia } from '~/db/schema'
 
 interface EditMediaFormProps {
   media: TMedia

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import type { TCategory } from '~/features/categories/type'
+import type { TCategory } from '~/db/schema'
 
 interface AddPostFormProps {
   categories: TCategory[]

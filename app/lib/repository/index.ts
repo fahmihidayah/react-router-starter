@@ -1,8 +1,8 @@
 // repositories/BaseRepository.ts
 import { and, eq, type SQL, sql } from 'drizzle-orm'
-import type { SQLiteTableWithColumns, SQLiteColumn } from 'drizzle-orm/sqlite-core'
-import { db } from '../database'
+import type { SQLiteColumn, SQLiteTableWithColumns } from 'drizzle-orm/sqlite-core'
 import type { PaginateDocs } from '~/types/pagination'
+import { db } from '../database'
 
 type AnyTable = SQLiteTableWithColumns<any>
 
@@ -16,41 +16,27 @@ type TableWithId = AnyTable & {
 
 type WhereCondition = SQL<unknown> | SQL<unknown>[]
 
-export class BaseRepository<TTable extends TableWithId> {
+export abstract class BaseRepository<TTable extends TableWithId> {
   constructor(protected table: TTable) {}
 
   // CREATE
   async create(data: InferInsertModel<TTable>): Promise<InferSelectModel<TTable>> {
-    const [result] = await db
-      .insert(this.table)
-      .values(data)
-      .returning()
+    const [result] = await db.insert(this.table).values(data).returning()
     return result as InferSelectModel<TTable>
   }
 
   async createMany(data: InferInsertModel<TTable>[]): Promise<InferSelectModel<TTable>[]> {
-    return (await db
-      .insert(this.table)
-      .values(data)
-      .returning()) as InferSelectModel<TTable>[]
+    return (await db.insert(this.table).values(data).returning()) as InferSelectModel<TTable>[]
   }
 
   async findById(id: number | string): Promise<InferSelectModel<TTable> | undefined> {
-    const [result] = await db
-      .select()
-      .from(this.table)
-      .where(eq(this.table.id, id))
-      .limit(1)
+    const [result] = await db.select().from(this.table).where(eq(this.table.id, id)).limit(1)
     return result as InferSelectModel<TTable> | undefined
   }
 
   async findOne(where: WhereCondition): Promise<InferSelectModel<TTable> | undefined> {
     const condition = Array.isArray(where) ? and(...where) : where
-    const [result] = await db
-      .select()
-      .from(this.table)
-      .where(condition)
-      .limit(1)
+    const [result] = await db.select().from(this.table).where(condition).limit(1)
     return result as InferSelectModel<TTable> | undefined
   }
 
@@ -100,10 +86,7 @@ export class BaseRepository<TTable extends TableWithId> {
       countQuery.where(condition)
     }
 
-    const [data, [{ count }]] = await Promise.all([
-      query.limit(limit).offset(offset),
-      countQuery,
-    ])
+    const [data, [{ count }]] = await Promise.all([query.limit(limit).offset(offset), countQuery])
 
     const totalDocs = Number(count)
     const totalPages = Math.ceil(totalDocs / limit)
@@ -126,12 +109,7 @@ export class BaseRepository<TTable extends TableWithId> {
     id: number | string,
     data: Partial<InferInsertModel<TTable>>,
   ): Promise<InferSelectModel<TTable> | undefined> {
-    
-    const result = await db
-      .update(this.table)
-      .set(data)
-      .where(eq(this.table.id, id))
-      .returning()
+    const result = await db.update(this.table).set(data).where(eq(this.table.id, id)).returning()
     return result as InferSelectModel<TTable> | undefined
   }
 

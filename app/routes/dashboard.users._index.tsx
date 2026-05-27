@@ -6,7 +6,7 @@ import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/tab
 import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
 import { deleteUserAction } from '~/features/users/actions/delete-user-action'
 import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
-import type { TUser } from '~/features/users/type'
+import type { TUser } from '~/db/schema'
 import type { Route } from './+types/dashboard.users._index'
 
 // Loader - Fetch users with pagination and search

@@ -6,7 +6,7 @@ import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/tab
 import { deleteManyCategoriesAction } from '~/features/categories/actions/delete-many-categories-action'
 import { deleteCategoryAction } from '~/features/categories/actions/delete-category-action'
 import { getCategoriesLoader } from '~/features/categories/loaders/get-categories-loader'
-import type { TCategory } from '~/features/categories/type'
+import type { TCategory } from '~/db/schema'
 import type { Route } from './+types/dashboard.categories._index'
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -12,7 +12,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { updateCategorySchema, type TUpdateCategory } from '~/features/categories/schemas/category-schema'
-import type { TCategory } from '~/features/categories/type'
+import type { TCategory } from '~/db/schema'
 
 interface EditCategoryFormProps {
   category: TCategory

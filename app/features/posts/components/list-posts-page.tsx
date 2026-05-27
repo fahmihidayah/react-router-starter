@@ -8,7 +8,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '~/components/ui/pagination'
-import type { TPost } from '~/features/posts/type'
+import type { TPost } from '~/db/schema'
 import { ListPostItem } from './list-post-item'
 
 interface IListPostsPageProps {

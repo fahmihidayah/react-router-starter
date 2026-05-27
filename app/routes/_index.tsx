@@ -2,7 +2,7 @@ import { Outlet } from 'react-router'
 import { Footer } from '~/components/layouts/footer'
 import { Header } from '~/components/layouts/header'
 import { auth } from '~/lib/auth'
-import type { Route } from './+types/_public.'
+import type { Route } from './+types/_index'
 // import type { Route } from './+types/_index'
 
 export function meta(_meta: Route.MetaArgs) {

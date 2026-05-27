@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import type { TCategory } from '~/features/categories/type'
-import type { TPost } from '~/features/posts/type'
+import type { TCategory } from '~/db/schema'
+import type { TPost } from '~/db/schema'
 
 interface EditPostFormProps {
   post: TPost

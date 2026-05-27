@@ -27,7 +27,11 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm vitest:*)",
       "Bash(pnpm ls:*)",
-      "Bash(timeout 10 pnpm dev:*)"
+      "Bash(timeout 10 pnpm dev:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm db:seed:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(pnpm db:backup:*)"
     ],
     "deny": [],
     "ask": []

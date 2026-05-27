@@ -10,9 +10,11 @@ description: >
 
 # Data Layer Patterns
 
-## Drizzle Schema (`app/db/schema.ts`)
+## Drizzle Schema Organization
 
-All tables are defined in a single schema file using Drizzle's SQLite helpers.
+### Option 1: Single File (`app/db/schema.ts`)
+
+For small projects, all tables can be defined in a single schema file:
 
 ```typescript
 import { sqliteTable, text, integer, timestamp } from 'drizzle-orm/sqlite-core'
@@ -32,10 +34,68 @@ export type TProduct = typeof products.$inferSelect
 export type NewProduct = typeof products.$inferInsert
 ```
 
+### Option 2: Multi-File Schema (`app/db/schema/`)
+
+For larger projects, organize schemas into separate files by domain:
+
+```
+app/db/schema/
+├── index.ts                  # Barrel export
+├── users.ts                  # User and account tables
+├── posts.ts                  # Posts table
+├── categories.ts             # Categories table
+├── tags.ts                   # Tags table
+├── congregation-tags.ts      # Junction table for many-to-many
+└── congregations.ts          # Congregations table
+```
+
+**Index file** (`app/db/schema/index.ts`):
+```typescript
+// Re-export all schemas and types
+export * from './users'
+export * from './categories'
+export * from './posts'
+export * from './tags'
+export * from './congregations'
+export * from './congregation-tags'
+```
+
+**Individual schema file** (`app/db/schema/congregations.ts`):
+```typescript
+import { relations } from 'drizzle-orm'
+import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { congregationTags } from './congregation-tags'
+
+export const congregations = sqliteTable('congregations', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  phone: text('phone').notNull(),
+  address: text('address').notNull(),
+  createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
+  updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
+})
+
+// Define relations for query builder
+export const congregationsRelations = relations(congregations, ({ many }) => ({
+  congregationTags: many(congregationTags)
+}))
+
+export type TCongregation = typeof congregations.$inferSelect
+export type TInsertCongregation = typeof congregations.$inferInsert
+```
+
+**Benefits of multi-file schema:**
+- Better organization for large projects
+- Easier to navigate and maintain
+- Clear separation of concerns
+- Reduced merge conflicts in teams
+
 ### Schema Rules
 - Primary keys: always `text('id')` (UUIDs as strings).
-- Timestamps: always include `createdAt` and `updatedAt`.
+- Timestamps: use `int('createdAt', { mode: 'timestamp' })` for SQLite.
 - Foreign keys: use `.references(() => otherTable.id)`.
+- Relations: define using `relations()` for Drizzle query builder.
+- Types: always export `T` prefix for select, `TInsert` prefix for insert.
 - After schema changes: run `pnpm db:push`.
 
 ## BaseRepository (`app/lib/repository/index.ts`)

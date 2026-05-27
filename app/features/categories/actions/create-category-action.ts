@@ -13,6 +13,7 @@ export async function createCategoryAction(request: Request) {
 
   try {
     const { title } = result.data
+
     const now = new Date()
 
     await categoryRepository.create({
