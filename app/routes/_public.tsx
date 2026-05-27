@@ -2,9 +2,16 @@ import { Outlet } from 'react-router'
 import { Footer } from '~/components/layouts/footer'
 import { Header } from '~/components/layouts/header'
 import { auth } from '~/lib/auth'
-import type { Route } from './+types/_public'
+// import type { Route } from './+types/_index'
 
-export async function loader({ request }: Route.LoaderArgs) {
+export function meta() {
+  return [
+    { title: 'Starter App - Build Something Amazing' },
+    { name: 'description', content: 'Modern full-stack starter app with authentication' },
+  ]
+}
+
+export async function loader({ request }: { request: Request }) {
   const session = await auth.api.getSession({
     headers: request.headers,
   })
@@ -13,14 +20,20 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 }
 
-export default function RootPage({ loaderData }: Route.ComponentProps) {
-  const { user } = loaderData
+export default function Home({ loaderData }: { loaderData: Awaited<ReturnType<typeof loader>> }) {
+  const data = loaderData
   return (
-    <>
-      <Header user={user} />
-      <p>Test</p>
-      <Outlet />
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 flex flex-col">
+      {/* Navigation */}
+      <Header user={data?.user} />
+
+      {/* Main Content */}
+      <main className="flex-1">
+        <Outlet />
+      </main>
+
+      {/* Footer */}
       <Footer />
-    </>
+    </div>
   )
 }

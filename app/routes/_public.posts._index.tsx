@@ -1,9 +1,8 @@
 import { useLoaderData } from 'react-router'
 import { ListPostsPage } from '~/features/posts/components/list-posts-page'
 import { getPostsLoader } from '~/features/posts/loaders/get-posts-loader'
-import type { Route } from './+types/_public.posts._index'
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request }: { request: Request }) {
   return await getPostsLoader(request)
 }
 

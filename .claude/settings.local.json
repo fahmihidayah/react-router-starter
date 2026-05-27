@@ -31,7 +31,10 @@
       "Bash(mkdir:*)",
       "Bash(pnpm db:seed:*)",
       "Bash(pnpm rebuild:*)",
-      "Bash(pnpm db:backup:*)"
+      "Bash(pnpm db:backup:*)",
+      "WebFetch(domain:api.reactrouter.com)",
+      "WebSearch",
+      "Bash(pnpm dev)"
     ],
     "deny": [],
     "ask": []

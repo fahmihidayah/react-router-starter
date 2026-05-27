@@ -6,7 +6,7 @@ export async function deleteManyTagsAction(ids: string[]) {
   if (ids.length === 0) return { success: false }
 
   try {
-    await tagRepository.deleteMany(inArray(tag.id, ids))
+    await tagRepository.deleteMany(inArray(tags.id, ids))
     return { success: true }
   } catch (error) {
     console.error('Bulk delete error:', error)

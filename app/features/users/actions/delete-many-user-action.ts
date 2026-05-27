@@ -8,7 +8,7 @@ export async function deleteManyUsersAction(ids: string[]) {
       return { success: false, message: 'No users selected' }
     }
 
-    await userRepository.deleteMany(inArray(user.id, ids))
+    await userRepository.deleteMany(inArray(users.id, ids))
     return { success: true, message: 'Users deleted successfully' }
   } catch (error) {
     console.error('Delete many users error:', error)

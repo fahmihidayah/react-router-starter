@@ -13,7 +13,7 @@ export async function getTagsLoader(
   const search = url.searchParams.get('search') || ''
 
   return await tagRepository.findManyPaginated({
-    where: search ? like(tag.name, `%${search}%`) : undefined,
+    where: search ? like(tags.name, `%${search}%`) : undefined,
     page,
     limit,
   })

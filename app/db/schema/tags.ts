@@ -1,6 +1,4 @@
-import { relations } from 'drizzle-orm'
 import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { congregationTags } from './congregation-tags'
 
 // Tags table
 export const tags = sqliteTable('tags', {
@@ -10,10 +8,6 @@ export const tags = sqliteTable('tags', {
   createdAt: int('createdAt', { mode: 'timestamp' }).notNull(),
   updatedAt: int('updatedAt', { mode: 'timestamp' }).notNull(),
 })
-
-export const tagsRelations = relations(tags, ({ many }) => ({
-  congregationTags: many(congregationTags),
-}))
 
 export type TTag = typeof tags.$inferSelect
 export type TInsertTag = typeof tags.$inferInsert

@@ -1,16 +1,12 @@
 import {
+  FileText,
   Home,
   Image,
   LayoutDashboard,
   Settings,
   SquaresUnite,
-  Users,
-  FileText,
-  UsersRound,
   Tags,
-  CalendarDays,
-  Banknote,
-  Beef,
+  Users,
 } from 'lucide-react'
 import type { SidebarHeaderConfig } from './sidebar-header'
 import type { NavigationGroup } from './sidebar-navigation'
@@ -48,6 +44,12 @@ export const defaultNavigationGroups: NavigationGroup[] = [
         icon: SquaresUnite,
       },
       {
+        title: 'Tags',
+        url: '/dashboard/tags',
+        icon: Tags,
+      },
+
+      {
         title: 'Posts',
         url: '/dashboard/posts',
         icon: FileText,
@@ -56,36 +58,6 @@ export const defaultNavigationGroups: NavigationGroup[] = [
         title: 'Settings',
         url: '/dashboard/settings',
         icon: Settings,
-      },
-    ],
-  },
-  {
-    label: 'Mosque Management',
-    items: [
-      {
-        title: 'Congregations',
-        url: '/dashboard/congregations',
-        icon: UsersRound,
-      },
-      {
-        title: 'Tags',
-        url: '/dashboard/tags',
-        icon: Tags,
-      },
-      {
-        title: 'Events',
-        url: '/dashboard/events',
-        icon: CalendarDays,
-      },
-      {
-        title: 'Transactions',
-        url: '/dashboard/transactions',
-        icon: Banknote,
-      },
-      {
-        title: 'Qurban',
-        url: '/dashboard/qurban',
-        icon: Beef,
       },
     ],
   },
