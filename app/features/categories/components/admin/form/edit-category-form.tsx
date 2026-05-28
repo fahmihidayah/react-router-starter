@@ -1,17 +1,7 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { updateCategorySchema, type TUpdateCategory } from '~/features/categories/schemas/category-schema'
+import { Label } from '~/components/ui/label'
 import type { TCategory } from '~/db/schema'
 
 interface EditCategoryFormProps {
@@ -21,16 +11,9 @@ interface EditCategoryFormProps {
 }
 
 export function EditCategoryForm({ category, errors, onSubmit }: EditCategoryFormProps) {
-  const form = useForm<TUpdateCategory>({
-    resolver: zodResolver(updateCategorySchema),
-    defaultValues: {
-      title: category.title || '',
-    },
-  })
-
-  const handleSubmit = async (data: TUpdateCategory) => {
-    const formData = new FormData()
-    formData.append('title', data.title)
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
 
     if (onSubmit) {
       await onSubmit(formData)
@@ -40,28 +23,21 @@ export function EditCategoryForm({ category, errors, onSubmit }: EditCategoryFor
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
-          <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-          <FormField
-            control={form.control}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-row justify-end">
+          <Button type="submit">Save</Button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
             name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input disabled={form.formState.isSubmitting} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Category title"
+            defaultValue={category.title || ''}
           />
-        </form>
-      </Form>
+        </div>
+      </form>
     </>
   )
 }

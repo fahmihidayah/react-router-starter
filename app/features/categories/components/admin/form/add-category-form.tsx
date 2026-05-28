@@ -1,17 +1,7 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { createCategorySchema, type TCreateCategory } from '~/features/categories/schemas/category-schema'
+import { Label } from '~/components/ui/label'
 
 interface AddCategoryFormProps {
   errors?: Record<string, string[] | undefined>
@@ -19,16 +9,9 @@ interface AddCategoryFormProps {
 }
 
 export function AddCategoryForm({ errors, onSubmit }: AddCategoryFormProps) {
-  const form = useForm<TCreateCategory>({
-    resolver: zodResolver(createCategorySchema),
-    defaultValues: {
-      title: '',
-    },
-  })
-
-  const handleSubmit = async (data: TCreateCategory) => {
-    const formData = new FormData()
-    formData.append('title', data.title)
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
 
     if (onSubmit) {
       await onSubmit(formData)
@@ -38,28 +21,16 @@ export function AddCategoryForm({ errors, onSubmit }: AddCategoryFormProps) {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
-          <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input disabled={form.formState.isSubmitting} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </form>
-      </Form>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-row justify-end">
+          <Button type="submit">Save</Button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="title">Title</Label>
+          <Input id="title" name="title" placeholder="Category title" />
+        </div>
+      </form>
     </>
   )
 }

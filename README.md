@@ -1,6 +1,6 @@
-# Mosque Management System
+# Application Starter
 
-A modern, full-stack application for managing mosque operations including congregations, events, transactions, and Qurban (sacrificial animal) management.
+A modern, full-stack React Router 7 application starter with authentication, CRUD operations, and admin dashboard.
 
 ## Technical Stack
 
@@ -19,19 +19,34 @@ A modern, full-stack application for managing mosque operations including congre
 ## Features
 
 ### Implemented
-- **Congregations Management** - Full CRUD operations for mosque congregation members
-  - Search by name
+
+- **User Management** - Full CRUD operations with authentication
+  - Search by name/email
   - Pagination support
   - Single and bulk delete operations
   - Form validation with Zod
-  - Gender selection (Male/Female)
-  - Address input with textarea
+  - Role-based access control
 
-### Planned
-- **Tags** - Categorization system for congregations
-- **Events** - Management of mosque events and activities
-- **Transactions** - Financial transaction tracking for congregation members
-- **Qurban Management** - Detailed management of Qurban (sacrificial animal) transactions
+- **Categories** - Organize and categorize content
+  - Hierarchical structure support
+  - Color coding
+  - Slug generation
+
+- **Posts** - Content management system
+  - Rich text editor (Lexical)
+  - Draft/publish workflow
+  - Category assignment
+  - Featured images
+
+- **Media Library** - File upload and management
+  - Image optimization
+  - File type validation
+  - Bulk operations
+
+- **Tags** - Flexible tagging system
+  - Multi-select support
+  - Tag-based filtering
+  - Color customization
 
 ## Getting Started
 
@@ -84,7 +99,11 @@ Your application will be available at `http://localhost:5173`.
 app/
 ├── routes/              # File-based routing (flatRoutes convention)
 ├── features/            # Feature modules with CRUD patterns
-│   ├── congregations/   # Example feature module
+│   ├── users/           # User management
+│   ├── categories/      # Category management
+│   ├── posts/           # Post/content management
+│   ├── media/           # Media library
+│   ├── tags/            # Tag system
 │   │   ├── type.ts      # TypeScript types (T-prefixed)
 │   │   ├── repositories/
 │   │   ├── schemas/     # Zod validation schemas
@@ -151,33 +170,33 @@ This project follows a consistent CRUD pattern for all features. Each feature in
 ### Example Feature Structure
 
 ```
-app/features/congregations/
-├── type.ts                                    # TCongregation type
+app/features/users/
+├── type.ts                                    # TUser type
 ├── repositories/
-│   ├── congregation-repository.ts             # Extends BaseRepository
+│   ├── user-repository.ts                     # Extends BaseRepository
 │   └── index.ts
 ├── schemas/
-│   └── congregation-schema.ts                 # Zod schemas
+│   └── user-schema.ts                         # Zod schemas
 ├── loaders/
-│   ├── get-congregations-loader.ts            # List with pagination
-│   └── get-congregation-by-id-loader.ts       # Single item
+│   ├── get-users-loader.ts                    # List with pagination
+│   └── get-user-by-id-loader.ts               # Single item
 ├── actions/
-│   ├── create-congregation-action.ts
-│   ├── update-congregation-action.ts
-│   ├── delete-congregation-action.ts
-│   └── delete-many-congregations-action.ts
+│   ├── create-user-action.ts
+│   ├── update-user-action.ts
+│   ├── delete-user-action.ts
+│   └── delete-many-users-action.ts
 └── components/admin/form/
-    ├── add-congregation-form.tsx
-    └── edit-congregation-form.tsx
+    ├── add-user-form.tsx
+    └── edit-user-form.tsx
 ```
 
 ### Corresponding Routes
 
 ```
 app/routes/
-├── dashboard.congregations._index.tsx    # List page
-├── dashboard.congregations.add.tsx       # Create page
-└── dashboard.congregations.$id.tsx       # Edit page
+├── dashboard.users._index.tsx    # List page
+├── dashboard.users.add.tsx       # Create page
+└── dashboard.users.$id.tsx       # Edit page
 ```
 
 For detailed implementation guide, see `.claude/skills/feature-crud.md`.
@@ -201,43 +220,50 @@ The database schema is organized in `app/db/schema/` with individual files for e
 ```
 app/db/schema/
 ├── index.ts                 # Central export (source of truth)
-├── users.ts                 # User authentication
+├── users.ts                 # User authentication and profiles
 ├── categories.ts            # Content categories
-├── posts.ts                 # Blog posts
+├── posts.ts                 # Blog posts/content
 ├── media.ts                 # Media assets
-├── congregations.ts         # Congregation members
 ├── tags.ts                  # Tag system
-├── congregation-tags.ts     # Many-to-many junction table
-├── events.ts                # Event management
-├── transactions.ts          # Financial transactions
-└── qurbans.ts               # Qurban sacrifices
+└── post-tags.ts             # Many-to-many junction table
 ```
 
 ### Key Tables
 
-#### Congregations
-- Many-to-many relationship with Tags via `congregation_tags`
-- Tracks member information (name, gender, phone, address)
+#### Users
+
+- Authentication and session management
+- Role-based access control (admin, user)
+- Profile information (name, email, avatar)
+
+#### Categories
+
+- Hierarchical content organization
+- Color-coded for visual distinction
+- Slug generation for SEO-friendly URLs
+
+#### Posts
+
+- Rich text content with Lexical editor
+- Draft/publish workflow
+- Category and tag assignment
+- Featured image support
+
+#### Media
+
+- File upload and storage
+- Metadata tracking (size, type, dimensions)
+- Relationship with posts and users
 
 #### Tags
-- Categorization system for congregations
-- Color-coded tags with unique names
 
-#### Events
-- Status tracking: planned, ongoing, completed, cancelled
-- Date, location, and description fields
-
-#### Transactions
-- Linked to congregations
-- Payment method tracking (cash, transfer, card)
-- Status: pending, completed, failed, refunded
-
-#### Qurbans
-- Linked to transactions
-- Animal type tracking (goat, sheep, cow, camel)
-- Hijri year tracking
+- Flexible tagging system
+- Many-to-many relationships
+- Color customization
+- Search and filtering support
 
 For complete schema details, inspect with:
+
 ```bash
 pnpm db:inspect
 # or
@@ -273,10 +299,10 @@ pnpm build
 To build and run using Docker:
 
 ```bash
-docker build -t mosque-management .
+docker build -t app-starter .
 
 # Run the container
-docker run -p 3000:3000 mosque-management
+docker run -p 3000:3000 app-starter
 ```
 
 The containerized application can be deployed to any platform that supports Docker, including:

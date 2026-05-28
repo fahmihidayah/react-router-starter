@@ -1,17 +1,7 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { type TUpdateUser, updateUserSchema } from '~/features/users/schemas/user-schema'
+import { Label } from '~/components/ui/label'
 import type { TUser } from '~/db/schema'
 
 interface EditUserFormProps {
@@ -20,21 +10,10 @@ interface EditUserFormProps {
   onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-type UserFormData = TUpdateUser
-
 export function EditUserForm({ user, errors, onSubmit }: EditUserFormProps) {
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(updateUserSchema),
-    defaultValues: {
-      name: user.name || '',
-      email: user.email || '',
-    },
-  })
-
-  const handleSubmit = async (data: UserFormData) => {
-    const formData = new FormData()
-    formData.append('name', data.name)
-    formData.append('email', data.email)
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
 
     if (onSubmit) {
       await onSubmit(formData)
@@ -44,49 +23,33 @@ export function EditUserForm({ user, errors, onSubmit }: EditUserFormProps) {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <Form {...form}>
-        <form method="post" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
-          <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-          <FormField
-            control={form.control}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-row justify-end">
+          <Button type="submit">Save</Button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    disabled={field.disabled || form.formState.isSubmitting}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="text"
+            placeholder="User name"
+            defaultValue={user.name || ''}
           />
-          <FormField
-            control={form.control}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
             name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    disabled={field.disabled || form.formState.isSubmitting}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="email"
+            placeholder="user@example.com"
+            defaultValue={user.email || ''}
           />
-        </form>
-      </Form>
+        </div>
+      </form>
     </>
   )
 }

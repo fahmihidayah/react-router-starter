@@ -1,6 +1,6 @@
-# Mosque Management System - System Documentation
+# Application Starter - System Documentation
 
-Mosque Management is a modern, full-stack Information System to manage mosque operations including congregations, events, transactions, and Qurban (sacrificial animal) management.
+A modern, full-stack React Router 7 application starter with authentication, CRUD operations, and admin dashboard capabilities.
 
 ## Table of Contents
 
@@ -13,79 +13,120 @@ Mosque Management is a modern, full-stack Information System to manage mosque op
 
 ## Features
 
-### 1. Congregations Management (Implemented)
+### 1. User Management (Implemented)
 
-Full CRUD operations for managing mosque congregation members.
+Full CRUD operations with authentication and role-based access control.
 
 #### Database Schema
 
-**Table:** `congregation`
+**Table:** `user`
 
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | `id` | text (UUID) | PRIMARY KEY | Unique identifier |
-| `name` | text(100) | NOT NULL | Congregation member name |
-| `gender` | text (enum) | 'f' \| 'm' | Gender (Female/Male) |
-| `phone` | text(20) | NOT NULL | Contact phone number |
-| `address` | text | NOT NULL | Full address |
+| `name` | text(100) | NOT NULL | User full name |
+| `email` | text(255) | NOT NULL, UNIQUE | Email address |
+| `role` | text (enum) | 'admin' \| 'user' | User role |
 | `createdAt` | timestamp | NOT NULL | Record creation time |
 | `updatedAt` | timestamp | NOT NULL | Last update time |
 
-#### API Endpoints
+#### Features
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/dashboard/congregations` | List all congregations (paginated, searchable) |
-| GET | `/dashboard/congregations/add` | Render create form |
-| POST | `/dashboard/congregations/add` | Create new congregation |
-| GET | `/dashboard/congregations/:id` | Render edit form |
-| POST | `/dashboard/congregations/:id` | Update congregation |
-| POST | `/dashboard/congregations` (intent: delete) | Delete single congregation |
-| POST | `/dashboard/congregations` (intent: deleteMany) | Bulk delete congregations |
+- **Search** - Real-time search by name/email
+- **Pagination** - Server-side pagination
+- **Single Delete** - Delete individual users with confirmation
+- **Bulk Delete** - Multi-select and batch delete
+- **Form Validation** - Zod schema validation
+- **Role Management** - Admin/user role assignment
+
+### 2. Categories (Implemented)
+
+Content organization and categorization system.
+
+#### Database Schema
+
+**Table:** `category`
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | text (UUID) | PRIMARY KEY | Unique identifier |
+| `name` | text(100) | NOT NULL | Category name |
+| `slug` | text(100) | NOT NULL, UNIQUE | URL-friendly slug |
+| `description` | text | | Category description |
+| `color` | text(7) | | Hex color code |
+| `createdAt` | timestamp | NOT NULL | Record creation time |
+| `updatedAt` | timestamp | NOT NULL | Last update time |
 
 #### Features
 
-- **Search** - Real-time search by name with URL parameter sync
-- **Pagination** - Server-side pagination with configurable page size
-- **Single Delete** - Delete individual congregation with confirmation dialog
-- **Bulk Delete** - Multi-select rows and delete in batch
-- **Form Validation** - Zod schema validation with inline error messages
-- **Gender Selection** - Radio button group for Male/Female
-- **Responsive Design** - Mobile-friendly data table with horizontal scroll
+- CRUD operations
+- Slug auto-generation
+- Color coding
+- Hierarchical support (planned)
 
-#### Implementation Files
+### 3. Posts (Implemented)
 
-```
-app/features/congregations/
-├── type.ts                                          # TCongregation type
-├── repositories/
-│   ├── congregation-repository.ts                   # Data access layer
-│   └── index.ts
-├── schemas/
-│   └── congregation-schema.ts                       # Zod validation schemas
-├── loaders/
-│   ├── get-congregations-loader.ts                  # List with pagination/search
-│   └── get-congregation-by-id-loader.ts             # Single item by ID
-├── actions/
-│   ├── create-congregation-action.ts                # Create handler
-│   ├── update-congregation-action.ts                # Update handler
-│   ├── delete-congregation-action.ts                # Delete single
-│   └── delete-many-congregations-action.ts          # Bulk delete
-└── components/admin/form/
-    ├── add-congregation-form.tsx                    # Create form
-    └── edit-congregation-form.tsx                   # Edit form
+Content management with rich text editing.
 
-app/routes/
-├── dashboard.congregations._index.tsx               # List page
-├── dashboard.congregations.add.tsx                  # Create page
-└── dashboard.congregations.$id.tsx                  # Edit page
-```
+#### Database Schema
 
-### 2. Tags (Planned)
+**Table:** `post`
 
-Categorization system for congregations, events, and transactions.
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | text (UUID) | PRIMARY KEY | Unique identifier |
+| `title` | text(200) | NOT NULL | Post title |
+| `slug` | text(200) | NOT NULL, UNIQUE | URL-friendly slug |
+| `content` | text | | Rich text content |
+| `excerpt` | text | | Short description |
+| `status` | text (enum) | 'draft' \| 'published' | Publication status |
+| `categoryId` | text (UUID) | FOREIGN KEY | Category reference |
+| `authorId` | text (UUID) | FOREIGN KEY | Author reference |
+| `publishedAt` | timestamp | | Publication date |
+| `createdAt` | timestamp | NOT NULL | Record creation time |
+| `updatedAt` | timestamp | NOT NULL | Last update time |
 
-#### Planned Schema
+#### Features
+
+- Rich text editor (Lexical)
+- Draft/publish workflow
+- Category assignment
+- Tag assignment
+- Featured images
+- SEO-friendly slugs
+
+### 4. Media Library (Implemented)
+
+File upload and management system.
+
+#### Database Schema
+
+**Table:** `media`
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | text (UUID) | PRIMARY KEY | Unique identifier |
+| `fileName` | text(255) | NOT NULL | Original filename |
+| `fileType` | text(50) | NOT NULL | MIME type |
+| `fileSize` | integer | NOT NULL | File size in bytes |
+| `url` | text(500) | NOT NULL | File URL/path |
+| `uploadedBy` | text (UUID) | FOREIGN KEY | User reference |
+| `createdAt` | timestamp | NOT NULL | Upload time |
+| `updatedAt` | timestamp | NOT NULL | Last update time |
+
+#### Features
+
+- File upload with validation
+- Image optimization
+- Metadata tracking
+- Bulk operations
+- Search and filtering
+
+### 5. Tags (Implemented)
+
+Flexible tagging and categorization system.
+
+#### Database Schema
 
 **Table:** `tag`
 
@@ -93,100 +134,18 @@ Categorization system for congregations, events, and transactions.
 |-------|------|-------------|-------------|
 | `id` | text (UUID) | PRIMARY KEY | Unique identifier |
 | `name` | text(50) | NOT NULL, UNIQUE | Tag name |
-| `color` | text(7) | | Hex color code (e.g., #FF5733) |
+| `slug` | text(50) | NOT NULL, UNIQUE | URL-friendly slug |
+| `color` | text(7) | | Hex color code |
 | `createdAt` | timestamp | NOT NULL | Record creation time |
 | `updatedAt` | timestamp | NOT NULL | Last update time |
 
-#### Planned Features
+#### Features
 
-- CRUD operations for tag management
-- Color picker for visual categorization
-- Tag assignment to congregations
-- Filter by tags in list views
-
-### 3. Events (Planned)
-
-Management of mosque events and activities.
-
-#### Planned Schema
-
-**Table:** `event`
-
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | text (UUID) | PRIMARY KEY | Unique identifier |
-| `name` | text(200) | NOT NULL | Event name |
-| `description` | text | | Event details |
-| `eventDate` | timestamp | NOT NULL | Event date and time |
-| `location` | text(200) | | Event location |
-| `status` | text (enum) | 'planned' \| 'ongoing' \| 'completed' \| 'cancelled' | Event status |
-| `createdAt` | timestamp | NOT NULL | Record creation time |
-| `updatedAt` | timestamp | NOT NULL | Last update time |
-
-#### Planned Features
-
-- Calendar view for events
-- Event registration system
-- Attendee tracking
-- Reminder notifications
-- Recurring events support
-
-### 4. Transactions (Planned)
-
-Financial transaction tracking for congregation members.
-
-#### Planned Schema
-
-**Table:** `transaction`
-
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | text (UUID) | PRIMARY KEY | Unique identifier |
-| `congregationId` | text (UUID) | FOREIGN KEY | Reference to congregation |
-| `amount` | integer | NOT NULL | Amount in cents |
-| `paymentMethod` | text (enum) | 'cash' \| 'transfer' \| 'card' | Payment method |
-| `status` | text (enum) | 'pending' \| 'completed' \| 'failed' \| 'refunded' | Transaction status |
-| `notes` | text | | Additional notes |
-| `transactionDate` | timestamp | NOT NULL | Transaction date |
-| `createdAt` | timestamp | NOT NULL | Record creation time |
-| `updatedAt` | timestamp | NOT NULL | Last update time |
-
-#### Planned Features
-
-- Transaction history per congregation
-- Receipt generation (PDF export)
-- Payment method statistics
-- Financial reports and dashboards
-- Filter by date range, status, payment method
-
-### 5. Qurban Management (Planned)
-
-Detailed management of Qurban (sacrificial animal) transactions.
-
-#### Planned Schema
-
-**Table:** `qurban`
-
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | text (UUID) | PRIMARY KEY | Unique identifier |
-| `transactionId` | text (UUID) | FOREIGN KEY | Reference to transaction |
-| `animalType` | text (enum) | 'goat' \| 'sheep' \| 'cow' \| 'camel' | Animal type |
-| `groupNumber` | integer | | Group number for shared sacrifice |
-| `hijriYear` | integer | NOT NULL | Hijri year (e.g., 1446) |
-| `notes` | text | | Additional notes |
-| `createdAt` | timestamp | NOT NULL | Record creation time |
-| `updatedAt` | timestamp | NOT NULL | Last update time |
-
-**Note:** The `groupNumber` field allows multiple congregation members to pool together for a single animal sacrifice, which is common practice in Islamic tradition (e.g., 7 people can share a cow or camel).
-
-#### Planned Features
-
-- Group management for shared sacrifices
-- Animal type selection with rules (individual vs shared)
-- Qurban year tracking (Hijri calendar)
-- Distribution tracking
-- Reports by year and animal type
+- CRUD operations
+- Color picker
+- Multi-select support
+- Tag-based filtering
+- Many-to-many relationships
 
 ## System Architecture
 
@@ -219,22 +178,30 @@ Detailed management of Qurban (sacrificial animal) transactions.
 ### Project Structure
 
 ```
-mosque-management/
+app-starter/
 ├── app/
 │   ├── routes/                     # File-based routing
 │   │   ├── _index.tsx             # Home page
 │   │   ├── dashboard.tsx          # Dashboard layout
-│   │   ├── dashboard.congregations._index.tsx
-│   │   ├── dashboard.congregations.add.tsx
-│   │   └── dashboard.congregations.$id.tsx
+│   │   ├── dashboard.users._index.tsx
+│   │   ├── dashboard.users.add.tsx
+│   │   ├── dashboard.users.$id.tsx
+│   │   ├── dashboard.posts._index.tsx
+│   │   ├── dashboard.categories._index.tsx
+│   │   └── ...
 │   ├── features/                   # Feature modules (CRUD)
-│   │   └── congregations/
-│   │       ├── type.ts
-│   │       ├── repositories/
-│   │       ├── schemas/
-│   │       ├── loaders/
-│   │       ├── actions/
-│   │       └── components/
+│   │   ├── users/
+│   │   ├── categories/
+│   │   ├── posts/
+│   │   ├── media/
+│   │   ├── tags/
+│   │   │   ├── type.ts
+│   │   │   ├── repositories/
+│   │   │   ├── schemas/
+│   │   │   ├── loaders/
+│   │   │   ├── actions/
+│   │   │   └── components/
+│   │   └── ...
 │   ├── components/
 │   │   ├── ui/                    # Radix UI base components
 │   │   ├── admin/                 # Admin components (DataTable, etc.)
@@ -245,8 +212,11 @@ mosque-management/
 │   │   ├── database.ts            # Database connection
 │   │   └── repository.ts          # Base repository pattern
 │   ├── db/
-│   │   ├── schema.ts              # Drizzle schema definitions
-│   │   └── schema-sqlite.ts       # SQLite-specific schema
+│   │   ├── schema/                # Drizzle schema definitions
+│   │   │   ├── index.ts
+│   │   │   ├── users.ts
+│   │   │   ├── posts.ts
+│   │   │   └── ...
 │   ├── hooks/                     # Custom React hooks
 │   ├── providers/                 # React context providers
 │   ├── utils/                     # Utility functions
@@ -272,7 +242,7 @@ mosque-management/
 All data access goes through repository classes that extend `BaseRepository`:
 
 ```typescript
-class CongregationRepository extends BaseRepository<typeof congregations> {
+class UserRepository extends BaseRepository<typeof users> {
   // Inherits: create, findById, findMany, update, delete, deleteMany
   // Add custom methods here
 }
@@ -286,12 +256,12 @@ class CongregationRepository extends BaseRepository<typeof congregations> {
 ```typescript
 // Loader - fetches data
 export async function loader({ request }: Route.LoaderArgs) {
-  return await getCongregationsLoader(request)
+  return await getUsersLoader(request)
 }
 
 // Action - handles mutations
 export async function action({ request }: Route.ActionArgs) {
-  return await createCongregationAction(request)
+  return await createUserAction(request)
 }
 ```
 
@@ -301,26 +271,26 @@ Zod schemas define validation rules, shared between client and server:
 
 ```typescript
 // Schema definition
-export const createCongregationSchema = z.object({
+export const createUserSchema = z.object({
   name: z.string().min(1).max(100),
-  gender: z.enum(['f', 'm']),
-  phone: z.string().max(20),
-  address: z.string().min(1),
+  email: z.string().email().max(255),
+  role: z.enum(['admin', 'user']),
+  password: z.string().min(8),
 })
 
 // Form component
-const form = useForm<TCreateCongregation>({
-  resolver: zodResolver(createCongregationSchema),
+const form = useForm<TCreateUser>({
+  resolver: zodResolver(createUserSchema),
 })
 
 // Action validation
-const result = createCongregationSchema.safeParse(formData)
+const result = createUserSchema.safeParse(formData)
 ```
 
 #### 4. Type Safety
 
 - Database types inferred from Drizzle schema
-- Frontend types use `T` prefix (e.g., `TCongregation`)
+- Frontend types use `T` prefix (e.g., `TUser`, `TPost`)
 - No `any` types allowed
 - Strict TypeScript configuration
 
@@ -330,13 +300,12 @@ const result = createCongregationSchema.safeParse(formData)
 
 ```
 ┌─────────────────┐
-│  Congregation   │
+│      User       │
 │─────────────────│
 │ id (PK)         │
 │ name            │
-│ gender          │
-│ phone           │
-│ address         │
+│ email           │
+│ role            │
 │ createdAt       │
 │ updatedAt       │
 └─────────────────┘
@@ -344,35 +313,33 @@ const result = createCongregationSchema.safeParse(formData)
         │ (1:N)
         ▼
 ┌─────────────────┐       ┌─────────────────┐
-│  Transaction    │       │     Event       │
+│      Post       │       │     Media       │
 │─────────────────│       │─────────────────│
 │ id (PK)         │       │ id (PK)         │
-│ congregationId  │       │ name            │
-│ amount          │       │ description     │
-│ paymentMethod   │       │ eventDate       │
-│ status          │       │ location        │
-│ notes           │       │ status          │
-│ transactionDate │       │ createdAt       │
-│ createdAt       │       │ updatedAt       │
-│ updatedAt       │       └─────────────────┘
-└─────────────────┘
-        │
-        │ (1:1)
-        ▼
-┌─────────────────┐
-│     Qurban      │
-│─────────────────│
-│ id (PK)         │
-│ transactionId   │
-│ animalType      │
-│ groupNumber     │
-│ hijriYear       │
-│ notes           │
-│ createdAt       │
+│ title           │       │ fileName        │
+│ slug            │       │ fileType        │
+│ content         │       │ fileSize        │
+│ status          │       │ url             │
+│ categoryId (FK) │       │ uploadedBy (FK) │
+│ authorId (FK)   │       │ createdAt       │
+│ publishedAt     │       │ updatedAt       │
+│ createdAt       │       └─────────────────┘
 │ updatedAt       │
 └─────────────────┘
-
-(Planned: Tag system with many-to-many relationships)
+        │
+        │ (M:N)
+        ▼
+┌─────────────────┐       ┌─────────────────┐
+│      Tag        │       │    Category     │
+│─────────────────│       │─────────────────│
+│ id (PK)         │       │ id (PK)         │
+│ name            │       │ name            │
+│ slug            │       │ slug            │
+│ color           │       │ description     │
+│ createdAt       │       │ color           │
+│ updatedAt       │       │ createdAt       │
+└─────────────────┘       │ updatedAt       │
+                          └─────────────────┘
 ```
 
 ### Schema Conventions
@@ -537,24 +504,25 @@ All components located in `app/components/ui/`:
 ## Future Enhancements
 
 ### Short-term (Next 3 months)
-- [ ] Implement Tags feature
-- [ ] Add Events management
-- [ ] Build Transactions system
-- [ ] Implement user authentication UI
+- [ ] Comments system for posts
+- [ ] Post scheduling and auto-publish
+- [ ] SEO meta tags management
+- [ ] Advanced search and filtering
+- [ ] Image upload with drag-and-drop
 
 ### Medium-term (3-6 months)
-- [ ] Qurban management system
-- [ ] Financial reporting dashboard
+- [ ] Multi-language support (i18n)
+- [ ] Email notification system
+- [ ] Activity logs and audit trail
 - [ ] Export data to Excel/PDF
-- [ ] Email notifications
-- [ ] SMS integration
+- [ ] Advanced analytics dashboard
 
 ### Long-term (6-12 months)
 - [ ] Mobile application (React Native)
-- [ ] Multi-mosque support (multi-tenancy)
-- [ ] Advanced analytics and insights
-- [ ] Automated backup system
-- [ ] Integration with payment gateways
+- [ ] Multi-tenancy support
+- [ ] Advanced caching strategies
+- [ ] GraphQL API layer
+- [ ] Third-party integrations (webhooks)
 
 ## Contributing
 

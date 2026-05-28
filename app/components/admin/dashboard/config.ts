@@ -13,8 +13,8 @@ import type { NavigationGroup } from './sidebar-navigation'
 
 // Default header configuration
 export const defaultHeaderConfig: SidebarHeaderConfig = {
-  appName: 'Mosque Management',
-  appInitial: 'M',
+  appName: 'App Starter',
+  appInitial: 'AS',
   subtitle: 'Dashboard',
 }
 
