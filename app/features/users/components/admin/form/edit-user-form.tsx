@@ -7,23 +7,13 @@ import type { TUser } from '~/db/schema'
 interface EditUserFormProps {
   user: TUser
   errors?: Record<string, string[] | undefined>
-  onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-export function EditUserForm({ user, errors, onSubmit }: EditUserFormProps) {
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    if (onSubmit) {
-      await onSubmit(formData)
-    }
-  }
-
+export function EditUserForm({ user, errors }: EditUserFormProps) {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form method="post" className="space-y-4">
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>

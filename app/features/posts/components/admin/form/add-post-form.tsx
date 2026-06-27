@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useSubmit } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
@@ -20,18 +21,22 @@ interface AddPostFormProps {
 }
 
 export function AddPostForm({ categories, errors }: AddPostFormProps) {
+  const submit = useSubmit()
   const editorRef = useRef<RichEditorHandle>(null)
   const categoryRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    formData.set('content', editorRef.current?.getJSON() ?? '')
+    const content = editorRef.current?.getJSON()
+    formData.set('content', content || '{}')
+    submit(formData, { method: 'post' })
   }
 
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} method="post" className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>

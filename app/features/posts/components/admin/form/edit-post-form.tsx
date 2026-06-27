@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useSubmit } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
@@ -22,18 +23,37 @@ interface EditPostFormProps {
 }
 
 export function EditPostForm({ post, categories, errors }: EditPostFormProps) {
+  const submit = useSubmit()
   const editorRef = useRef<RichEditorHandle>(null)
   const categoryRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // Parse double-stringified content if needed
+  const getInitialContent = () => {
+    if (!post.content) return ''
+    try {
+      // If content is double-stringified, parse it once
+      const parsed = JSON.parse(post.content)
+      if (typeof parsed === 'string') {
+        return parsed
+      }
+      return post.content
+    } catch {
+      return post.content
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    formData.set('content', editorRef.current?.getJSON() ?? '')
+    const content = editorRef.current?.getJSON()
+    formData.set('content', content || '{}')
+    submit(formData, { method: 'post' })
   }
 
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} method="post" className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>
@@ -76,7 +96,7 @@ export function EditPostForm({ post, categories, errors }: EditPostFormProps) {
           <RichEditor
             ref={editorRef}
             placeholder="Write your post content here... Use the toolbar to format your text"
-            initialContent={post.content || ''}
+            initialContent={getInitialContent()}
           />
         </div>
       </form>

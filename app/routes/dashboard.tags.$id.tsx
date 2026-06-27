@@ -1,4 +1,4 @@
-import { useActionData, useLoaderData, useSubmit } from 'react-router'
+import { useActionData, useLoaderData } from 'react-router'
 import { updateTagAction } from '~/features/tags/actions/update-tag-action'
 import { EditTagForm } from '~/features/tags/components/admin/form/edit-tag-form'
 import { getTagByIdLoader } from '~/features/tags/loaders/get-tag-by-id-loader'
@@ -22,7 +22,6 @@ export function meta() {
 export default function EditTagPage() {
   const loaderData = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const submit = useSubmit()
 
   if (!loaderData) {
     return (
@@ -35,7 +34,7 @@ export default function EditTagPage() {
   return (
     <div className="container w-full mx-auto p-5 flex flex-col gap-5">
       <h3 className="text-2xl">Edit Tag</h3>
-      <EditTagForm tag={loaderData} errors={actionData?.errors} onSubmit={(fd) => submit(fd, { method: 'post' })} />
+      <EditTagForm tag={loaderData} errors={actionData?.errors} />
     </div>
   )
 }

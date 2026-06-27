@@ -5,23 +5,13 @@ import { Label } from '~/components/ui/label'
 
 interface AddUserFormProps {
   errors?: Record<string, string[] | undefined>
-  onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-export function AddUserForm({ errors, onSubmit }: AddUserFormProps) {
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    if (onSubmit) {
-      await onSubmit(formData)
-    }
-  }
-
+export function AddUserForm({ errors }: AddUserFormProps) {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form method="post" className="space-y-4">
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>
