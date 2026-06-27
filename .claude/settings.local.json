@@ -34,7 +34,11 @@
       "Bash(pnpm db:backup:*)",
       "WebFetch(domain:api.reactrouter.com)",
       "WebSearch",
-      "Bash(pnpm dev)"
+      "Bash(pnpm dev)",
+      "Bash(git mv:*)",
+      "Bash(tree:*)",
+      "Bash(pnpm react-router typegen:*)",
+      "Bash(pnpm tsc:*)"
     ],
     "deny": [],
     "ask": []

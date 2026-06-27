@@ -6,23 +6,13 @@ import { UploadField } from '~/components/ui/upload-field'
 
 interface AddMediaFormProps {
   errors?: Record<string, string[] | undefined>
-  onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-export function AddMediaForm({ errors, onSubmit }: AddMediaFormProps) {
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    if (onSubmit) {
-      await onSubmit(formData)
-    }
-  }
-
+export function AddMediaForm({ errors }: AddMediaFormProps) {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
+      <form method="post" encType="multipart/form-data" className="space-y-4">
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>
@@ -37,11 +27,7 @@ export function AddMediaForm({ errors, onSubmit }: AddMediaFormProps) {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="alt">Alt Text (Optional)</Label>
-          <Input
-            id="alt"
-            name="alt"
-            placeholder="Descriptive alt text for accessibility"
-          />
+          <Input id="alt" name="alt" placeholder="Descriptive alt text for accessibility" />
         </div>
       </form>
     </>

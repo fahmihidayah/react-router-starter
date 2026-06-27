@@ -3,10 +3,10 @@ import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-ro
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
 import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
-import { deleteManyCategoriesAction } from '~/features/categories/actions/delete-many-categories-action'
-import { deleteCategoryAction } from '~/features/categories/actions/delete-category-action'
-import { getCategoriesLoader } from '~/features/categories/loaders/get-categories-loader'
 import type { TCategory } from '~/db/schema'
+import { deleteCategoryAction } from '~/features/categories/actions/delete-category-action'
+import { deleteManyCategoriesAction } from '~/features/categories/actions/delete-many-categories-action'
+import { getCategoriesLoader } from '~/features/categories/loaders/get-categories-loader'
 import type { Route } from './+types/dashboard.categories._index'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -128,7 +128,9 @@ export default function CategoriesPage() {
 
     submit(formData, { method: 'post' })
     setDeletingMultiple([])
-    toast.success(`${deletingMultiple.length} categor${deletingMultiple.length !== 1 ? 'ies' : 'y'} deleted`)
+    toast.success(
+      `${deletingMultiple.length} categor${deletingMultiple.length !== 1 ? 'ies' : 'y'} deleted`,
+    )
   }
 
   return (

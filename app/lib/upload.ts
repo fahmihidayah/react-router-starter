@@ -73,7 +73,7 @@ export async function saveUploadedFile(file: File | Blob): Promise<{
   }
 
   // Handle both File (with name) and Blob (without name)
-  const fileName = 'name' in file ? file.name : 'uploaded'
+  const fileName = file instanceof File && file.name ? file.name : 'uploaded'
   if (!fileName) {
     throw new Error('Cannot determine file name')
   }
