@@ -1,7 +1,7 @@
 import { useActionData, useSubmit } from 'react-router'
 import { createUserAction } from '~/features/users/actions/create-user-action'
 import { AddUserForm } from '~/features/users/components/admin/form/add-user-form'
-import type { Route } from './+types/dashboard.users.add'
+import type { Route } from './+types/dashboard.users.new'
 
 export async function action({ request }: Route.ActionArgs) {
   return createUserAction(request)

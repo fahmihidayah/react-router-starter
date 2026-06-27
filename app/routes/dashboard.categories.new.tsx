@@ -1,7 +1,7 @@
 import { useActionData, useSubmit } from 'react-router'
 import { createCategoryAction } from '~/features/categories/actions/create-category-action'
 import { AddCategoryForm } from '~/features/categories/components/admin/form/add-category-form'
-import type { Route } from './+types/dashboard.categories.add'
+import type { Route } from './+types/dashboard.categories.new'
 
 export async function action({ request }: Route.ActionArgs) {
   return createCategoryAction(request)
@@ -21,7 +21,10 @@ export default function AddCategoryPage() {
   return (
     <div className="container w-full mx-auto p-5 flex flex-col gap-5">
       <h3 className="text-2xl">Add New Category</h3>
-      <AddCategoryForm errors={actionData?.errors} onSubmit={(fd) => submit(fd, { method: 'post' })} />
+      <AddCategoryForm
+        errors={actionData?.errors}
+        onSubmit={(fd) => submit(fd, { method: 'post' })}
+      />
     </div>
   )
 }

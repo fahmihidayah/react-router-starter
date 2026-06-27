@@ -1,6 +1,6 @@
 import { createMediaAction } from '~/features/media/actions/create-media-action'
 import { AddMediaForm } from '~/features/media/components/admin/form/add-media-form'
-import type { Route } from './+types/dashboard.media.add'
+import type { Route } from './+types/dashboard.media.new'
 
 export async function action({ request }: Route.ActionArgs) {
   return createMediaAction(request)
