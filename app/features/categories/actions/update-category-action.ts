@@ -4,7 +4,9 @@ import { updateCategorySchema } from '../schemas/category-schema'
 
 export async function updateCategoryAction(request: Request, id: string) {
   const formData = await request.formData()
-  const result = updateCategorySchema.safeParse(Object.fromEntries(formData))
+  const rawData = Object.fromEntries(formData)
+
+  const result = updateCategorySchema.safeParse(rawData)
 
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
