@@ -19,27 +19,21 @@ interface EditPostFormProps {
   post: TPost
   categories: TCategory[]
   errors?: Record<string, string[] | undefined>
-  onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-export function EditPostForm({ post, categories, errors, onSubmit }: EditPostFormProps) {
+export function EditPostForm({ post, categories, errors }: EditPostFormProps) {
   const editorRef = useRef<RichEditorHandle>(null)
   const categoryRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     const formData = new FormData(e.currentTarget)
     formData.set('content', editorRef.current?.getJSON() ?? '')
-
-    if (onSubmit) {
-      await onSubmit(formData)
-    }
   }
 
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} method="post" className="space-y-4">
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>
