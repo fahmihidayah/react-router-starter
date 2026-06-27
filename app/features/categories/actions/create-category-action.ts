@@ -5,7 +5,9 @@ import { createCategorySchema } from '../schemas/category-schema'
 
 export async function createCategoryAction(request: Request) {
   const formData = await request.formData()
-  const result = createCategorySchema.safeParse(Object.fromEntries(formData))
+  const rawData = Object.fromEntries(formData)
+
+  const result = createCategorySchema.safeParse(rawData)
 
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
@@ -13,7 +15,6 @@ export async function createCategoryAction(request: Request) {
 
   try {
     const { title } = result.data
-
     const now = new Date()
 
     await categoryRepository.create({

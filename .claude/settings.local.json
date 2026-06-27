@@ -38,7 +38,8 @@
       "Bash(git mv:*)",
       "Bash(tree:*)",
       "Bash(pnpm react-router typegen:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
