@@ -1,18 +1,25 @@
 import z from 'zod'
-import { createSlugFrom } from '~/utils/slug'
 
 export const createPostSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
-  content: z.string().min(1, 'Content is required'),
-  categoryId: z.string().min(1, 'Category is required'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(255, 'Title must be 255 characters or less'),
+  content: z.string().trim().min(1, 'Content is required'),
+  categoryId: z.string().trim().min(1, 'Category is required'),
 })
 
 export type TCreatePost = z.infer<typeof createPostSchema>
 
 export const updatePostSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
-  content: z.string().min(1, 'Content is required'),
-  categoryId: z.string().min(1, 'Category is required'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(255, 'Title must be 255 characters or less'),
+  content: z.string().trim().min(1, 'Content is required'),
+  categoryId: z.string().trim().min(1, 'Category is required'),
 })
 
 export type TUpdatePost = z.infer<typeof updatePostSchema>

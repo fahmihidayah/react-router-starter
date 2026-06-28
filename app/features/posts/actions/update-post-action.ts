@@ -1,11 +1,13 @@
 import { redirect } from 'react-router'
+import { createSlugFrom } from '~/utils/slug'
 import { postRepository } from '../repositories'
 import { updatePostSchema } from '../schemas/post-schema'
-import { createSlugFrom } from '~/utils/slug'
 
 export async function updatePostAction(request: Request, id: string) {
   const formData = await request.formData()
-  const result = updatePostSchema.safeParse(Object.fromEntries(formData))
+  const rawData = Object.fromEntries(formData)
+
+  const result = updatePostSchema.safeParse(rawData)
 
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
@@ -21,6 +23,8 @@ export async function updatePostAction(request: Request, id: string) {
       return {
         errors: {
           title: ['Post not found'],
+          content: [],
+          categoryId: [],
         },
       }
     }
@@ -32,6 +36,8 @@ export async function updatePostAction(request: Request, id: string) {
         return {
           errors: {
             title: ['A post with this title already exists'],
+            content: [],
+            categoryId: [],
           },
         }
       }
@@ -50,6 +56,8 @@ export async function updatePostAction(request: Request, id: string) {
     return {
       errors: {
         title: ['Failed to update post. Please try again.'],
+        content: [],
+        categoryId: [],
       },
     }
   }

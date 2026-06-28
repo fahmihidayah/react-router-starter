@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto'
 import { redirect } from 'react-router'
+import { createSlugFrom } from '~/utils/slug'
 import { postRepository } from '../repositories'
 import { createPostSchema } from '../schemas/post-schema'
-import { createSlugFrom } from '~/utils/slug'
 
 export async function createPostAction(request: Request) {
   const formData = await request.formData()
-  const result = createPostSchema.safeParse(Object.fromEntries(formData))
+  const rawData = Object.fromEntries(formData)
+
+  const result = createPostSchema.safeParse(rawData)
 
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
@@ -15,15 +17,15 @@ export async function createPostAction(request: Request) {
   try {
     const { title, content, categoryId } = result.data
     const slug = createSlugFrom(title)
-    console.log("log for create post action :", JSON.stringify(formData));
-    
-    
+
     // Check if slug already exists
     const exists = await postRepository.slugExists(slug)
     if (exists) {
       return {
         errors: {
           title: ['A post with this title already exists'],
+          content: [],
+          categoryId: [],
         },
       }
     }
@@ -45,6 +47,8 @@ export async function createPostAction(request: Request) {
     return {
       errors: {
         title: ['Failed to create post. Please try again.'],
+        content: [],
+        categoryId: [],
       },
     }
   }

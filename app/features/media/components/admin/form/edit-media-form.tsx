@@ -1,5 +1,4 @@
 import { Button } from '~/components/ui/button'
-import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { UploadField } from '~/components/ui/upload-field'
@@ -11,33 +10,43 @@ interface EditMediaFormProps {
 }
 
 export function EditMediaForm({ media, errors }: EditMediaFormProps) {
+  const urlError = errors?.url?.[0]
+  const altError = errors?.alt?.[0]
+
   return (
-    <>
-      {errors && <ErrorDisplay errors={errors} />}
-      <form method="post" encType="multipart/form-data" className="space-y-4">
-        <div className="flex flex-row justify-end">
-          <Button type="submit">Save</Button>
-        </div>
+    <form method="post" encType="multipart/form-data" className="space-y-4">
+      <div className="flex flex-row justify-end">
+        <Button type="submit">Save</Button>
+      </div>
 
-        <UploadField
-          name="file"
-          label="Replace File (Optional)"
-          description="Select a new file to replace the current one (URL and filename will be updated automatically)"
-          accept="*/*"
-          error={errors?.file?.[0]}
-          defaultImageUrl={media.url}
+      <UploadField
+        name="file"
+        label="Replace File (Optional)"
+        description="Select a new file to replace the current one (URL and filename will be updated automatically)"
+        accept="*/*"
+        error={urlError}
+        defaultImageUrl={media.url}
+      />
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="alt" className={altError ? 'text-destructive' : ''}>
+          Alt Text (Optional)
+        </Label>
+        <Input
+          id="alt"
+          name="alt"
+          placeholder="Descriptive alt text for accessibility"
+          defaultValue={media.alt || ''}
+          aria-invalid={!!altError}
+          aria-describedby={altError ? 'alt-error' : undefined}
+          className={altError ? 'border-destructive' : ''}
         />
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="alt">Alt Text (Optional)</Label>
-          <Input
-            id="alt"
-            name="alt"
-            placeholder="Descriptive alt text for accessibility"
-            defaultValue={media.alt || ''}
-          />
-        </div>
-      </form>
-    </>
+        {altError && (
+          <p id="alt-error" className="text-destructive text-sm">
+            {altError}
+          </p>
+        )}
+      </div>
+    </form>
   )
 }

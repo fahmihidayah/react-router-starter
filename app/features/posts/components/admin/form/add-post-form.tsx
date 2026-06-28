@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { useSubmit } from 'react-router'
 import { Button } from '~/components/ui/button'
-import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import type { RichEditorHandle } from '~/components/ui/rich-editor'
@@ -25,6 +24,10 @@ export function AddPostForm({ categories, errors }: AddPostFormProps) {
   const editorRef = useRef<RichEditorHandle>(null)
   const categoryRef = useRef<HTMLInputElement>(null)
 
+  const titleError = errors?.title?.[0]
+  const categoryIdError = errors?.categoryId?.[0]
+  const contentError = errors?.content?.[0]
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
@@ -34,48 +37,77 @@ export function AddPostForm({ categories, errors }: AddPostFormProps) {
   }
 
   return (
-    <>
-      {errors && <ErrorDisplay errors={errors} />}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex flex-row justify-end">
-          <Button type="submit">Save</Button>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex flex-row justify-end">
+        <Button type="submit">Save</Button>
+      </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="title">Title</Label>
-          <Input id="title" name="title" placeholder="Post title" />
-        </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="title" className={titleError ? 'text-destructive' : ''}>
+          Title
+        </Label>
+        <Input
+          id="title"
+          name="title"
+          placeholder="Post title"
+          aria-invalid={!!titleError}
+          aria-describedby={titleError ? 'title-error' : undefined}
+          className={titleError ? 'border-destructive' : ''}
+        />
+        {titleError && (
+          <p id="title-error" className="text-destructive text-sm">
+            {titleError}
+          </p>
+        )}
+      </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="categoryId">Category</Label>
-          <Select
-            name="categoryId"
-            onValueChange={(value) => {
-              if (categoryRef.current) categoryRef.current.value = value
-            }}
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="categoryId" className={categoryIdError ? 'text-destructive' : ''}>
+          Category
+        </Label>
+        <Select
+          name="categoryId"
+          onValueChange={(value) => {
+            if (categoryRef.current) categoryRef.current.value = value
+          }}
+        >
+          <SelectTrigger
+            className={categoryIdError ? 'border-destructive w-full' : 'w-full'}
+            aria-invalid={!!categoryIdError}
+            aria-describedby={categoryIdError ? 'categoryId-error' : undefined}
           >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <input ref={categoryRef} name="categoryId" type="hidden" />
-        </div>
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <input ref={categoryRef} name="categoryId" type="hidden" />
+        {categoryIdError && (
+          <p id="categoryId-error" className="text-destructive text-sm">
+            {categoryIdError}
+          </p>
+        )}
+      </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="content">Content</Label>
-          <RichEditor
-            ref={editorRef}
-            placeholder="Write your post content here... Use the toolbar to format your text"
-          />
-        </div>
-      </form>
-    </>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="content" className={contentError ? 'text-destructive' : ''}>
+          Content
+        </Label>
+        <RichEditor
+          ref={editorRef}
+          placeholder="Write your post content here... Use the toolbar to format your text"
+        />
+        {contentError && (
+          <p id="content-error" className="text-destructive text-sm">
+            {contentError}
+          </p>
+        )}
+      </div>
+    </form>
   )
 }
