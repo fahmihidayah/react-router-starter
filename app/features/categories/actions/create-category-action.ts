@@ -24,7 +24,7 @@ export async function createCategoryAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/categories')
+    return redirect('/admin/categories')
   } catch (_error) {
     return {
       errors: {

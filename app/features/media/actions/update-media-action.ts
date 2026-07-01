@@ -63,7 +63,7 @@ export async function updateMediaAction(request: Request, id: string) {
       updatedAt: new Date(),
     })
 
-    return redirect('/dashboard/media')
+    return redirect('/admin/media')
   } catch (error) {
     console.error('Update media error:', error)
     return {

@@ -43,7 +43,7 @@ export async function createUserAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/users')
+    return redirect('/admin/users')
   } catch (_error) {
     return {
       errors: {

@@ -46,7 +46,7 @@ export async function createMediaAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/media')
+    return redirect('/admin/media')
   } catch (uploadError) {
     const errorMessage = uploadError instanceof Error ? uploadError.message : String(uploadError)
     console.error('File upload error:', errorMessage, uploadError)

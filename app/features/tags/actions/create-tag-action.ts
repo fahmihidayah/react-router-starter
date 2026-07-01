@@ -26,7 +26,7 @@ export async function createTagAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/tags')
+    return redirect('/admin/tags')
   } catch (_error) {
     return {
       errors: {

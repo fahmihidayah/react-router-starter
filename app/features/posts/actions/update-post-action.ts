@@ -51,7 +51,7 @@ export async function updatePostAction(request: Request, id: string) {
       updatedAt: new Date(),
     })
 
-    return redirect('/dashboard/posts')
+    return redirect('/admin/posts')
   } catch (_error) {
     return {
       errors: {

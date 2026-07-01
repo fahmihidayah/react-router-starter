@@ -42,7 +42,7 @@ export async function createPostAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/posts')
+    return redirect('/admin/posts')
   } catch (_error) {
     return {
       errors: {

@@ -18,7 +18,7 @@ export async function updateUserAction(request: Request, id: string) {
       updatedAt: new Date(),
     })
 
-    return redirect('/dashboard/users')
+    return redirect('/admin/users')
   } catch (_error) {
     return {
       errors: {

@@ -208,7 +208,7 @@ export async function createProductAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/products')
+    return redirect('/admin/products')
   } catch (_error) {
     return {
       errors: {
@@ -248,7 +248,7 @@ export async function updateProductAction(request: Request, id: string) {
       updatedAt: new Date(),
     })
 
-    return redirect('/dashboard/products')
+    return redirect('/admin/products')
   } catch (_error) {
     return {
       errors: {
@@ -825,7 +825,7 @@ export async function createCongregationAction(request: Request) {
       )
     }
 
-    return redirect('/dashboard/congregations')
+    return redirect('/admin/congregations')
   } catch (error) {
     return {
       errors: {
@@ -878,7 +878,7 @@ export async function updateCongregationAction(request: Request, id: string) {
       )
     }
 
-    return redirect('/dashboard/congregations')
+    return redirect('/admin/congregations')
   } catch (error) {
     return {
       errors: {

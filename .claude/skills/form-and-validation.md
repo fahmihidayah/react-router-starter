@@ -146,7 +146,7 @@ export async function createCategoryAction(request: Request) {
       updatedAt: now,
     })
 
-    return redirect('/dashboard/categories')
+    return redirect('/admin/categories')
   } catch (_error) {
     return {
       errors: {
@@ -423,7 +423,7 @@ export async function updatePostAction(request: Request, id: string) {
       updatedAt: new Date(),
     })
 
-    return redirect('/dashboard/posts')
+    return redirect('/admin/posts')
   } catch (_error) {
     return {
       errors: {

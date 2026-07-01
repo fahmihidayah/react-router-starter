@@ -1,4 +1,4 @@
-import { layout, prefix, type RouteConfig } from '@react-router/dev/routes'
+import { prefix, type RouteConfig } from '@react-router/dev/routes'
 import { flatRoutes } from '@react-router/fs-routes'
 
 export default [

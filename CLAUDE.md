@@ -20,7 +20,20 @@
 ## Directory Structure
 ```
 app/
-├── routes/           # File-based routing (flatRoutes convention)
+├── routes/           # Hybrid routing: flatRoutes + manual config
+│   ├── admin.tsx    # Layout for all /admin/* routes (with auth)
+│   ├── admin/       # Admin routes directory → /admin/*
+│   │   ├── _index.tsx        # /admin (dashboard home)
+│   │   ├── settings.tsx      # /admin/settings
+│   │   ├── users._index.tsx  # /admin/users
+│   │   ├── users.$id.tsx     # /admin/users/:id
+│   │   └── ...              # posts, media, tags, categories
+│   ├── api/         # API routes directory → /api/*
+│   │   ├── auth.$.tsx       # /api/auth/* (catch-all)
+│   │   └── health.tsx       # /api/health
+│   ├── _public.tsx  # Public layout (non-authenticated)
+│   ├── login.tsx    # /login
+│   └── ...
 ├── features/         # Feature modules: components/, loaders/, actions/, type.ts
 ├── components/ui/    # Shared Radix UI base components
 ├── components/admin/ # Admin-specific (DataTable, DeleteDialog)
@@ -32,11 +45,40 @@ app/
 └── utils/            # Utilities (logger)
 ```
 
-## Route File Naming (flatRoutes)
-- `_index.tsx` → index route
-- `dashboard.tsx` → layout route for /dashboard
-- `dashboard.users.$id.tsx` → /dashboard/users/:id
-- `api.auth.$.tsx` → catch-all /api/auth/*
+## Route Organization (app/routes.ts)
+Routes use a hybrid approach with `flatRoutes` and manual configuration:
+
+```typescript
+export default [
+  // Normal routes (pages, auth)
+  ...(await flatRoutes({
+    rootDirectory: './routes',
+    ignoredRouteFiles: ['api', 'api/**/*', 'admin', 'admin/**/*', 'admin.tsx'],
+  })),
+
+  // API routes (/api/*)
+  ...prefix('api', await flatRoutes({
+    rootDirectory: './routes/api',
+  })),
+
+  // Admin routes (/admin/*) with layout wrapper
+  {
+    id: 'admin-layout',
+    file: './routes/admin.tsx',
+    children: [
+      ...prefix('admin', await flatRoutes({
+        rootDirectory: './routes/admin',
+      })),
+    ],
+  },
+]
+```
+
+### Key Patterns
+- **Admin routes**: `/admin` directory → accessible at `/admin/*`, wrapped by `admin.tsx` layout with authentication
+- **API routes**: `/api` directory → accessible at `/api/*`
+- **Protected routes**: `admin.tsx` layout enforces authentication for all admin pages
+- **Route files**: `_index.tsx` (index), `$id.tsx` (dynamic param), `$.tsx` (catch-all)
 
 ## Key Patterns (details in .claude/skills/)
 - **Routes**: loader → server data, action → mutations, default export → component

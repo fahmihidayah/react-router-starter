@@ -95,8 +95,7 @@ export function DataTable<TData>({
     pageTitle || (tableName ? tableName.charAt(0).toUpperCase() + tableName.slice(1) : undefined)
 
   // Compute default add button link if tableName is provided
-  const computedAddButtonLink =
-    addButtonLink || (tableName ? `/dashboard/${tableName}/new` : undefined)
+  const computedAddButtonLink = addButtonLink || (tableName ? `/admin/${tableName}/new` : undefined)
 
   return (
     <div className="flex flex-col gap-4">

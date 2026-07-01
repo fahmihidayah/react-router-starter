@@ -20,7 +20,7 @@ export async function updateCategoryAction(request: Request, id: string) {
       updatedAt: new Date(),
     })
 
-    return redirect('/dashboard/categories')
+    return redirect('/admin/categories')
   } catch (_error) {
     return {
       errors: {
