@@ -25,38 +25,38 @@ export const defaultNavigationGroups: NavigationGroup[] = [
     items: [
       {
         title: 'Overview',
-        url: '/dashboard',
+        url: '/admin',
         icon: LayoutDashboard,
       },
       {
         title: 'Users',
-        url: '/dashboard/users',
+        url: '/admin/users',
         icon: Users,
       },
       {
         title: 'Media',
-        url: '/dashboard/media',
+        url: '/admin/media',
         icon: Image,
       },
       {
         title: 'Categories',
-        url: '/dashboard/categories',
+        url: '/admin/categories',
         icon: SquaresUnite,
       },
       {
         title: 'Tags',
-        url: '/dashboard/tags',
+        url: '/admin/tags',
         icon: Tags,
       },
 
       {
         title: 'Posts',
-        url: '/dashboard/posts',
+        url: '/admin/posts',
         icon: FileText,
       },
       {
         title: 'Settings',
-        url: '/dashboard/settings',
+        url: '/admin/settings',
         icon: Settings,
       },
     ],

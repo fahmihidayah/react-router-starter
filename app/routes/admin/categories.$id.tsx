@@ -2,7 +2,7 @@ import { useActionData, useLoaderData } from 'react-router'
 import { updateCategoryAction } from '~/features/categories/actions/update-category-action'
 import { EditCategoryForm } from '~/features/categories/components/admin/form/edit-category-form'
 import { getCategoryByIdLoader } from '~/features/categories/loaders/get-category-by-id-loader'
-import type { Route } from './+types/dashboard.categories.$id'
+import type { Route } from './+types/categories.$id'
 
 export async function loader({ params }: Route.LoaderArgs) {
   return getCategoryByIdLoader(params.id)

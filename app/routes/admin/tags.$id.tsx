@@ -2,7 +2,7 @@ import { useActionData, useLoaderData } from 'react-router'
 import { updateTagAction } from '~/features/tags/actions/update-tag-action'
 import { EditTagForm } from '~/features/tags/components/admin/form/edit-tag-form'
 import { getTagByIdLoader } from '~/features/tags/loaders/get-tag-by-id-loader'
-import type { Route } from './+types/dashboard.tags.$id'
+import type { Route } from './+types/tags.$id'
 
 export async function loader({ params }: Route.LoaderArgs) {
   return getTagByIdLoader(params.id)

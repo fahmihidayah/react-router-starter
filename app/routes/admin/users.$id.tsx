@@ -2,7 +2,7 @@ import { useActionData, useLoaderData } from 'react-router'
 import { updateUserAction } from '~/features/users/actions/update-user-action'
 import { EditUserForm } from '~/features/users/components/admin/form/edit-user-form'
 import { getUserByIdLoader } from '~/features/users/loaders/get-user-by-id-loader'
-import type { Route } from './+types/dashboard.users.$id'
+import type { Route } from './+types/users.$id'
 
 export async function loader({ params }: Route.LoaderArgs) {
   return getUserByIdLoader(params.id)

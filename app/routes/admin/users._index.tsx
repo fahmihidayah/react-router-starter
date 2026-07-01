@@ -3,25 +3,27 @@ import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-ro
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
 import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
-import { deletePostAction } from '~/features/posts/actions/delete-post-action'
-import { deleteManyPostsAction } from '~/features/posts/actions/delete-many-posts-action'
-import { getPostsLoader } from '~/features/posts/loaders/get-posts-loader'
-import type { TPost } from '~/db/schema'
-import type { Route } from './+types/dashboard.posts._index'
+import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
+import { deleteUserAction } from '~/features/users/actions/delete-user-action'
+import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
+import type { TUser } from '~/db/schema'
+import type { Route } from './+types/users._index'
 
+// Loader - Fetch users with pagination and search
 export async function loader({ request }: Route.LoaderArgs) {
-  return await getPostsLoader(request)
+  return await getUsersLoader(request)
 }
 
+// Action - Handle delete and delete-many operations
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const intent = formData.get('intent')
 
   try {
     if (intent === 'delete') {
-      const postId = formData.get('postId')?.toString()
-      if (postId) {
-        return deletePostAction(postId)
+      const userId = formData.get('userId')?.toString()
+      if (userId) {
+        return deleteUserAction(userId)
       }
     }
 
@@ -29,54 +31,57 @@ export async function action({ request }: Route.ActionArgs) {
       const idsJson = formData.get('ids')?.toString()
       if (idsJson) {
         const ids = JSON.parse(idsJson) as string[]
-        return deleteManyPostsAction(ids)
+        return deleteManyUsersAction(ids)
       }
     }
 
-    return { success: false }
+    return { success: false, message: 'Invalid action' }
   } catch (error) {
     console.error('Action error:', error)
-    return { success: false }
+    return { success: false, message: 'An error occurred' }
   }
 }
 
 export function meta() {
-  return [
-    { title: 'Posts - Dashboard' },
-    { name: 'description', content: 'Manage your posts' },
-  ]
+  return [{ title: 'Users - Dashboard' }, { name: 'description', content: 'Manage your users' }]
 }
 
-export default function PostsPage() {
+export default function DashboardUsersPage() {
   const loaderData = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
+
   const submit = useSubmit()
-  const navigate = useNavigate()
 
+  // State
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
-  const [deletingPost, setDeletingPost] = useState<TPost | null>(null)
-  const [deletingMultiple, setDeletingMultiple] = useState<TPost[]>([])
+  const [deletingUser, setDeletingUser] = useState<TUser | null>(null)
+  const [deletingMultiple, setDeletingMultiple] = useState<TUser[]>([])
+  const _navigate = useNavigate()
 
-  const columns = createColumn<TPost>({
-    tableName: 'posts',
+  // Table columns
+  const columns = createColumn<TUser>({
+    tableName: 'users',
+
     columnConfig: [
       {
         type: 'text',
         accessorKey: 'id',
         header: 'ID',
         fallback: 'No ID',
+        isBold: false,
       },
       {
         type: 'text',
-        accessorKey: 'title',
-        header: 'Title',
-        fallback: 'No title',
+        accessorKey: 'email',
+        header: 'Email',
+        fallback: 'No email',
+        isBold: false,
       },
       {
         type: 'text',
-        accessorKey: 'slug',
-        header: 'Slug',
-        fallback: 'No slug',
+        accessorKey: 'name',
+        header: 'Name',
+        fallback: 'No Name',
       },
       {
         type: 'date',
@@ -90,12 +95,12 @@ export default function PostsPage() {
       },
     ],
     actionColumnConfig: {
-      getItemId: (post) => post.id,
-      onEdit: (post) => navigate(`/dashboard/posts/${post.id}`),
-      onDelete: (post) => setDeletingPost(post),
+      getItemId: (user) => user.id,
+      onDelete: (user) => setDeletingUser(user),
     },
   })
 
+  // Handle search
   const handleSearch = (value: string) => {
     setSearchValue(value)
     const params = new URLSearchParams(searchParams)
@@ -104,57 +109,67 @@ export default function PostsPage() {
     } else {
       params.delete('search')
     }
-    params.set('page', '1')
+    params.set('page', '1') // Reset to first page
     setSearchParams(params)
   }
 
+  // Handle page change
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams)
     params.set('page', newPage.toString())
     setSearchParams(params)
   }
 
-  const handleDeletePost = () => {
-    if (!deletingPost) return
+  // Handle delete single user
+  const handleDeleteUser = () => {
+    if (!deletingUser) return
 
     const formData = new FormData()
     formData.append('intent', 'delete')
-    formData.append('postId', deletingPost.id)
+    formData.append('userId', deletingUser.id)
 
     submit(formData, { method: 'post' })
-    setDeletingPost(null)
-    toast.success('Post deleted')
+    setDeletingUser(null)
+    toast.success('User deleted successfully')
   }
 
-  const handleDeleteMultiple = () => {
+  // Handle delete multiple users
+  const handleDeleteMultipleUsers = () => {
     if (deletingMultiple.length === 0) return
 
     const formData = new FormData()
     formData.append('intent', 'deleteMany')
-    formData.append('ids', JSON.stringify(deletingMultiple.map((p) => p.id)))
+    formData.append('ids', JSON.stringify(deletingMultiple.map((u) => u.id)))
 
     submit(formData, { method: 'post' })
     setDeletingMultiple([])
-    toast.success(`${deletingMultiple.length} post${deletingMultiple.length !== 1 ? 's' : ''} deleted`)
+    toast.success(`${deletingMultiple.length} user(s) deleted successfully`)
+  }
+
+  // Handle selected rows for bulk delete
+  const handleDeleteSelected = (selectedUsers: TUser[]) => {
+    setDeletingMultiple(selectedUsers)
   }
 
   return (
     <div className="flex-1 p-6">
       <div className="space-y-6">
+        {/* Data Table */}
         <DataTable
           data={loaderData.docs}
           columns={columns}
-          searchPlaceholder="Search posts..."
+          searchPlaceholder="Search users..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
-          emptyMessage="No posts found."
+          emptyMessage="No users found."
           enableRowSelection
-          tableName="posts"
-          onDeleteSelected={setDeletingMultiple}
+          tableName="users"
+          onDeleteSelected={handleDeleteSelected}
           totalPages={loaderData.totalPages}
           manualPagination
         />
 
+        {/* Table Pagination */}
         {loaderData.totalPages > 1 && (
           <TablePagination
             currentPage={loaderData.page}
@@ -164,21 +179,23 @@ export default function PostsPage() {
         )}
       </div>
 
+      {/* Delete Single User Dialog */}
       <DeleteDialog
-        open={!!deletingPost}
-        onOpenChange={(open) => !open && setDeletingPost(null)}
-        title="Delete Post"
-        itemName={deletingPost?.title || ''}
-        onConfirm={handleDeletePost}
-        onCancel={() => setDeletingPost(null)}
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && setDeletingUser(null)}
+        title="Delete User"
+        itemName={deletingUser?.email || ''}
+        onConfirm={handleDeleteUser}
+        onCancel={() => setDeletingUser(null)}
       />
 
+      {/* Delete Multiple Users Dialog */}
       <DeleteDialog
         open={deletingMultiple.length > 0}
         onOpenChange={(open) => !open && setDeletingMultiple([])}
-        title="Delete Posts"
-        itemName={`${deletingMultiple.length} post${deletingMultiple.length !== 1 ? 's' : ''}`}
-        onConfirm={handleDeleteMultiple}
+        title="Delete Users"
+        itemName={`${deletingMultiple.length} user${deletingMultiple.length !== 1 ? 's' : ''}`}
+        onConfirm={handleDeleteMultipleUsers}
         onCancel={() => setDeletingMultiple([])}
       />
     </div>

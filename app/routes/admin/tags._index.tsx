@@ -7,7 +7,7 @@ import { deleteManyTagsAction } from '~/features/tags/actions/delete-many-tags-a
 import { deleteTagAction } from '~/features/tags/actions/delete-tag-action'
 import { getTagsLoader } from '~/features/tags/loaders/get-tags-loader'
 import type { TTag } from '~/db/schema'
-import type { Route } from './+types/dashboard.tags._index'
+import type { Route } from './+types/tags._index'
 
 export async function loader({ request }: Route.LoaderArgs) {
   return await getTagsLoader(request)

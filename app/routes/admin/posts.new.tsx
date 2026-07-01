@@ -2,7 +2,7 @@ import { useActionData } from 'react-router'
 import { categoryRepository } from '~/features/categories/repositories'
 import { createPostAction } from '~/features/posts/actions/create-post-action'
 import { NewPostForm } from '~/features/posts/components/admin/form/new-post-form'
-import type { Route } from './+types/dashboard.posts.new'
+import type { Route } from './+types/posts.new'
 
 export async function loader() {
   return await categoryRepository.findAll()

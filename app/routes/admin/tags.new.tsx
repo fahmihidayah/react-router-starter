@@ -1,7 +1,7 @@
 import { useActionData } from 'react-router'
 import { createTagAction } from '~/features/tags/actions/create-tag-action'
 import { NewTagForm } from '~/features/tags/components/admin/form/new-tag-form'
-import type { Route } from './+types/dashboard.tags.new'
+import type { Route } from './+types/tags.new'
 
 export async function action({ request }: Route.ActionArgs) {
   return createTagAction(request)

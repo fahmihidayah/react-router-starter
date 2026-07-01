@@ -1,7 +1,7 @@
 import { useActionData } from 'react-router'
 import { createCategoryAction } from '~/features/categories/actions/create-category-action'
 import { NewCategoryForm } from '~/features/categories/components/admin/form/new-category-form'
-import type { Route } from './+types/dashboard.categories.new'
+import type { Route } from './+types/categories.new'
 
 export async function action({ request }: Route.ActionArgs) {
   return createCategoryAction(request)

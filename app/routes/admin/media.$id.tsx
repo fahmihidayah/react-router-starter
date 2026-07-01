@@ -1,7 +1,7 @@
 import { updateMediaAction } from '~/features/media/actions/update-media-action'
 import { EditMediaForm } from '~/features/media/components/admin/form/edit-media-form'
 import { getMediaByIdLoader } from '~/features/media/loaders/get-media-by-id-loader'
-import type { Route } from './+types/dashboard.media.$id'
+import type { Route } from './+types/media.$id'
 
 export async function loader({ params }: Route.LoaderArgs) {
   return getMediaByIdLoader(params.id)

@@ -3,14 +3,14 @@ import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-ro
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
 import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
-import type { TCategory } from '~/db/schema'
-import { deleteCategoryAction } from '~/features/categories/actions/delete-category-action'
-import { deleteManyCategoriesAction } from '~/features/categories/actions/delete-many-categories-action'
-import { getCategoriesLoader } from '~/features/categories/loaders/get-categories-loader'
-import type { Route } from './+types/dashboard.categories._index'
+import { deleteManyMediaAction } from '~/features/media/actions/delete-many-media-action'
+import { deleteMediaAction } from '~/features/media/actions/delete-media-action'
+import { getMediaLoader } from '~/features/media/loaders/get-media-loader'
+import type { TMedia } from '~/db/schema'
+import type { Route } from './+types/media._index'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  return await getCategoriesLoader(request)
+  return await getMediaLoader(request)
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -19,9 +19,9 @@ export async function action({ request }: Route.ActionArgs) {
 
   try {
     if (intent === 'delete') {
-      const categoryId = formData.get('categoryId')?.toString()
-      if (categoryId) {
-        return deleteCategoryAction(categoryId)
+      const mediaId = formData.get('mediaId')?.toString()
+      if (mediaId) {
+        return deleteMediaAction(mediaId)
       }
     }
 
@@ -29,7 +29,7 @@ export async function action({ request }: Route.ActionArgs) {
       const idsJson = formData.get('ids')?.toString()
       if (idsJson) {
         const ids = JSON.parse(idsJson) as string[]
-        return deleteManyCategoriesAction(ids)
+        return deleteManyMediaAction(ids)
       }
     }
 
@@ -42,23 +42,23 @@ export async function action({ request }: Route.ActionArgs) {
 
 export function meta() {
   return [
-    { title: 'Categories - Dashboard' },
-    { name: 'description', content: 'Manage your categories' },
+    { title: 'Media - Dashboard' },
+    { name: 'description', content: 'Manage your media files' },
   ]
 }
 
-export default function CategoriesPage() {
+export default function DashboardMediaPage() {
   const loaderData = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
   const submit = useSubmit()
 
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
-  const [deletingCategory, setDeletingCategory] = useState<TCategory | null>(null)
-  const [deletingMultiple, setDeletingMultiple] = useState<TCategory[]>([])
+  const [deletingMedia, setDeletingMedia] = useState<TMedia | null>(null)
+  const [deletingMultiple, setDeletingMultiple] = useState<TMedia[]>([])
   const _navigate = useNavigate()
 
-  const columns = createColumn<TCategory>({
-    tableName: 'categories',
+  const columns = createColumn<TMedia>({
+    tableName: 'media',
     columnConfig: [
       {
         type: 'text',
@@ -66,11 +66,18 @@ export default function CategoriesPage() {
         header: 'ID',
         fallback: 'No ID',
       },
+
+      {
+        type: 'image',
+        accessorKey: 'url',
+        header: 'URL',
+        fallback: 'No URL',
+      },
       {
         type: 'text',
-        accessorKey: 'title',
-        header: 'Title',
-        fallback: 'No title',
+        accessorKey: 'alt',
+        header: 'Alt Text',
+        fallback: 'No alt text',
       },
       {
         type: 'date',
@@ -84,8 +91,8 @@ export default function CategoriesPage() {
       },
     ],
     actionColumnConfig: {
-      getItemId: (category) => category.id,
-      onDelete: (category) => setDeletingCategory(category),
+      getItemId: (media) => media.id,
+      onDelete: (media) => setDeletingMedia(media),
     },
   })
 
@@ -107,16 +114,16 @@ export default function CategoriesPage() {
     setSearchParams(params)
   }
 
-  const handleDeleteCategory = () => {
-    if (!deletingCategory) return
+  const handleDeleteMedia = () => {
+    if (!deletingMedia) return
 
     const formData = new FormData()
     formData.append('intent', 'delete')
-    formData.append('categoryId', deletingCategory.id)
+    formData.append('mediaId', deletingMedia.id)
 
     submit(formData, { method: 'post' })
-    setDeletingCategory(null)
-    toast.success('Category deleted')
+    setDeletingMedia(null)
+    toast.success('Media deleted')
   }
 
   const handleDeleteMultiple = () => {
@@ -124,13 +131,11 @@ export default function CategoriesPage() {
 
     const formData = new FormData()
     formData.append('intent', 'deleteMany')
-    formData.append('ids', JSON.stringify(deletingMultiple.map((c) => c.id)))
+    formData.append('ids', JSON.stringify(deletingMultiple.map((m) => m.id)))
 
     submit(formData, { method: 'post' })
     setDeletingMultiple([])
-    toast.success(
-      `${deletingMultiple.length} categor${deletingMultiple.length !== 1 ? 'ies' : 'y'} deleted`,
-    )
+    toast.success(`${deletingMultiple.length} media file(s) deleted`)
   }
 
   return (
@@ -139,12 +144,12 @@ export default function CategoriesPage() {
         <DataTable
           data={loaderData.docs}
           columns={columns}
-          searchPlaceholder="Search categories..."
+          searchPlaceholder="Search media..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
-          emptyMessage="No categories found."
+          emptyMessage="No media found."
           enableRowSelection
-          tableName="categories"
+          tableName="media"
           onDeleteSelected={setDeletingMultiple}
           totalPages={loaderData.totalPages}
           manualPagination
@@ -160,19 +165,19 @@ export default function CategoriesPage() {
       </div>
 
       <DeleteDialog
-        open={!!deletingCategory}
-        onOpenChange={(open) => !open && setDeletingCategory(null)}
-        title="Delete Category"
-        itemName={deletingCategory?.title || ''}
-        onConfirm={handleDeleteCategory}
-        onCancel={() => setDeletingCategory(null)}
+        open={!!deletingMedia}
+        onOpenChange={(open) => !open && setDeletingMedia(null)}
+        title="Delete Media"
+        itemName={deletingMedia?.filename || ''}
+        onConfirm={handleDeleteMedia}
+        onCancel={() => setDeletingMedia(null)}
       />
 
       <DeleteDialog
         open={deletingMultiple.length > 0}
         onOpenChange={(open) => !open && setDeletingMultiple([])}
-        title="Delete Categories"
-        itemName={`${deletingMultiple.length} categor${deletingMultiple.length !== 1 ? 'ies' : 'y'}`}
+        title="Delete Media"
+        itemName={`${deletingMultiple.length} media file${deletingMultiple.length !== 1 ? 's' : ''}`}
         onConfirm={handleDeleteMultiple}
         onCancel={() => setDeletingMultiple([])}
       />

@@ -3,14 +3,14 @@ import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-ro
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
 import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
-import { deleteManyMediaAction } from '~/features/media/actions/delete-many-media-action'
-import { deleteMediaAction } from '~/features/media/actions/delete-media-action'
-import { getMediaLoader } from '~/features/media/loaders/get-media-loader'
-import type { TMedia } from '~/db/schema'
-import type { Route } from './+types/dashboard.media._index'
+import { deletePostAction } from '~/features/posts/actions/delete-post-action'
+import { deleteManyPostsAction } from '~/features/posts/actions/delete-many-posts-action'
+import { getPostsLoader } from '~/features/posts/loaders/get-posts-loader'
+import type { TPost } from '~/db/schema'
+import type { Route } from './+types/posts._index'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  return await getMediaLoader(request)
+  return await getPostsLoader(request)
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -19,9 +19,9 @@ export async function action({ request }: Route.ActionArgs) {
 
   try {
     if (intent === 'delete') {
-      const mediaId = formData.get('mediaId')?.toString()
-      if (mediaId) {
-        return deleteMediaAction(mediaId)
+      const postId = formData.get('postId')?.toString()
+      if (postId) {
+        return deletePostAction(postId)
       }
     }
 
@@ -29,7 +29,7 @@ export async function action({ request }: Route.ActionArgs) {
       const idsJson = formData.get('ids')?.toString()
       if (idsJson) {
         const ids = JSON.parse(idsJson) as string[]
-        return deleteManyMediaAction(ids)
+        return deleteManyPostsAction(ids)
       }
     }
 
@@ -42,23 +42,23 @@ export async function action({ request }: Route.ActionArgs) {
 
 export function meta() {
   return [
-    { title: 'Media - Dashboard' },
-    { name: 'description', content: 'Manage your media files' },
+    { title: 'Posts - Dashboard' },
+    { name: 'description', content: 'Manage your posts' },
   ]
 }
 
-export default function DashboardMediaPage() {
+export default function PostsPage() {
   const loaderData = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
   const submit = useSubmit()
+  const navigate = useNavigate()
 
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
-  const [deletingMedia, setDeletingMedia] = useState<TMedia | null>(null)
-  const [deletingMultiple, setDeletingMultiple] = useState<TMedia[]>([])
-  const _navigate = useNavigate()
+  const [deletingPost, setDeletingPost] = useState<TPost | null>(null)
+  const [deletingMultiple, setDeletingMultiple] = useState<TPost[]>([])
 
-  const columns = createColumn<TMedia>({
-    tableName: 'media',
+  const columns = createColumn<TPost>({
+    tableName: 'posts',
     columnConfig: [
       {
         type: 'text',
@@ -66,18 +66,17 @@ export default function DashboardMediaPage() {
         header: 'ID',
         fallback: 'No ID',
       },
-
       {
-        type: 'image',
-        accessorKey: 'url',
-        header: 'URL',
-        fallback: 'No URL',
+        type: 'text',
+        accessorKey: 'title',
+        header: 'Title',
+        fallback: 'No title',
       },
       {
         type: 'text',
-        accessorKey: 'alt',
-        header: 'Alt Text',
-        fallback: 'No alt text',
+        accessorKey: 'slug',
+        header: 'Slug',
+        fallback: 'No slug',
       },
       {
         type: 'date',
@@ -91,8 +90,9 @@ export default function DashboardMediaPage() {
       },
     ],
     actionColumnConfig: {
-      getItemId: (media) => media.id,
-      onDelete: (media) => setDeletingMedia(media),
+      getItemId: (post) => post.id,
+      onEdit: (post) => navigate(`/dashboard/posts/${post.id}`),
+      onDelete: (post) => setDeletingPost(post),
     },
   })
 
@@ -114,16 +114,16 @@ export default function DashboardMediaPage() {
     setSearchParams(params)
   }
 
-  const handleDeleteMedia = () => {
-    if (!deletingMedia) return
+  const handleDeletePost = () => {
+    if (!deletingPost) return
 
     const formData = new FormData()
     formData.append('intent', 'delete')
-    formData.append('mediaId', deletingMedia.id)
+    formData.append('postId', deletingPost.id)
 
     submit(formData, { method: 'post' })
-    setDeletingMedia(null)
-    toast.success('Media deleted')
+    setDeletingPost(null)
+    toast.success('Post deleted')
   }
 
   const handleDeleteMultiple = () => {
@@ -131,11 +131,11 @@ export default function DashboardMediaPage() {
 
     const formData = new FormData()
     formData.append('intent', 'deleteMany')
-    formData.append('ids', JSON.stringify(deletingMultiple.map((m) => m.id)))
+    formData.append('ids', JSON.stringify(deletingMultiple.map((p) => p.id)))
 
     submit(formData, { method: 'post' })
     setDeletingMultiple([])
-    toast.success(`${deletingMultiple.length} media file(s) deleted`)
+    toast.success(`${deletingMultiple.length} post${deletingMultiple.length !== 1 ? 's' : ''} deleted`)
   }
 
   return (
@@ -144,12 +144,12 @@ export default function DashboardMediaPage() {
         <DataTable
           data={loaderData.docs}
           columns={columns}
-          searchPlaceholder="Search media..."
+          searchPlaceholder="Search posts..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
-          emptyMessage="No media found."
+          emptyMessage="No posts found."
           enableRowSelection
-          tableName="media"
+          tableName="posts"
           onDeleteSelected={setDeletingMultiple}
           totalPages={loaderData.totalPages}
           manualPagination
@@ -165,19 +165,19 @@ export default function DashboardMediaPage() {
       </div>
 
       <DeleteDialog
-        open={!!deletingMedia}
-        onOpenChange={(open) => !open && setDeletingMedia(null)}
-        title="Delete Media"
-        itemName={deletingMedia?.filename || ''}
-        onConfirm={handleDeleteMedia}
-        onCancel={() => setDeletingMedia(null)}
+        open={!!deletingPost}
+        onOpenChange={(open) => !open && setDeletingPost(null)}
+        title="Delete Post"
+        itemName={deletingPost?.title || ''}
+        onConfirm={handleDeletePost}
+        onCancel={() => setDeletingPost(null)}
       />
 
       <DeleteDialog
         open={deletingMultiple.length > 0}
         onOpenChange={(open) => !open && setDeletingMultiple([])}
-        title="Delete Media"
-        itemName={`${deletingMultiple.length} media file${deletingMultiple.length !== 1 ? 's' : ''}`}
+        title="Delete Posts"
+        itemName={`${deletingMultiple.length} post${deletingMultiple.length !== 1 ? 's' : ''}`}
         onConfirm={handleDeleteMultiple}
         onCancel={() => setDeletingMultiple([])}
       />

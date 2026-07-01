@@ -1,5 +1,5 @@
 import { auth } from '~/lib/auth'
-import type { Route } from './+types/api.auth.$'
+import type { Route } from './+types/auth.$'
 
 // Universal auth handler for all HTTP methods
 async function handleAuth(request: Request) {

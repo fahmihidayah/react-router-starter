@@ -3,27 +3,25 @@ import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-ro
 import { toast } from 'sonner'
 import createColumn from '~/components/admin/table/column/create-column'
 import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
-import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
-import { deleteUserAction } from '~/features/users/actions/delete-user-action'
-import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
-import type { TUser } from '~/db/schema'
-import type { Route } from './+types/dashboard.users._index'
+import type { TCategory } from '~/db/schema'
+import { deleteCategoryAction } from '~/features/categories/actions/delete-category-action'
+import { deleteManyCategoriesAction } from '~/features/categories/actions/delete-many-categories-action'
+import { getCategoriesLoader } from '~/features/categories/loaders/get-categories-loader'
+import type { Route } from './+types/categories._index'
 
-// Loader - Fetch users with pagination and search
 export async function loader({ request }: Route.LoaderArgs) {
-  return await getUsersLoader(request)
+  return await getCategoriesLoader(request)
 }
 
-// Action - Handle delete and delete-many operations
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const intent = formData.get('intent')
 
   try {
     if (intent === 'delete') {
-      const userId = formData.get('userId')?.toString()
-      if (userId) {
-        return deleteUserAction(userId)
+      const categoryId = formData.get('categoryId')?.toString()
+      if (categoryId) {
+        return deleteCategoryAction(categoryId)
       }
     }
 
@@ -31,57 +29,48 @@ export async function action({ request }: Route.ActionArgs) {
       const idsJson = formData.get('ids')?.toString()
       if (idsJson) {
         const ids = JSON.parse(idsJson) as string[]
-        return deleteManyUsersAction(ids)
+        return deleteManyCategoriesAction(ids)
       }
     }
 
-    return { success: false, message: 'Invalid action' }
+    return { success: false }
   } catch (error) {
     console.error('Action error:', error)
-    return { success: false, message: 'An error occurred' }
+    return { success: false }
   }
 }
 
 export function meta() {
-  return [{ title: 'Users - Dashboard' }, { name: 'description', content: 'Manage your users' }]
+  return [
+    { title: 'Categories - Dashboard' },
+    { name: 'description', content: 'Manage your categories' },
+  ]
 }
 
-export default function DashboardUsersPage() {
+export default function CategoriesPage() {
   const loaderData = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
-
   const submit = useSubmit()
 
-  // State
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
-  const [deletingUser, setDeletingUser] = useState<TUser | null>(null)
-  const [deletingMultiple, setDeletingMultiple] = useState<TUser[]>([])
+  const [deletingCategory, setDeletingCategory] = useState<TCategory | null>(null)
+  const [deletingMultiple, setDeletingMultiple] = useState<TCategory[]>([])
   const _navigate = useNavigate()
 
-  // Table columns
-  const columns = createColumn<TUser>({
-    tableName: 'users',
-
+  const columns = createColumn<TCategory>({
+    tableName: 'categories',
     columnConfig: [
       {
         type: 'text',
         accessorKey: 'id',
         header: 'ID',
         fallback: 'No ID',
-        isBold: false,
       },
       {
         type: 'text',
-        accessorKey: 'email',
-        header: 'Email',
-        fallback: 'No email',
-        isBold: false,
-      },
-      {
-        type: 'text',
-        accessorKey: 'name',
-        header: 'Name',
-        fallback: 'No Name',
+        accessorKey: 'title',
+        header: 'Title',
+        fallback: 'No title',
       },
       {
         type: 'date',
@@ -95,12 +84,11 @@ export default function DashboardUsersPage() {
       },
     ],
     actionColumnConfig: {
-      getItemId: (user) => user.id,
-      onDelete: (user) => setDeletingUser(user),
+      getItemId: (category) => category.id,
+      onDelete: (category) => setDeletingCategory(category),
     },
   })
 
-  // Handle search
   const handleSearch = (value: string) => {
     setSearchValue(value)
     const params = new URLSearchParams(searchParams)
@@ -109,67 +97,59 @@ export default function DashboardUsersPage() {
     } else {
       params.delete('search')
     }
-    params.set('page', '1') // Reset to first page
+    params.set('page', '1')
     setSearchParams(params)
   }
 
-  // Handle page change
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams)
     params.set('page', newPage.toString())
     setSearchParams(params)
   }
 
-  // Handle delete single user
-  const handleDeleteUser = () => {
-    if (!deletingUser) return
+  const handleDeleteCategory = () => {
+    if (!deletingCategory) return
 
     const formData = new FormData()
     formData.append('intent', 'delete')
-    formData.append('userId', deletingUser.id)
+    formData.append('categoryId', deletingCategory.id)
 
     submit(formData, { method: 'post' })
-    setDeletingUser(null)
-    toast.success('User deleted successfully')
+    setDeletingCategory(null)
+    toast.success('Category deleted')
   }
 
-  // Handle delete multiple users
-  const handleDeleteMultipleUsers = () => {
+  const handleDeleteMultiple = () => {
     if (deletingMultiple.length === 0) return
 
     const formData = new FormData()
     formData.append('intent', 'deleteMany')
-    formData.append('ids', JSON.stringify(deletingMultiple.map((u) => u.id)))
+    formData.append('ids', JSON.stringify(deletingMultiple.map((c) => c.id)))
 
     submit(formData, { method: 'post' })
     setDeletingMultiple([])
-    toast.success(`${deletingMultiple.length} user(s) deleted successfully`)
-  }
-
-  // Handle selected rows for bulk delete
-  const handleDeleteSelected = (selectedUsers: TUser[]) => {
-    setDeletingMultiple(selectedUsers)
+    toast.success(
+      `${deletingMultiple.length} categor${deletingMultiple.length !== 1 ? 'ies' : 'y'} deleted`,
+    )
   }
 
   return (
     <div className="flex-1 p-6">
       <div className="space-y-6">
-        {/* Data Table */}
         <DataTable
           data={loaderData.docs}
           columns={columns}
-          searchPlaceholder="Search users..."
+          searchPlaceholder="Search categories..."
           searchValue={searchValue}
           onSearchChange={handleSearch}
-          emptyMessage="No users found."
+          emptyMessage="No categories found."
           enableRowSelection
-          tableName="users"
-          onDeleteSelected={handleDeleteSelected}
+          tableName="categories"
+          onDeleteSelected={setDeletingMultiple}
           totalPages={loaderData.totalPages}
           manualPagination
         />
 
-        {/* Table Pagination */}
         {loaderData.totalPages > 1 && (
           <TablePagination
             currentPage={loaderData.page}
@@ -179,23 +159,21 @@ export default function DashboardUsersPage() {
         )}
       </div>
 
-      {/* Delete Single User Dialog */}
       <DeleteDialog
-        open={!!deletingUser}
-        onOpenChange={(open) => !open && setDeletingUser(null)}
-        title="Delete User"
-        itemName={deletingUser?.email || ''}
-        onConfirm={handleDeleteUser}
-        onCancel={() => setDeletingUser(null)}
+        open={!!deletingCategory}
+        onOpenChange={(open) => !open && setDeletingCategory(null)}
+        title="Delete Category"
+        itemName={deletingCategory?.title || ''}
+        onConfirm={handleDeleteCategory}
+        onCancel={() => setDeletingCategory(null)}
       />
 
-      {/* Delete Multiple Users Dialog */}
       <DeleteDialog
         open={deletingMultiple.length > 0}
         onOpenChange={(open) => !open && setDeletingMultiple([])}
-        title="Delete Users"
-        itemName={`${deletingMultiple.length} user${deletingMultiple.length !== 1 ? 's' : ''}`}
-        onConfirm={handleDeleteMultipleUsers}
+        title="Delete Categories"
+        itemName={`${deletingMultiple.length} categor${deletingMultiple.length !== 1 ? 'ies' : 'y'}`}
+        onConfirm={handleDeleteMultiple}
         onCancel={() => setDeletingMultiple([])}
       />
     </div>

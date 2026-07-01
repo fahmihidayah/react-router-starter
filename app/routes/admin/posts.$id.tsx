@@ -3,7 +3,7 @@ import { updatePostAction } from '~/features/posts/actions/update-post-action'
 import { EditPostForm } from '~/features/posts/components/admin/form/edit-post-form'
 import { getPostByIdLoader } from '~/features/posts/loaders/get-post-by-id-loader'
 import { categoryRepository } from '~/features/categories/repositories'
-import type { Route } from './+types/dashboard.posts.$id'
+import type { Route } from './+types/posts.$id'
 
 export async function loader({ params }: Route.LoaderArgs) {
   const post = await getPostByIdLoader(params.id)
