@@ -1,14 +1,16 @@
 import { prefix, type RouteConfig } from '@react-router/dev/routes'
 import { flatRoutes } from '@react-router/fs-routes'
-
 export default [
-  // Normal routes (pages, dashboard, auth pages)
-  ...(await flatRoutes({
-    rootDirectory: './routes',
-    ignoredRouteFiles: ['api', 'api/**/*', 'admin', 'admin/**/*', 'admin.tsx'],
-  })),
+  // public pages with locale support
+  ...prefix(
+    ':locale?',
+    await flatRoutes({
+      rootDirectory: './routes',
+      ignoredRouteFiles: ['api', 'api/**/*', 'admin', 'admin/**/*', 'admin.tsx'],
+    }),
+  ),
 
-  // API routes (/api/*)
+  // api no locale
   ...prefix(
     'api',
     await flatRoutes({
@@ -16,7 +18,7 @@ export default [
     }),
   ),
 
-  // Admin routes (/admin/*) with layout wrapper
+  // admin no locale
   {
     id: 'admin-layout',
     file: './routes/admin.tsx',

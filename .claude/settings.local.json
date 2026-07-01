@@ -42,7 +42,9 @@
       "Bash(node:*)",
       "Bash(xargs kill -9)",
       "Bash(git rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(pnpm paraglide-js compile:*)",
+      "Bash(pnpm paraglide-js:*)"
     ],
     "deny": [],
     "ask": []

@@ -164,7 +164,7 @@ export async function action({ request }: ActionFunctionArgs) {
         console.log('[Register Action] Auto-login successful, redirecting to dashboard')
 
         // Return success with redirect
-        return redirect('/dashboard')
+        return redirect('/admin')
       } else {
         console.warn('[Register Action] Auto-login failed, returning success without redirect')
         return data<ActionResponse>({

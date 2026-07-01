@@ -43,7 +43,7 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
           <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate('/dashboard')}>Dashboard</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/admin')}>Dashboard</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={handleLogout}>
           Logout

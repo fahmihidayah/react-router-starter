@@ -2,8 +2,15 @@ import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration }
 
 import type { Route } from './+types/root'
 import './app.css'
-import { QueryProvider } from '~/providers/react-query'
+
+import type { MiddlewareFunction } from 'react-router'
 import { Toaster } from '~/components/ui/sonner'
+import { QueryProvider } from '~/providers/react-query'
+import { paraglideMiddleware } from './paraglide/server.js'
+
+export const middleware: MiddlewareFunction[] = [
+  (ctx, next) => paraglideMiddleware(ctx.request, () => next()),
+]
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

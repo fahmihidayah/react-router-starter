@@ -57,7 +57,7 @@ export default function Login() {
         description: 'Welcome back!',
       })
 
-      navigate('/dashboard')
+      navigate('/admin')
     } catch (err: any) {
       console.error('[Login] Unexpected error:', err)
       toast.error('Login Failed', {

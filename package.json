@@ -28,7 +28,9 @@
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "biome:ci": "biome ci ."
+    "biome:ci": "biome ci .",
+    "machine-translate": "inlang machine translate --project project.inlang",
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./app/paraglide"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
@@ -109,6 +111,8 @@
     "typescript": "^5.8.0",
     "vite": "^7.1.0",
     "vite-tsconfig-paths": "^5.1.0",
-    "vitest": "4.1.5"
+    "vitest": "4.1.5",
+    "@inlang/paraglide-js": "^2.20.2",
+    "@inlang/cli": "^3.0.0"
   }
 }

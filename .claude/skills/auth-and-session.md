@@ -132,7 +132,7 @@ export default function LoginPage() {
       return
     }
 
-    navigate('/dashboard')
+    navigate('/admin/')
   }
 
   return <form onSubmit={handleSubmit(onSubmit)}>{/* fields */}</form>
@@ -149,7 +149,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await auth.api.getSession({ headers: request.headers })
 
   if (session?.user) {
-    throw redirect('/dashboard')
+    throw redirect('/admin/')
   }
 
   return {}
