@@ -2,11 +2,11 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 
-interface AddCategoryFormProps {
+interface NewCategoryFormProps {
   errors?: Record<string, string[] | undefined>
 }
 
-export function AddCategoryForm({ errors }: AddCategoryFormProps) {
+export function NewCategoryForm({ errors }: NewCategoryFormProps) {
   const titleError = errors?.title?.[0]
 
   return (

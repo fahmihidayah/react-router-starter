@@ -14,12 +14,12 @@ import {
 } from '~/components/ui/select'
 import type { TCategory } from '~/db/schema'
 
-interface AddPostFormProps {
+interface NewPostFormProps {
   categories: TCategory[]
   errors?: Record<string, string[] | undefined>
 }
 
-export function AddPostForm({ categories, errors }: AddPostFormProps) {
+export function NewPostForm({ categories, errors }: NewPostFormProps) {
   const submit = useSubmit()
   const editorRef = useRef<RichEditorHandle>(null)
   const categoryRef = useRef<HTMLInputElement>(null)

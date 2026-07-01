@@ -1,251 +1,336 @@
 ---
 name: form-and-validation
 description: >
-  How to build forms with React Hook Form and Zod validation in this project.
+  How to build forms with server-side validation using Zod in this project.
   Use this skill when creating any form (login, register, create/edit entity),
   adding validation schemas, handling form submissions, or integrating forms with
-  server actions. Also use when the user asks about form patterns, Zod schemas,
+  server actions. This project uses NATIVE HTML FORMS with server-side validation,
+  NOT React Hook Form. Also use when the user asks about form patterns, Zod schemas,
   or form error handling.
 ---
-
 # Form & Validation Patterns
+
+**CRITICAL: This project uses native HTML forms with server-side validation. DO NOT use React Hook Form or client-side validation unless explicitly requested.**
 
 ## Zod Schema Organization
 
 Schemas are centralized in `features/[name]/schemas/` directory and exported as reusable types:
 
 ```typescript
-// app/features/users/schemas/user-schema.ts
+// app/features/categories/schemas/category-schema.ts
 import z from 'zod'
 
-export const createUserSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+export const createCategorySchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be 100 characters or less'),
 })
 
-export type TCreateUser = z.infer<typeof createUserSchema>
+export type TCreateCategory = z.infer<typeof createCategorySchema>
 
-export const updateUserSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email'),
+export const updateCategorySchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be 100 characters or less'),
 })
 
-export type TUpdateUser = z.infer<typeof updateUserSchema>
+export type TUpdateCategory = z.infer<typeof updateCategorySchema>
 ```
 
-## Standard Form Component Pattern
+## Standard Form Component Pattern (Native HTML)
 
-Forms are extracted to `features/[name]/components/admin/form/` as pure presentational components that accept errors and callbacks as props:
+Forms are extracted to `features/[name]/components/admin/form/` as simple components that use native HTML form elements with server-side validation:
 
 ```typescript
-// app/features/users/components/admin/form/add-user-form.tsx
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+// app/features/categories/components/admin/form/new-category-form.tsx
 import { Button } from '~/components/ui/button'
-import { ErrorDisplay } from '~/components/ui/error-display'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { createUserSchema, type TCreateUser } from '~/features/users/schemas/user-schema'
+import { Label } from '~/components/ui/label'
 
-interface AddUserFormProps {
+interface NewCategoryFormProps {
   errors?: Record<string, string[] | undefined>
-  onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-type UserFormData = TCreateUser
-
-export function AddUserForm({ errors, onSubmit }: AddUserFormProps) {
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
-  })
-
-  const handleSubmit = async (data: UserFormData) => {
-    const formData = new FormData()
-    formData.append('name', data.name)
-    formData.append('email', data.email)
-    formData.append('password', data.password)
-
-    if (onSubmit) {
-      await onSubmit(formData)
-    }
-  }
+export function NewCategoryForm({ errors }: NewCategoryFormProps) {
+  const titleError = errors?.title?.[0]
 
   return (
-    <>
-      {errors && <ErrorDisplay errors={errors} />}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
-          <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    disabled={field.disabled || form.formState.isSubmitting}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* more fields... */}
-        </form>
-      </Form>
-    </>
+    <form method="post" className="space-y-4">
+      <div className="flex flex-row justify-end">
+        <Button type="submit">Save</Button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="title" className={titleError ? 'text-destructive' : ''}>
+          Title
+        </Label>
+        <Input
+          id="title"
+          name="title"
+          placeholder="Category title"
+          aria-invalid={!!titleError}
+          aria-describedby={titleError ? 'title-error' : undefined}
+          className={titleError ? 'border-destructive' : ''}
+        />
+        {titleError && (
+          <p id="title-error" className="text-destructive text-sm">
+            {titleError}
+          </p>
+        )}
+      </div>
+    </form>
   )
 }
 ```
 
-## Rules
+## Route Integration
 
-- Zod schemas are centralized in `features/[name]/schemas/[name]-schema.ts`.
-- Export both the schema and inferred types (with `T` prefix) from schema files.
-- Use `zodResolver` in forms — never manual validation in onSubmit.
-- Use `z.coerce.number()` for numeric inputs (HTML inputs return strings).
-- Use `defaultValues` in useForm to avoid uncontrolled → controlled warnings.
-- Form components are pure presentational: accept `errors` and `onSubmit` as props.
-- No React Router hooks in form components (`useActionData`, `useSubmit`).
-- Route components orchestrate: handle hooks, pass props to form components.
-- Always show loading state with `form.formState.isSubmitting` to disable inputs during submission.
-
-## Edit Form Pattern (Pre-filled)
+Routes connect loaders, actions, and form components:
 
 ```typescript
-interface EditUserFormProps {
-  user: TUser
-  errors?: Record<string, string[] | undefined>
-  onSubmit?: (formData: FormData) => void | Promise<void>
+// app/routes/dashboard.categories.new.tsx
+import { useActionData } from 'react-router'
+import { createCategoryAction } from '~/features/categories/actions/create-category-action'
+import { NewCategoryForm } from '~/features/categories/components/admin/form/new-category-form'
+import type { Route } from './+types/dashboard.categories.new'
+
+export async function action({ request }: Route.ActionArgs) {
+  return createCategoryAction(request)
 }
 
-type UserFormData = TUpdateUser
-
-export function EditUserForm({ user, errors, onSubmit }: EditUserFormProps) {
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(updateUserSchema),
-    defaultValues: {
-      name: user.name || '',
-      email: user.email || '',
-    },
-  })
-
-  const handleSubmit = async (data: UserFormData) => {
-    const formData = new FormData()
-    formData.append('name', data.name)
-    formData.append('email', data.email)
-
-    if (onSubmit) {
-      await onSubmit(formData)
-    }
-  }
+export default function AddCategoryPage() {
+  const actionData = useActionData<typeof action>()
 
   return (
-    <>
-      {errors && <ErrorDisplay errors={errors} />}
-      <Form {...form}>
-        <form method="post" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
-          <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-          {/* form fields */}
-        </form>
-      </Form>
-    </>
+    <div className="container w-full mx-auto p-5 flex flex-col gap-5">
+      <h3 className="text-2xl">Add New Category</h3>
+      <NewCategoryForm errors={actionData?.errors} />
+    </div>
   )
 }
 ```
 
 ## Server-Side Action Validation
 
-Actions use `Zod.safeParse()` to validate form data and return field errors:
+Actions use `schema.safeParse()` to validate FormData and return field errors:
 
 ```typescript
-// app/features/users/actions/update-user-action.ts
-import { updateUserSchema } from '../schemas/user-schema'
-import { userRepository } from '../repositories'
+// app/features/categories/actions/create-category-action.ts
+import { randomUUID } from 'node:crypto'
+import { redirect } from 'react-router'
+import { categoryRepository } from '../repositories'
+import { createCategorySchema } from '../schemas/category-schema'
 
-export async function updateUserAction(request: Request, id: string) {
+export async function createCategoryAction(request: Request) {
   const formData = await request.formData()
-  const result = updateUserSchema.safeParse(Object.fromEntries(formData))
+  const rawData = Object.fromEntries(formData)
 
-  // Return validation errors if invalid
+  const result = createCategorySchema.safeParse(rawData)
+
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
   }
 
   try {
-    const { name, email } = result.data
-    await userRepository.update(id, { name, email, updatedAt: new Date() })
-    return redirect('/dashboard/users')
+    const { title } = result.data
+    const now = new Date()
+
+    await categoryRepository.create({
+      id: randomUUID(),
+      title,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    return redirect('/dashboard/categories')
   } catch (_error) {
     return {
       errors: {
-        name: ['Failed to update user. Please try again.'],
-        email: [],
+        title: ['Failed to create category. Please try again.'],
       },
     }
   }
 }
 ```
 
-The form component receives validation errors via `useActionData()` and displays them with `<ErrorDisplay />`.
+## Edit Form Pattern (Pre-filled)
 
-## ErrorDisplay Component
-
-Display server-side validation errors consistently:
+Edit forms pre-fill values using `defaultValue` prop:
 
 ```typescript
-// app/components/ui/error-display.tsx
-import { AlertCircle } from 'lucide-react'
+// app/features/categories/components/admin/form/edit-category-form.tsx
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import type { TCategory } from '~/db/schema'
 
-interface ErrorDisplayProps {
-  errors: Record<string, string[] | undefined>
+interface EditCategoryFormProps {
+  category: TCategory
+  errors?: Record<string, string[] | undefined>
 }
 
-export function ErrorDisplay({ errors }: ErrorDisplayProps) {
-  const errorMessages = Object.entries(errors)
-    .filter(([, messages]) => messages && messages.length > 0)
-    .flatMap(([field, messages]) => messages?.map((msg) => `${field}: ${msg}`) || [])
-
-  if (errorMessages.length === 0) return null
+export function EditCategoryForm({ category, errors }: EditCategoryFormProps) {
+  const titleError = errors?.title?.[0]
 
   return (
-    <div className="rounded-md bg-red-50 p-4">
-      <div className="flex">
-        <AlertCircle className="h-5 w-5 text-red-400" />
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-red-800">Validation errors</h3>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
-            {errorMessages.map((msg, idx) => (
-              <li key={idx}>{msg}</li>
-            ))}
-          </ul>
-        </div>
+    <form method="post" className="space-y-4">
+      <div className="flex flex-row justify-end">
+        <Button type="submit">Save</Button>
       </div>
-    </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="title" className={titleError ? 'text-destructive' : ''}>
+          Title
+        </Label>
+        <Input
+          id="title"
+          name="title"
+          defaultValue={category.title}
+          placeholder="Category title"
+          aria-invalid={!!titleError}
+          aria-describedby={titleError ? 'title-error' : undefined}
+          className={titleError ? 'border-destructive' : ''}
+        />
+        {titleError && (
+          <p id="title-error" className="text-destructive text-sm">
+            {titleError}
+          </p>
+        )}
+      </div>
+    </form>
+  )
+}
+```
+
+## Rules
+
+- **ALWAYS use native HTML forms with `method="post"` and `name` attributes on inputs.**
+- **DO NOT use React Hook Form or zodResolver unless explicitly requested.**
+- Zod schemas are centralized in `features/[name]/schemas/[name]-schema.ts`.
+- Export both the schema and inferred types (with `T` prefix) from schema files.
+- Use `z.string().trim()` for string inputs to handle whitespace automatically.
+- Use `z.coerce.number()` for numeric inputs (HTML inputs return strings).
+- Form components accept only `errors` prop (and data for edit forms) — no callbacks needed.
+- Route components use `useActionData()` to get server validation errors.
+- Display inline errors directly in the form component for each field.
+- Use accessibility attributes: `aria-invalid`, `aria-describedby` for error messages.
+- Apply error styling conditionally: `text-destructive` for labels, `border-destructive` for inputs.
+
+## Complex Form Pattern (with Select and Rich Editor)
+
+For forms with custom controls, manually handle submission:
+
+```typescript
+// app/features/posts/components/admin/form/new-post-form.tsx
+import { useRef } from 'react'
+import { useSubmit } from 'react-router'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import type { RichEditorHandle } from '~/components/ui/rich-editor'
+import { RichEditor } from '~/components/ui/rich-editor'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import type { TCategory } from '~/db/schema'
+
+interface NewPostFormProps {
+  categories: TCategory[]
+  errors?: Record<string, string[] | undefined>
+}
+
+export function NewPostForm({ categories, errors }: NewPostFormProps) {
+  const submit = useSubmit()
+  const editorRef = useRef<RichEditorHandle>(null)
+  const categoryRef = useRef<HTMLInputElement>(null)
+
+  const titleError = errors?.title?.[0]
+  const categoryIdError = errors?.categoryId?.[0]
+  const contentError = errors?.content?.[0]
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    const content = editorRef.current?.getJSON()
+    formData.set('content', content || '{}')
+    submit(formData, { method: 'post' })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex flex-row justify-end">
+        <Button type="submit">Save</Button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="title" className={titleError ? 'text-destructive' : ''}>
+          Title
+        </Label>
+        <Input
+          id="title"
+          name="title"
+          placeholder="Post title"
+          aria-invalid={!!titleError}
+          aria-describedby={titleError ? 'title-error' : undefined}
+          className={titleError ? 'border-destructive' : ''}
+        />
+        {titleError && (
+          <p id="title-error" className="text-destructive text-sm">
+            {titleError}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="categoryId" className={categoryIdError ? 'text-destructive' : ''}>
+          Category
+        </Label>
+        <Select
+          name="categoryId"
+          onValueChange={(value) => {
+            if (categoryRef.current) categoryRef.current.value = value
+          }}
+        >
+          <SelectTrigger
+            className={categoryIdError ? 'border-destructive w-full' : 'w-full'}
+            aria-invalid={!!categoryIdError}
+            aria-describedby={categoryIdError ? 'categoryId-error' : undefined}
+          >
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <input ref={categoryRef} name="categoryId" type="hidden" />
+        {categoryIdError && (
+          <p id="categoryId-error" className="text-destructive text-sm">
+            {categoryIdError}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="content" className={contentError ? 'text-destructive' : ''}>
+          Content
+        </Label>
+        <RichEditor
+          ref={editorRef}
+          placeholder="Write your post content here..."
+        />
+        {contentError && (
+          <p id="content-error" className="text-destructive text-sm">
+            {contentError}
+          </p>
+        )}
+      </div>
+    </form>
   )
 }
 ```
@@ -253,64 +338,127 @@ export function ErrorDisplay({ errors }: ErrorDisplayProps) {
 ## Common Zod Patterns
 
 ```typescript
-// Required string
-z.string().min(1, 'Required')
+// Required string with trim
+z.string().trim().min(1, 'Title is required')
+
+// String with length constraint
+z.string().trim().min(1, 'Name is required').max(50, 'Name must be 50 characters or less')
+
+// Optional string with fallback to empty string
+z.string().optional().or(z.literal(''))
+
+// Hex color validation
+z.string()
+  .trim()
+  .regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a valid hex code (e.g., #FF5733)')
+  .optional()
+  .or(z.literal(''))
+
+// Number from string input
+z.coerce.number().int().positive().default(1)
 
 // Email
 z.string().email('Invalid email')
 
-// Number from input
-z.coerce.number().min(0).max(999999)
-
-// Optional with default
-z.string().optional().default('')
-
 // Enum
 z.enum(['active', 'inactive', 'draft'])
-
-// Conditional validation
-z.object({
-  type: z.enum(['individual', 'company']),
-  companyName: z.string().optional(),
-}).refine(
-  (data) => data.type !== 'company' || (data.companyName && data.companyName.length > 0),
-  { message: 'Company name required', path: ['companyName'] }
-)
 ```
 
-## Client-Side Error Display
+## Update Action Pattern
 
-React Hook Form automatically displays field errors via `<FormMessage />`:
+Update actions follow the same pattern with additional business logic:
 
 ```typescript
-<FormField
-  control={form.control}
-  name="email"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Email</FormLabel>
-      <FormControl>
-        <Input type="email" {...field} />
-      </FormControl>
-      <FormMessage /> {/* Automatically shows RHF validation errors */}
-    </FormItem>
-  )}
-/>
+// app/features/posts/actions/update-post-action.ts
+import { redirect } from 'react-router'
+import { createSlugFrom } from '~/utils/slug'
+import { postRepository } from '../repositories'
+import { updatePostSchema } from '../schemas/post-schema'
+
+export async function updatePostAction(request: Request, id: string) {
+  const formData = await request.formData()
+  const rawData = Object.fromEntries(formData)
+
+  const result = updatePostSchema.safeParse(rawData)
+
+  if (!result.success) {
+    return { errors: result.error.flatten().fieldErrors }
+  }
+
+  try {
+    const { title, content, categoryId } = result.data
+    const slug = createSlugFrom(title)
+
+    // Get the current post to check slug changes
+    const currentPost = await postRepository.findById(id)
+    if (!currentPost) {
+      return {
+        errors: {
+          title: ['Post not found'],
+          content: [],
+          categoryId: [],
+        },
+      }
+    }
+
+    // Check if new slug is different and already exists
+    if (slug !== currentPost.slug) {
+      const exists = await postRepository.slugExists(slug)
+      if (exists) {
+        return {
+          errors: {
+            title: ['A post with this title already exists'],
+            content: [],
+            categoryId: [],
+          },
+        }
+      }
+    }
+
+    await postRepository.update(id, {
+      slug,
+      title,
+      content,
+      categoryId,
+      updatedAt: new Date(),
+    })
+
+    return redirect('/dashboard/posts')
+  } catch (_error) {
+    return {
+      errors: {
+        title: ['Failed to update post. Please try again.'],
+        content: [],
+        categoryId: [],
+      },
+    }
+  }
+}
 ```
 
-## Server-Side Error Display
+## Error Response Structure
 
-Server validation errors from actions are displayed at the top of the form using `<ErrorDisplay />`:
+Always return errors in this format for consistency:
 
 ```typescript
-const actionData = useActionData()
+// Validation errors
+if (!result.success) {
+  return { errors: result.error.flatten().fieldErrors }
+}
 
-return (
-  <>
-    {actionData?.errors && <ErrorDisplay errors={actionData.errors} />}
-    <Form {...form}>{/* form fields */}</Form>
-  </>
-)
+// Business logic errors
+return {
+  errors: {
+    fieldName: ['Error message'],
+    otherField: [], // Include empty arrays for other fields
+  },
+}
+
+// Generic catch errors
+return {
+  errors: {
+    primaryField: ['Failed to perform action. Please try again.'],
+    otherFields: [],
+  },
+}
 ```
-
-This separates concerns: client validates (RHF), server validates (Zod), both show errors clearly.

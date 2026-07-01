@@ -144,14 +144,14 @@ Returns paginated response:
 ### Create Form
 
 ```typescript
-import { AddMediaForm } from '~/features/media/components/admin/form/add-media-form'
+import { NewMediaForm } from '~/features/media/components/admin/form/new-media-form'
 
 export default function AddPage() {
   const submit = useSubmit()
   const actionData = useActionData()
 
   return (
-    <AddMediaForm
+    <NewMediaForm
       errors={actionData?.errors}
       onSubmit={(fd) => submit(fd, { method: 'post' })}
     />

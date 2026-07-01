@@ -1,5 +1,5 @@
 import { createMediaAction } from '~/features/media/actions/create-media-action'
-import { AddMediaForm } from '~/features/media/components/admin/form/add-media-form'
+import { NewMediaForm } from '~/features/media/components/admin/form/new-media-form'
 import type { Route } from './+types/dashboard.media.new'
 
 export async function action({ request }: Route.ActionArgs) {
@@ -17,7 +17,7 @@ export default function AddMediaPage({ actionData }: Route.ComponentProps) {
   return (
     <div className="container w-full mx-auto p-5 flex flex-col gap-5">
       <h3 className="text-2xl">Add New Media</h3>
-      <AddMediaForm errors={actionData?.errors} />
+      <NewMediaForm errors={actionData?.errors} />
     </div>
   )
 }

@@ -2,11 +2,11 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 
-interface AddTagFormProps {
+interface NewTagFormProps {
   errors?: Record<string, string[] | undefined>
 }
 
-export function AddTagForm({ errors }: AddTagFormProps) {
+export function NewTagForm({ errors }: NewTagFormProps) {
   const nameError = errors?.name?.[0]
   const colorError = errors?.color?.[0]
 

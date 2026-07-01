@@ -22,13 +22,13 @@ import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 
-interface AddPostFormProps {
+interface NewPostFormProps {
   categories: TCategory[]
   errors?: Record<string, string[] | undefined>
   onSubmit?: (formData: FormData) => void | Promise<void>
 }
 
-export function AddPostForm({ categories, errors, onSubmit }: AddPostFormProps) {
+export function NewPostForm({ categories, errors, onSubmit }: NewPostFormProps) {
   const editorRef = useRef<RichEditorHandle>(null)
   const categoryRef = useRef<HTMLInputElement>(null)
 

@@ -3,11 +3,11 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { UploadField } from '~/components/ui/upload-field'
 
-interface AddMediaFormProps {
+interface NewMediaFormProps {
   errors?: Record<string, string[] | undefined>
 }
 
-export function AddMediaForm({ errors }: AddMediaFormProps) {
+export function NewMediaForm({ errors }: NewMediaFormProps) {
   const urlError = errors?.url?.[0]
   const altError = errors?.alt?.[0]
 

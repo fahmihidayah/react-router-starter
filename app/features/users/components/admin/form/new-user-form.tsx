@@ -3,11 +3,11 @@ import { ErrorDisplay } from '~/components/ui/error-display'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 
-interface AddUserFormProps {
+interface NewUserFormProps {
   errors?: Record<string, string[] | undefined>
 }
 
-export function AddUserForm({ errors }: AddUserFormProps) {
+export function NewUserForm({ errors }: NewUserFormProps) {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}

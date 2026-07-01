@@ -267,7 +267,7 @@ export function ErrorDisplay({ errors }: ErrorDisplayProps) {
 Display errors at the top of the form when server validation fails:
 
 ```typescript
-const AddUserForm = ({ errors, onSubmit }) => {
+const NewUserForm = ({ errors, onSubmit }) => {
   return (
     <>
       {errors && <ErrorDisplay errors={errors} />}

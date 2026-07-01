@@ -1,2 +1,2 @@
-export { AddPostForm } from './add-post-form'
+export { NewPostForm } from './new-post-form'
 export { EditPostForm } from './edit-post-form'

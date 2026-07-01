@@ -6,12 +6,12 @@ description: >
   adding admin dashboard sections, or implementing list/create/edit workflows.
   Covers schema, repository, loaders, actions, forms, and routes.
 ---
-
 # Feature CRUD Workflow
 
 ## Overview
 
 Each feature follows a consistent pattern with clear separation of concerns:
+
 - **Schema** (`app/db/schema.ts`): Database table definition
 - **Type** (`app/features/[name]/type.ts`): TypeScript types (prefixed with `T`)
 - **Repository** (`app/features/[name]/repositories/`): Data access layer
@@ -650,6 +650,7 @@ Use this pattern when entities have a many-to-many relationship (e.g., congregat
 ### 1. Define Junction Table Schema
 
 **Junction table** (`app/db/schema/congregation-tags.ts`):
+
 ```typescript
 import { relations } from 'drizzle-orm'
 import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
@@ -693,6 +694,7 @@ export type TInsertCongregationTag = typeof congregationTags.$inferInsert
 ```
 
 **Parent table** (`app/db/schema/congregations.ts`):
+
 ```typescript
 import { relations } from 'drizzle-orm'
 import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
