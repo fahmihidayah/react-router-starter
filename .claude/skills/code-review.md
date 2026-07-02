@@ -132,3 +132,166 @@ If tests are missing, note which tests should be added and what they should cove
 - [ ] Icon-only buttons have aria-label
 - [ ] Responsive (works on mobile)
 - [ ] Handles empty/loading states if applicable
+
+---
+
+## Performance Review Checklist
+
+When reviewing code for performance issues:
+
+### Database Operations
+- [ ] **Pagination**: Large lists use `findManyPaginated()` with reasonable limits (20-50)
+- [ ] **N+1 queries**: Related data fetched with joins/relations, not in loops
+- [ ] **Indexes**: Frequently queried columns have database indexes
+- [ ] **Select specific columns**: Not selecting all columns when only a few are needed
+- [ ] **Parallel fetching**: Independent queries use `Promise.all()`, not sequential awaits
+
+### React Optimization
+- [ ] **Large lists**: Components in lists wrapped with `React.memo()` when appropriate
+- [ ] **Expensive calculations**: Heavy computations use `useMemo()` with correct dependencies
+- [ ] **Callback stability**: Functions passed to memoized children use `useCallback()`
+- [ ] **Unnecessary re-renders**: Parent re-renders don't cause unnecessary child re-renders
+- [ ] **Component size**: Large components (> 200 lines) are candidates for splitting
+
+### Bundle Size
+- [ ] **Lazy loading**: Heavy components (editors, charts) are lazy-loaded with `React.lazy()`
+- [ ] **Tree-shaking**: Imports use named imports, not default imports from barrel files
+- [ ] **Heavy libraries**: No unnecessarily heavy libraries (moment.js, lodash, full recharts)
+- [ ] **Code splitting**: Routes are properly split (automatic with React Router)
+
+### Images & Assets
+- [ ] **Image optimization**: Images use modern formats (WebP, AVIF)
+- [ ] **Lazy loading**: Images below fold have `loading="lazy"`
+- [ ] **Responsive images**: Large images use `srcSet` for different screen sizes
+- [ ] **SVG for icons**: Vector graphics used for icons, not PNGs
+
+### Caching
+- [ ] **React Query staleTime**: Appropriate `staleTime` set based on data freshness needs
+- [ ] **Loader caching**: Expensive loader operations cached with TTL
+- [ ] **Static data**: Rarely-changing data cached indefinitely
+
+---
+
+## Security Review Checklist
+
+Critical security checks for every code review:
+
+### Authentication & Authorization
+- [ ] **Protected routes**: All admin/private routes check session in loader
+- [ ] **Session validation**: `auth.api.getSession({ headers: request.headers })` used correctly
+- [ ] **Redirect on failure**: Unauthenticated users redirected to login, not shown error
+- [ ] **Role checks**: Role-based access checks in place where needed
+- [ ] **No client-side auth**: Auth state never stored in localStorage or Zustand
+
+### Input Validation
+- [ ] **All inputs validated**: Every action validates input with Zod schema
+- [ ] **No `any` types**: All types are explicit, no `any` that bypasses type checking
+- [ ] **SQL injection safe**: All queries use Drizzle ORM (parameterized), no raw SQL strings
+- [ ] **Type coercion safe**: Numeric inputs use `z.coerce.number()` or proper parsing
+- [ ] **File uploads**: File types and sizes validated (if applicable)
+
+### Data Exposure
+- [ ] **No secrets in client**: Environment variables with secrets NOT prefixed with `VITE_`
+- [ ] **No secrets in logs**: `console.log()` doesn't expose secrets or sensitive data
+- [ ] **No stack traces to users**: Error messages generic, internal errors logged server-side
+- [ ] **Sensitive data filtered**: API responses don't leak sensitive fields (passwords, tokens)
+- [ ] **User isolation**: Users can only access their own data, not others'
+
+### XSS Prevention
+- [ ] **No `dangerouslySetInnerHTML`**: HTML not injected unless sanitized
+- [ ] **User content sanitized**: User-generated content sanitized before rendering
+- [ ] **React escaping**: Relying on React's automatic escaping for user content
+- [ ] **No `eval()` or `Function()`**: No dynamic code execution
+
+### CSRF & Request Security
+- [ ] **Better Auth CSRF**: Better Auth's built-in CSRF protection enabled
+- [ ] **Form actions**: All mutations go through actions, not GET requests
+- [ ] **Intent validation**: Multi-intent actions validate intent field
+
+### Environment & Configuration
+- [ ] **Strong secrets**: `BETTER_AUTH_SECRET` is 32+ characters, randomly generated
+- [ ] **No hardcoded secrets**: All secrets in environment variables
+- [ ] **`.env` in `.gitignore`**: `.env` files not committed to version control
+- [ ] **Production mode**: `NODE_ENV=production` in production environment
+- [ ] **HTTPS enforced**: Production uses HTTPS, not HTTP
+
+### Dependencies
+- [ ] **No known vulnerabilities**: Run `pnpm audit` and address issues
+- [ ] **Dependencies up to date**: Critical security updates applied
+- [ ] **Minimal dependencies**: No unnecessary packages installed
+
+---
+
+## Red Flag Examples & Fixes
+
+### 🔴 SQL Injection Risk
+```typescript
+// ❌ BAD: Raw SQL with string interpolation
+const results = await db.run(sql`SELECT * FROM users WHERE email = '${email}'`)
+
+// ✅ GOOD: Parameterized query with Drizzle
+const results = await db.select().from(users).where(eq(users.email, email))
+```
+
+### 🔴 XSS Vulnerability
+```typescript
+// ❌ BAD: Rendering raw HTML from user input
+<div dangerouslySetInnerHTML={{ __html: userContent }} />
+
+// ✅ GOOD: Let React escape it automatically
+<div>{userContent}</div>
+
+// ✅ GOOD: If HTML needed, sanitize first
+import DOMPurify from 'isomorphic-dompurify'
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userContent) }} />
+```
+
+### 🔴 Secret Exposure
+```typescript
+// ❌ BAD: Secret exposed to client
+VITE_AUTH_SECRET="my-secret-key"
+
+// ✅ GOOD: Server-only (no VITE_ prefix)
+BETTER_AUTH_SECRET="my-secret-key"
+```
+
+### 🔴 Missing Auth Check
+```typescript
+// ❌ BAD: No auth check in admin loader
+export async function loader() {
+  return await getAdminData()
+}
+
+// ✅ GOOD: Auth check before data fetch
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await auth.api.getSession({ headers: request.headers })
+  if (!session?.user) throw redirect('/login')
+  return await getAdminData()
+}
+```
+
+### 🔴 N+1 Query Problem
+```typescript
+// ❌ BAD: Queries in loop (N+1)
+const posts = await postRepository.findAll()
+for (const post of posts) {
+  post.author = await userRepository.findById(post.authorId) // N queries!
+}
+
+// ✅ GOOD: Fetch with relations in one query
+const posts = await db.query.posts.findMany({
+  with: { author: true }
+})
+```
+
+### 🔴 Performance Issue - No Pagination
+```typescript
+// ❌ BAD: Loading all records at once
+const products = await productRepository.findAll() // Could be 10,000+
+
+// ✅ GOOD: Paginated
+const products = await productRepository.findManyPaginated({
+  page: 1,
+  limit: 20
+})
+```
