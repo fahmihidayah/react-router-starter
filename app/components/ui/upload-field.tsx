@@ -1,6 +1,7 @@
-import { FileIcon, Upload, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '~/lib/utils'
+import { UploadPreview } from './upload-preview'
 
 interface UploadFieldProps {
   id?: string
@@ -12,6 +13,7 @@ interface UploadFieldProps {
   error?: string
   onChange?: (file: File | null) => void
   defaultImageUrl?: string
+  required?: boolean
 }
 
 export function UploadField({
@@ -24,173 +26,94 @@ export function UploadField({
   error,
   onChange,
   defaultImageUrl,
+  required = false,
 }: UploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const inputId = id || name
 
-  // Cleanup preview URL on unmount or file change
   useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
-    }
-  }, [previewUrl])
-
-  const handleFile = (newFile: File | null) => {
-    // Cleanup old preview URL
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl)
-    }
-
-    setFile(newFile)
-    onChange?.(newFile)
-
-    // Create preview URL for images using Blob
-    if (newFile?.type.startsWith('image/')) {
-      const url = URL.createObjectURL(newFile)
-      setPreviewUrl(url)
-    } else {
+    if (!file?.type.startsWith('image/')) {
       setPreviewUrl(null)
-    }
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFile = e.target.files?.[0] || null
-    handleFile(newFile)
-  }
-
-  const handleDrag = (e: React.DragEvent, active: boolean) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(active)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    handleDrag(e, false)
-
-    const droppedFile = e.dataTransfer.files?.[0]
-    if (droppedFile && inputRef.current) {
-      handleFile(droppedFile)
-
-      // Update input element for form submission
-      const dataTransfer = new DataTransfer()
-      dataTransfer.items.add(droppedFile)
-      inputRef.current.files = dataTransfer.files
-    }
-  }
-
-  const handleClear = () => {
-    handleFile(null)
-    if (inputRef.current) {
-      inputRef.current.value = ''
-    }
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
-  }
-
-  const renderPreview = () => {
-    if (previewUrl) {
-      return (
-        <div className="flex flex-col items-center gap-4">
-          <img src={previewUrl} alt="Preview" className="h-32 w-32 object-cover rounded-lg" />
-          <div className="text-center">
-            <p className="text-sm font-medium">{file?.name}</p>
-            <p className="text-xs text-muted-foreground">{formatFileSize(file?.size || 0)}</p>
-          </div>
-        </div>
-      )
+      return
     }
 
-    if (file) {
-      return (
-        <div className="flex flex-col items-center gap-3">
-          <FileIcon className="h-12 w-12 text-muted-foreground" />
-          <div className="text-center">
-            <p className="text-sm font-medium">{file.name}</p>
-            <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-          </div>
-        </div>
-      )
-    }
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
 
-    if (defaultImageUrl) {
-      return (
-        <div className="flex flex-col items-center gap-4">
-          <img src={defaultImageUrl} alt="Current" className="h-32 w-32 object-cover rounded-lg" />
-          <p className="text-xs text-muted-foreground">Click to replace</p>
-        </div>
-      )
-    }
+  const selectFile = (nextFile: File | null) => {
+    setFile(nextFile)
+    onChange?.(nextFile)
+  }
 
-    return (
-      <div className="flex flex-col items-center gap-2">
-        <Upload className="h-8 w-8 text-muted-foreground" />
-        <div className="text-center">
-          <p className="text-sm font-medium">Drag and drop your file here</p>
-          <p className="text-xs text-muted-foreground">or click to select</p>
-        </div>
-      </div>
-    )
+  const handleDrop = (event: React.DragEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    setIsDragging(false)
+    const droppedFile = event.dataTransfer.files[0]
+    if (!droppedFile || !inputRef.current) return
+
+    const transfer = new DataTransfer()
+    transfer.items.add(droppedFile)
+    inputRef.current.files = transfer.files
+    selectFile(droppedFile)
+  }
+
+  const clear = () => {
+    if (inputRef.current) inputRef.current.value = ''
+    selectFile(null)
   }
 
   return (
     <div className="w-full">
-      <label htmlFor={id || name} className="block text-sm font-medium mb-2">
+      <label htmlFor={inputId} className="mb-2 block text-sm font-medium">
         {label}
       </label>
-
       <button
         type="button"
-        onDragEnter={(e) => handleDrag(e, true)}
-        onDragLeave={(e) => handleDrag(e, false)}
-        onDragOver={(e) => handleDrag(e, true)}
-        onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
+        onDragEnter={(event) => {
+          event.preventDefault()
+          setIsDragging(true)
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={handleDrop}
         disabled={disabled}
         className={cn(
-          'w-full border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors text-left',
-          isDragging && 'border-primary bg-primary/10',
-          !isDragging && 'border-border hover:border-ring/50',
-          disabled && 'opacity-50 cursor-not-allowed',
+          'w-full cursor-pointer rounded-lg border-2 border-dashed p-6 transition-colors',
+          isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-ring/50',
+          disabled && 'cursor-not-allowed opacity-50',
           error && 'border-destructive bg-destructive/10',
         )}
       >
-        <input
-          ref={inputRef}
-          id={id || name}
-          name={name}
-          type="file"
-          accept={accept}
-          onChange={handleFileChange}
-          disabled={disabled}
-          className="hidden"
-        />
-
-        {renderPreview()}
+        <UploadPreview file={file} previewUrl={previewUrl} currentUrl={defaultImageUrl} />
       </button>
-
+      <input
+        ref={inputRef}
+        id={inputId}
+        name={name}
+        type="file"
+        accept={accept}
+        onChange={(event) => selectFile(event.target.files?.[0] || null)}
+        disabled={disabled}
+        required={required}
+        className="sr-only"
+      />
       {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
-
       {file && (
         <button
           type="button"
-          onClick={handleClear}
-          className="mt-2 inline-flex items-center gap-1 text-sm text-destructive hover:text-destructive/80"
+          onClick={clear}
+          className="mt-2 inline-flex items-center gap-1 text-sm text-destructive"
         >
-          <X className="h-4 w-4" />
+          <X className="size-4" />
           Clear
         </button>
       )}
-
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
     </div>
   )

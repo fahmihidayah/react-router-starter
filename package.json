@@ -33,6 +33,9 @@
     "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./app/paraglide"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1140.0",
+    "@aws-sdk/lib-storage": "^3.1140.0",
+    "@aws-sdk/s3-request-presigner": "^3.1140.0",
     "@hookform/resolvers": "5.2.2",
     "@lexical/list": "^0.44.0",
     "@lexical/react": "^0.44.0",
@@ -84,6 +87,7 @@
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.75.0",
     "react-router": "7.11.0",
+    "sharp": "^0.35.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "vaul": "^1.1.2",
