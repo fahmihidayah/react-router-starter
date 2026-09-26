@@ -1,8 +1,8 @@
-import { postRepository } from '../repositories'
+import * as postService from '../services'
 
 export async function deletePostAction(id: string) {
   try {
-    await postRepository.delete(id)
+    await postService.deleteById(id)
     return { success: true }
   } catch (error) {
     console.error('Delete error:', error)

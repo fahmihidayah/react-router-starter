@@ -1,100 +1,26 @@
 import 'dotenv/config'
-import { drizzle } from 'drizzle-orm/libsql'
-import { users, tags } from '../app/db/schema'
-import { randomUUID } from 'crypto'
-
-const db = drizzle(process.env.DB_FILE_NAME ?? 'file:./app.db')
+import { randomUUID } from 'node:crypto'
+import { roles, tags, userRoles, users } from '../app/db/schema'
+import { auth } from '../app/lib/auth'
+import { databaseClient, db } from '../app/lib/database'
 
 const now = new Date()
 
-const seedUsers = [
+const ADMIN_EMAIL = 'admin@fahmihidayah.my.id'
+const ADMIN_PASSWORD = 'Test@1234'
+
+const seedRoles = [
   {
     id: randomUUID(),
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    emailVerified: false,
-    image: null,
+    name: 'Admin',
+    description: 'Administrator with full access',
     createdAt: now,
     updatedAt: now,
   },
   {
     id: randomUUID(),
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    emailVerified: true,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Bob Johnson',
-    email: 'bob.johnson@example.com',
-    emailVerified: true,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Alice Williams',
-    email: 'alice.williams@example.com',
-    emailVerified: false,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Charlie Brown',
-    email: 'charlie.brown@example.com',
-    emailVerified: true,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Diana Prince',
-    email: 'diana.prince@example.com',
-    emailVerified: true,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Ethan Hunt',
-    email: 'ethan.hunt@example.com',
-    emailVerified: false,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Fiona Green',
-    email: 'fiona.green@example.com',
-    emailVerified: true,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'George Miller',
-    email: 'george.miller@example.com',
-    emailVerified: true,
-    image: null,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Hannah Davis',
-    email: 'hannah.davis@example.com',
-    emailVerified: false,
-    image: null,
+    name: 'User',
+    description: 'Standard application user',
     createdAt: now,
     updatedAt: now,
   },
@@ -134,19 +60,50 @@ async function seed() {
     await db.delete(users)
     await db.delete(tags)
 
-    // Insert seed data
-    console.log('📝 Inserting seed users...')
-    await db.insert(users).values(seedUsers)
+    console.log('🛡️  Ensuring application roles exist...')
+    await db.insert(roles).values(seedRoles).onConflictDoNothing({ target: roles.name })
+
+    console.log('👤 Creating admin through Better Auth...')
+    const response = await auth.api.signUpEmail({
+      body: {
+        name: 'Admin',
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
+      },
+      asResponse: true,
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Better Auth could not create the admin (${response.status}): ${error}`)
+    }
+
+    const result = (await response.json()) as { user?: { id?: string } }
+    if (!result.user?.id) {
+      throw new Error('Better Auth created no user ID for the admin')
+    }
+
+    const adminRole = await db.query.roles.findFirst({ where: { name: 'Admin' } })
+    if (!adminRole) {
+      throw new Error('Admin role was not found after seeding roles')
+    }
+
+    await db.insert(userRoles).values({
+      userId: result.user.id,
+      roleId: adminRole.id,
+    })
 
     console.log('📝 Inserting seed tags...')
     await db.insert(tags).values(seedTags)
 
     console.log('✅ Seeding completed successfully!')
-    console.log(`📊 Inserted ${seedUsers.length} users`)
+    console.log(`👤 Created admin user: ${ADMIN_EMAIL}`)
     console.log(`📊 Inserted ${seedTags.length} tags`)
   } catch (error) {
     console.error('❌ Error seeding database:', error)
-    process.exit(1)
+    process.exitCode = 1
+  } finally {
+    await databaseClient.end()
   }
 }
 

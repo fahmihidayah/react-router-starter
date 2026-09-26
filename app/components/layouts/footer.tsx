@@ -11,12 +11,12 @@ export function Footer() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-lg">S</span>
+                  <span className="text-primary-foreground font-bold text-lg">T</span>
                 </div>
-                <span className="font-bold text-lg">Starter App</span>
+                <span className="font-bold text-lg">Group Tracker</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Build your next amazing project with our modern starter app.
+                Track goals, build habits, and grow together with your learning group.
               </p>
             </div>
           </div>
@@ -27,7 +27,7 @@ export function Footer() {
         </div>
 
         <div className="border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} Starter App. All rights reserved.</p>
+          <p>&copy; {currentYear} Learning Group Tracker. All rights reserved.</p>
         </div>
       </div>
     </footer>

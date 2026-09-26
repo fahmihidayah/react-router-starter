@@ -1,11 +1,14 @@
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
+import { CategoryNotFoundError } from '../types/errors/category-errors'
 
 export async function deleteCategoryAction(id: string) {
   try {
-    await categoryRepository.delete(id)
+    await categoryService.deleteById(id)
     return { success: true }
   } catch (error) {
-    console.error('Delete error:', error)
+    if (error instanceof CategoryNotFoundError) {
+      return { success: false, message: error.message }
+    }
     throw error
   }
 }

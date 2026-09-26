@@ -1,13 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getCategoriesLoader } from './get-categories-loader'
 
-vi.mock('../repositories', () => ({
-  categoryRepository: {
-    findManyPaginated: vi.fn(),
-  },
-}))
+vi.mock('../services', () => ({ findPaginated: vi.fn() }))
 
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
 
 describe('getCategoriesLoader', () => {
   afterEach(() => {
@@ -24,12 +20,12 @@ describe('getCategoriesLoader', () => {
       hasNextPage: false,
       hasPrevPage: true,
     }
-    vi.mocked(categoryRepository.findManyPaginated).mockResolvedValue(mockResult as any)
+    vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
     const request = new Request('http://localhost/dashboard/categories?page=2&limit=5')
     await getCategoriesLoader(request)
 
-    expect(categoryRepository.findManyPaginated).toHaveBeenCalledWith(
+    expect(categoryService.findPaginated).toHaveBeenCalledWith(
       expect.objectContaining({ page: 2, limit: 5 }),
     )
   })
@@ -44,12 +40,12 @@ describe('getCategoriesLoader', () => {
       hasNextPage: false,
       hasPrevPage: false,
     }
-    vi.mocked(categoryRepository.findManyPaginated).mockResolvedValue(mockResult as any)
+    vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
     const request = new Request('http://localhost/dashboard/categories')
     await getCategoriesLoader(request)
 
-    expect(categoryRepository.findManyPaginated).toHaveBeenCalledWith(
+    expect(categoryService.findPaginated).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, limit: 10 }),
     )
   })
@@ -64,13 +60,13 @@ describe('getCategoriesLoader', () => {
       hasNextPage: false,
       hasPrevPage: false,
     }
-    vi.mocked(categoryRepository.findManyPaginated).mockResolvedValue(mockResult as any)
+    vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
     const request = new Request('http://localhost/dashboard/categories?search=electronics')
     const result = await getCategoriesLoader(request)
 
-    expect(categoryRepository.findManyPaginated).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.anything() }),
+    expect(categoryService.findPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'electronics' }),
     )
     expect(result.docs).toHaveLength(1)
   })
@@ -85,17 +81,19 @@ describe('getCategoriesLoader', () => {
       hasNextPage: false,
       hasPrevPage: false,
     }
-    vi.mocked(categoryRepository.findManyPaginated).mockResolvedValue(mockResult as any)
+    vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
     const request = new Request('http://localhost/dashboard/categories')
     const result = await getCategoriesLoader(request)
 
-    expect(result).toEqual(expect.objectContaining({
-      docs: expect.any(Array),
-      page: 1,
-      limit: 10,
-      totalDocs: 1,
-      totalPages: 1,
-    }))
+    expect(result).toEqual(
+      expect.objectContaining({
+        docs: expect.any(Array),
+        page: 1,
+        limit: 10,
+        totalDocs: 1,
+        totalPages: 1,
+      }),
+    )
   })
 })

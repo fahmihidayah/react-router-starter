@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { deleteManyCategoriesAction } from './delete-many-categories-action'
+import { InvalidCategoryDataError } from '../types/errors/category-errors'
 
-vi.mock('../repositories', () => ({
-  categoryRepository: {
-    deleteMany: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  deleteMany: vi.fn(),
 }))
 
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
 
 describe('deleteManyCategoriesAction', () => {
   afterEach(() => {
@@ -15,26 +14,27 @@ describe('deleteManyCategoriesAction', () => {
   })
 
   it('deletes multiple categories and returns success', async () => {
-    vi.mocked(categoryRepository.deleteMany).mockResolvedValue([] as never)
+    vi.mocked(categoryService.deleteMany).mockResolvedValue(undefined)
 
     const result = await deleteManyCategoriesAction(['c1', 'c2', 'c3'])
 
     expect(result.success).toBe(true)
-    expect(categoryRepository.deleteMany).toHaveBeenCalledOnce()
+    expect(categoryService.deleteMany).toHaveBeenCalledWith(['c1', 'c2', 'c3'])
   })
 
   it('returns failure when given empty array', async () => {
-    vi.mocked(categoryRepository.deleteMany).mockClear()
-    vi.mocked(categoryRepository.deleteMany).mockResolvedValue([] as never)
+    vi.mocked(categoryService.deleteMany).mockRejectedValue(
+      new InvalidCategoryDataError('Invalid category IDs provided')
+    )
 
     const result = await deleteManyCategoriesAction([])
 
     expect(result.success).toBe(false)
-    expect(categoryRepository.deleteMany).not.toHaveBeenCalled()
+    expect(result.message).toBeDefined()
   })
 
-  it('throws error when repository fails', async () => {
-    vi.mocked(categoryRepository.deleteMany).mockRejectedValue(new Error('DB error'))
+  it('throws error when service fails with unexpected error', async () => {
+    vi.mocked(categoryService.deleteMany).mockRejectedValue(new Error('DB error'))
 
     await expect(deleteManyCategoriesAction(['c1'])).rejects.toThrow('DB error')
   })

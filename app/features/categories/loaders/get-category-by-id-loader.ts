@@ -1,5 +1,5 @@
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
 
 export async function getCategoryByIdLoader(id: string) {
-  return categoryRepository.findById(id)
+  return categoryService.findById(id)
 }

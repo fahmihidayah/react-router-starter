@@ -1,13 +1,20 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import type { ActionArgs } from '~/lib/types'
 import { deleteUserAction } from './delete-user-action'
 
-vi.mock('../repositories', () => ({
-  userRepository: {
-    delete: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  deleteById: vi.fn(),
 }))
 
-import { userRepository } from '../repositories'
+import * as userService from '../services'
+
+function buildActionArgs(id: string): ActionArgs {
+  return {
+    request: new Request('http://localhost/admin/users/' + id, { method: 'DELETE' }),
+    context: new Map(),
+    params: { id },
+  }
+}
 
 describe('deleteUserAction', () => {
   afterEach(() => {
@@ -15,62 +22,52 @@ describe('deleteUserAction', () => {
   })
 
   it('deletes a user and returns success', async () => {
-    vi.mocked(userRepository.delete).mockResolvedValue(undefined)
+    vi.mocked(userService.deleteById).mockResolvedValue(undefined)
 
-    const result = await deleteUserAction('u1')
+    const result = await deleteUserAction(buildActionArgs('u1'))
 
     expect(result.success).toBe(true)
     expect(result.message).toBe('User deleted successfully')
   })
 
-  it('calls repository delete with correct ID', async () => {
-    vi.mocked(userRepository.delete).mockResolvedValue(undefined)
+  it('calls service deleteById with correct ID', async () => {
+    vi.mocked(userService.deleteById).mockResolvedValue(undefined)
 
-    await deleteUserAction('u42')
+    await deleteUserAction(buildActionArgs('u42'))
 
-    expect(userRepository.delete).toHaveBeenCalledWith('u42')
-    expect(userRepository.delete).toHaveBeenCalledTimes(1)
+    expect(userService.deleteById).toHaveBeenCalledWith('u42')
+    expect(userService.deleteById).toHaveBeenCalledTimes(1)
   })
 
-  it('returns failure when repository throws', async () => {
-    vi.mocked(userRepository.delete).mockRejectedValue(new Error('DB error'))
+  it('returns failure when user not found', async () => {
+    const { UserNotFoundError } = await import('../types/errors/user-errors')
+    vi.mocked(userService.deleteById).mockRejectedValue(
+      new UserNotFoundError('User not found')
+    )
 
-    const result = await deleteUserAction('u1')
+    const result = await deleteUserAction(buildActionArgs('u1'))
 
     expect(result.success).toBe(false)
-    expect(result.message).toBe('Failed to delete user')
+    expect(result.message).toBe('User not found')
   })
 
   it('returns success for valid user ID', async () => {
-    vi.mocked(userRepository.delete).mockResolvedValue(undefined)
+    vi.mocked(userService.deleteById).mockResolvedValue(undefined)
 
-    const result = await deleteUserAction('valid-id-123')
+    const result = await deleteUserAction(buildActionArgs('valid-id-123'))
 
     expect(result.success).toBe(true)
     expect(result.message).toContain('successfully')
   })
 
-  it('handles database constraint errors gracefully', async () => {
-    const constraintError = new Error('Constraint violation')
-    vi.mocked(userRepository.delete).mockRejectedValue(constraintError)
+  it('handles server errors gracefully', async () => {
+    vi.mocked(userService.deleteById).mockRejectedValue(
+      new Error('An unexpected error occurred')
+    )
 
-    const result = await deleteUserAction('u1')
+    const result = await deleteUserAction(buildActionArgs('u1'))
 
     expect(result.success).toBe(false)
-    expect(result.message).toBe('Failed to delete user')
-  })
-
-  it('returns consistent error message on failure', async () => {
-    vi.mocked(userRepository.delete).mockRejectedValue(
-      new Error('Any error')
-    )
-
-    const result1 = await deleteUserAction('u1')
-    vi.mocked(userRepository.delete).mockRejectedValue(
-      new Error('Different error')
-    )
-    const result2 = await deleteUserAction('u2')
-
-    expect(result1.message).toBe(result2.message)
+    expect(result.message).toBe('An unexpected error occurred. Please try again.')
   })
 })

@@ -1,22 +1,28 @@
-import { Outlet, redirect, useNavigate } from 'react-router'
-import { DashboardLayout } from '~/components/admin/dashboard'
-import { auth } from '~/lib/auth'
+import { Outlet, RouterContextProvider, redirect, useNavigate } from 'react-router'
+import { Config, createAdminMenu } from '~/features/admin'
+import { AdminLayout } from '~/features/admin/components/admin-layout'
+import { userContext } from '~/features/users/contexts'
+import { requireAuth } from '~/features/users/middlewares'
 import { authClient } from '~/lib/auth-client'
 import type { Route } from './+types/admin'
 
-export async function loader({ params, request }: Route.LoaderArgs) {
-  const _session = await auth.api.getSession({
-    headers: request.headers,
-  })
-  if (!_session) {
-    throw redirect('/login')
+// Apply admin middleware to protect all admin routes
+export const middleware: Route.MiddlewareFunction[] = [requireAuth]
+
+export async function loader({ context }: Route.LoaderArgs) {
+  // Get user from context (set by requireAdmin middleware)
+  const authSession = context.get(userContext)
+  console.log('data session user : ', authSession.user)
+  if (authSession.user === null) {
+    redirect('/login')
   }
+
   return {
-    user: _session.user,
+    user: authSession.user,
   }
 }
 
-export default function AdminLayout({ loaderData }: Route.ComponentProps) {
+export default function Layout({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData
   const navigate = useNavigate()
 
@@ -26,8 +32,18 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <DashboardLayout user={user} onSignOut={handleSignOut}>
+    <AdminLayout
+      user={{
+        email: user?.email ?? '',
+        id: user?.id ?? '',
+        name: user?.name ?? '',
+        payload: user,
+        roles: user?.roles.map((e) => e.name),
+      }}
+      config={Config}
+      onSignOut={handleSignOut}
+    >
       <Outlet />
-    </DashboardLayout>
+    </AdminLayout>
   )
 }

@@ -1,17 +1,25 @@
-import { inArray } from 'drizzle-orm'
-import { users } from '~/db/schema'
-import { userRepository } from '../repositories'
+import type { ActionArgs } from '~/lib/types'
+import * as userService from '../services'
+import { InvalidUserDataError } from '../types/errors/user-errors'
 
-export async function deleteManyUsersAction(ids: string[]) {
+export async function deleteManyUsersAction(args: ActionArgs) {
+  const formData = await args.request.formData()
+  const idsJson = formData.get('ids')
+
+  if (!idsJson || typeof idsJson !== 'string') {
+    return { success: false, message: 'Invalid request' }
+  }
+
   try {
-    if (ids.length === 0) {
-      return { success: false, message: 'No users selected' }
-    }
+    const ids = JSON.parse(idsJson) as string[]
 
-    await userRepository.deleteMany(inArray(users.id, ids))
+    await userService.deleteMany(ids)
     return { success: true, message: 'Users deleted successfully' }
   } catch (error) {
-    console.error('Delete many users error:', error)
-    return { success: false, message: 'Failed to delete users' }
+    if (error instanceof InvalidUserDataError) {
+      return { success: false, message: error.message }
+    }
+
+    return { success: false, message: 'An unexpected error occurred. Please try again.' }
   }
 }

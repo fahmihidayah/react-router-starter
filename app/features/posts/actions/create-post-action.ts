@@ -1,8 +1,7 @@
-import { randomUUID } from 'node:crypto'
 import { redirect } from 'react-router'
-import { createSlugFrom } from '~/utils/slug'
-import { postRepository } from '../repositories'
-import { createPostSchema } from '../schemas/post-schema'
+import { createPostSchema } from '../schemas/form/post-schema'
+import * as postService from '../services'
+import { PostCreationFailedError, SlugAlreadyExistsError } from '../types/errors/post-errors'
 
 export async function createPostAction(request: Request) {
   const formData = await request.formData()
@@ -15,35 +14,29 @@ export async function createPostAction(request: Request) {
   }
 
   try {
-    const { title, content, categoryId } = result.data
-    const slug = createSlugFrom(title)
-
-    // Check if slug already exists
-    const exists = await postRepository.slugExists(slug)
-    if (exists) {
+    await postService.create(result.data)
+    return redirect('/admin/posts')
+  } catch (error) {
+    if (error instanceof SlugAlreadyExistsError) {
       return {
         errors: {
-          title: ['A post with this title already exists'],
+          title: [error.message],
           content: [],
           categoryId: [],
         },
       }
     }
 
-    const now = new Date()
+    if (error instanceof PostCreationFailedError) {
+      return {
+        errors: {
+          title: [error.message],
+          content: [],
+          categoryId: [],
+        },
+      }
+    }
 
-    await postRepository.create({
-      id: randomUUID(),
-      slug,
-      title,
-      content,
-      categoryId,
-      createdAt: now,
-      updatedAt: now,
-    })
-
-    return redirect('/admin/posts')
-  } catch (_error) {
     return {
       errors: {
         title: ['Failed to create post. Please try again.'],

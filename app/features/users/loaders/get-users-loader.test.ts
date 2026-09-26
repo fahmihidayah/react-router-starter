@@ -1,64 +1,69 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { LoaderArgs } from '~/lib/types'
 import { getUsersLoader } from './get-users-loader'
 
-vi.mock('../repositories', () => ({
-  userRepository: {
-    findManyPaginated: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  findPaginated: vi.fn(),
 }))
 
-import { userRepository } from '../repositories'
+import * as userService from '../services'
+
+function buildLoaderArgs(request: Request): LoaderArgs {
+  return {
+    request,
+    context: new Map(),
+    params: {},
+  }
+}
 
 describe('getUsersLoader', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('parses page and pageSize from URL search params', async () => {
+  it('parses page and limit from URL search params', async () => {
     const mockResult = {
-      data: [],
-      pagination: {
-        totalItems: 0,
-        currentPage: 2,
-        pageSize: 5,
-        totalPages: 0,
-      },
+      docs: [],
+      page: 2,
+      limit: 5,
+      totalDocs: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPrevPage: true,
     }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request(
-      'http://localhost/dashboard/users?page=2&pageSize=5'
-    )
-    await getUsersLoader(request)
+    const request = new Request('http://localhost/admin/users?page=2&limit=5')
+    await getUsersLoader(buildLoaderArgs(request))
 
-    expect(userRepository.findManyPaginated).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 2, pageSize: 5 })
+    expect(userService.findPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2, limit: 5 }),
     )
   })
 
-  it('defaults to page 1 and pageSize 10 when params are missing', async () => {
+  it('defaults to page 1 and limit 10 when params are missing', async () => {
     const mockResult = {
-      data: [],
-      pagination: {
-        totalItems: 0,
-        currentPage: 1,
-        pageSize: 10,
-        totalPages: 0,
-      },
+      docs: [],
+      page: 1,
+      limit: 10,
+      totalDocs: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
     }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request('http://localhost/dashboard/users')
-    await getUsersLoader(request)
+    const request = new Request('http://localhost/admin/users')
+    await getUsersLoader(buildLoaderArgs(request))
 
-    expect(userRepository.findManyPaginated).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 1, pageSize: 10 })
+    expect(userService.findPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1, limit: 10 }),
     )
   })
 
-  it('passes search filter as like() clause when search param exists', async () => {
+  it('passes search filter as name param when search exists', async () => {
     const mockResult = {
-      data: [
+      docs: [
         {
           id: 'u1',
           name: 'Widget User',
@@ -67,46 +72,52 @@ describe('getUsersLoader', () => {
           image: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          roles: [],
         },
       ],
-      pagination: { totalItems: 1, currentPage: 1, pageSize: 10, totalPages: 1 },
+      page: 1,
+      limit: 10,
+      totalDocs: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
     }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request(
-      'http://localhost/dashboard/users?search=widget'
-    )
-    const result = await getUsersLoader(request)
+    const request = new Request('http://localhost/admin/users?search=widget')
+    const response = await getUsersLoader(buildLoaderArgs(request))
+    const result = response.data
+    if (!result) throw new Error('Expected paginated data')
 
-    expect(userRepository.findManyPaginated).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.anything() })
+    expect(userService.findPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'widget' }),
     )
-    expect(result.users).toHaveLength(1)
+    expect(result.docs).toHaveLength(1)
   })
 
-  it('does not pass where clause when search param is empty', async () => {
+  it('does not pass name when search param is empty', async () => {
     const mockResult = {
-      data: [],
-      pagination: {
-        totalItems: 0,
-        currentPage: 1,
-        pageSize: 10,
-        totalPages: 0,
-      },
+      docs: [],
+      page: 1,
+      limit: 10,
+      totalDocs: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
     }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request('http://localhost/dashboard/users')
-    await getUsersLoader(request)
+    const request = new Request('http://localhost/admin/users')
+    await getUsersLoader(buildLoaderArgs(request))
 
-    expect(userRepository.findManyPaginated).toHaveBeenCalledWith(
-      expect.objectContaining({ where: undefined })
+    expect(userService.findPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ name: undefined }),
     )
   })
 
-  it('returns flat shape expected by the route', async () => {
+  it('returns PaginateDocs format', async () => {
     const mockResult = {
-      data: [
+      docs: [
         {
           id: 'u1',
           name: 'Alice',
@@ -115,58 +126,50 @@ describe('getUsersLoader', () => {
           image: null,
           createdAt: new Date('2025-01-01'),
           updatedAt: new Date('2025-01-01'),
+          roles: [],
         },
       ],
-      pagination: { totalItems: 1, currentPage: 1, pageSize: 10, totalPages: 1 },
-    }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
-
-    const request = new Request('http://localhost/dashboard/users')
-    const result = await getUsersLoader(request)
-
-    expect(result).toEqual({
-      users: [
-        {
-          id: 'u1',
-          name: 'Alice',
-          email: 'alice@example.com',
-          emailVerified: true,
-          image: null,
-          createdAt: mockResult.data[0].createdAt,
-          updatedAt: mockResult.data[0].updatedAt,
-        },
-      ],
-      totalCount: 1,
       page: 1,
-      pageSize: 10,
+      limit: 10,
+      totalDocs: 1,
       totalPages: 1,
-    })
+      hasNextPage: false,
+      hasPrevPage: false,
+    }
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
+
+    const request = new Request('http://localhost/admin/users')
+    const response = await getUsersLoader(buildLoaderArgs(request))
+    const result = response.data
+    if (!result) throw new Error('Expected paginated data')
+
+    expect(result).toEqual(mockResult)
   })
 
   it('handles empty search results', async () => {
     const mockResult = {
-      data: [],
-      pagination: {
-        totalItems: 0,
-        currentPage: 1,
-        pageSize: 10,
-        totalPages: 0,
-      },
+      docs: [],
+      page: 1,
+      limit: 10,
+      totalDocs: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
     }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request(
-      'http://localhost/dashboard/users?search=nonexistent'
-    )
-    const result = await getUsersLoader(request)
+    const request = new Request('http://localhost/admin/users?search=nonexistent')
+    const response = await getUsersLoader(buildLoaderArgs(request))
+    const result = response.data
+    if (!result) throw new Error('Expected paginated data')
 
-    expect(result.users).toHaveLength(0)
-    expect(result.totalCount).toBe(0)
+    expect(result.docs).toHaveLength(0)
+    expect(result.totalDocs).toBe(0)
   })
 
   it('handles multiple pages correctly', async () => {
     const mockResult = {
-      data: [
+      docs: [
         {
           id: 'u1',
           name: 'User 1',
@@ -175,6 +178,7 @@ describe('getUsersLoader', () => {
           image: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          roles: [],
         },
         {
           id: 'u2',
@@ -184,25 +188,28 @@ describe('getUsersLoader', () => {
           image: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          roles: [],
         },
       ],
-      pagination: {
-        totalItems: 25,
-        currentPage: 2,
-        pageSize: 2,
-        totalPages: 13,
-      },
+      page: 2,
+      limit: 2,
+      totalDocs: 25,
+      totalPages: 13,
+      hasNextPage: true,
+      hasPrevPage: true,
     }
-    vi.mocked(userRepository.findManyPaginated).mockResolvedValue(mockResult)
+    vi.mocked(userService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request(
-      'http://localhost/dashboard/users?page=2&pageSize=2'
-    )
-    const result = await getUsersLoader(request)
+    const request = new Request('http://localhost/admin/users?page=2&limit=2')
+    const response = await getUsersLoader(buildLoaderArgs(request))
+    const result = response.data
+    if (!result) throw new Error('Expected paginated data')
 
     expect(result.page).toBe(2)
-    expect(result.pageSize).toBe(2)
-    expect(result.totalCount).toBe(25)
+    expect(result.limit).toBe(2)
+    expect(result.totalDocs).toBe(25)
     expect(result.totalPages).toBe(13)
+    expect(result.hasNextPage).toBe(true)
+    expect(result.hasPrevPage).toBe(true)
   })
 })

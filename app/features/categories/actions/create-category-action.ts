@@ -1,34 +1,52 @@
-import { randomUUID } from 'node:crypto'
 import { redirect } from 'react-router'
-import { categoryRepository } from '../repositories'
-import { createCategorySchema } from '../schemas/category-schema'
+import type { ActionArgs } from '~/lib/types'
+import { createCategorySchema } from '../schemas/form/category-schema'
+import * as categoryService from '../services'
+import {
+  CategoryAlreadyExistsError,
+  CategoryCreationFailedError,
+  InvalidCategoryDataError,
+} from '../types/errors/category-errors'
 
-export async function createCategoryAction(request: Request) {
-  const formData = await request.formData()
-  const rawData = Object.fromEntries(formData)
-
-  const result = createCategorySchema.safeParse(rawData)
+export async function createCategoryAction(args: ActionArgs) {
+  const formData = await args.request.formData()
+  const result = createCategorySchema.safeParse(Object.fromEntries(formData))
 
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
   }
 
   try {
-    const { title } = result.data
-    const now = new Date()
-
-    await categoryRepository.create({
-      id: randomUUID(),
-      title,
-      createdAt: now,
-      updatedAt: now,
-    })
-
+    await categoryService.create(result.data)
     return redirect('/admin/categories')
-  } catch (_error) {
+  } catch (error) {
+    if (error instanceof CategoryAlreadyExistsError) {
+      return {
+        errors: {
+          title: [error.message],
+        },
+      }
+    }
+
+    if (error instanceof InvalidCategoryDataError) {
+      return {
+        errors: {
+          title: [error.message],
+        },
+      }
+    }
+
+    if (error instanceof CategoryCreationFailedError) {
+      return {
+        errors: {
+          title: [error.message],
+        },
+      }
+    }
+
     return {
       errors: {
-        title: ['Failed to create category. Please try again.'],
+        title: ['An unexpected error occurred. Please try again.'],
       },
     }
   }

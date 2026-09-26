@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ActionArgs } from '~/lib/types'
 import { updateUserAction } from './update-user-action'
 
-vi.mock('../repositories', () => ({
-  userRepository: {
-    update: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  update: vi.fn(),
 }))
 
 vi.mock('react-router', () => ({
@@ -12,15 +11,23 @@ vi.mock('react-router', () => ({
 }))
 
 import { redirect } from 'react-router'
-import { userRepository } from '../repositories'
+import * as userService from '../services'
 
 function buildFormRequest(data: Record<string, string>): Request {
   const formData = new FormData()
   Object.entries(data).map(([key, value]) => formData.append(key, value))
-  return new Request('http://localhost/dashboard/users/u1', {
+  return new Request('http://localhost/admin/users/u1', {
     method: 'POST',
     body: formData,
   })
+}
+
+function buildActionArgs(request: Request, id: string): ActionArgs {
+  return {
+    request,
+    context: new Map(),
+    params: { id },
+  }
 }
 
 describe('updateUserAction', () => {
@@ -29,158 +36,80 @@ describe('updateUserAction', () => {
   })
 
   it('updates a user and redirects on success', async () => {
-    vi.mocked(userRepository.update).mockResolvedValue({
-      id: 'u1',
-      name: 'Updated Name',
-      email: 'updated@example.com',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
+    vi.mocked(userService.update).mockResolvedValue(undefined)
 
     const request = buildFormRequest({
       name: 'Updated Name',
       email: 'updated@example.com',
     })
 
-    const result = await updateUserAction(request, 'u1')
+    const result = await updateUserAction(buildActionArgs(request, 'u1'))
 
-    expect(redirect).toHaveBeenCalledWith('/dashboard/users')
-    expect(result).toEqual({ redirect: '/dashboard/users' })
+    expect(redirect).toHaveBeenCalledWith('/admin/users')
+    expect(result).toEqual({ redirect: '/admin/users' })
   })
 
-  it('calls repository with correct ID and data', async () => {
-    vi.mocked(userRepository.update).mockResolvedValue({
-      id: 'u1',
-      name: 'New Name',
-      email: 'new@example.com',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
+  it('calls service with correct ID and data', async () => {
+    vi.mocked(userService.update).mockResolvedValue(undefined)
 
     const request = buildFormRequest({
       name: 'New Name',
       email: 'new@example.com',
     })
 
-    await updateUserAction(request, 'u1')
+    await updateUserAction(buildActionArgs(request, 'u1'))
 
-    expect(userRepository.update).toHaveBeenCalledWith(
-      'u1',
-      expect.objectContaining({
-        name: 'New Name',
-        email: 'new@example.com',
-      }),
+    expect(userService.update).toHaveBeenCalledWith('u1', {
+      name: 'New Name',
+      email: 'new@example.com',
+    })
+  })
+
+  it('throws Response when user not found', async () => {
+    const { UserNotFoundError } = await import('../types/errors/user-errors')
+    vi.mocked(userService.update).mockRejectedValue(
+      new UserNotFoundError('User not found')
     )
-  })
-
-  it('includes updatedAt timestamp in update', async () => {
-    vi.mocked(userRepository.update).mockResolvedValue({
-      id: 'u1',
-      name: 'Updated',
-      email: 'updated@example.com',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-
-    const request = buildFormRequest({
-      name: 'Updated',
-      email: 'updated@example.com',
-    })
-
-    await updateUserAction(request, 'u1')
-
-    const callArgs = vi.mocked(userRepository.update).mock.calls[0]
-    expect(callArgs[1]).toHaveProperty('updatedAt')
-    const updatedAt = (callArgs[1] as any).updatedAt
-    expect(updatedAt).toBeInstanceOf(Date)
-    expect(updatedAt.getTime()).toBeGreaterThan(0)
-  })
-
-  it('returns error when repository throws', async () => {
-    vi.mocked(userRepository.update).mockRejectedValue(new Error('DB error'))
 
     const request = buildFormRequest({
       name: 'Failed Update',
       email: 'failed@example.com',
     })
 
-    const result = await updateUserAction(request, 'u1')
-
-    expect(result).toHaveProperty('error')
-    expect((result as any).error).toContain('Failed to update user')
+    try {
+      await updateUserAction(buildActionArgs(request, 'u1'))
+      expect.fail('Should have thrown')
+    } catch (error) {
+      expect(error).toBeInstanceOf(Response)
+      expect((error as Response).status).toBe(404)
+    }
   })
 
-  it('updates only provided fields', async () => {
-    vi.mocked(userRepository.update).mockResolvedValue({
-      id: 'u1',
-      name: 'Only Name',
-      email: 'original@example.com',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-
+  it('returns validation errors for invalid form data', async () => {
     const request = buildFormRequest({
-      name: 'Only Name',
-      email: 'original@example.com',
+      name: '',
+      email: 'invalid-email',
     })
 
-    await updateUserAction(request, 'u1')
+    const result = await updateUserAction(buildActionArgs(request, 'u1'))
 
-    expect(userRepository.update).toHaveBeenCalledWith(
-      'u1',
-      expect.objectContaining({
-        name: 'Only Name',
-      }),
+    expect(result).toHaveProperty('errors')
+  })
+
+  it('handles email already in use error', async () => {
+    const { EmailAlreadyExistsError } = await import('../types/errors/user-errors')
+    vi.mocked(userService.update).mockRejectedValue(
+      new EmailAlreadyExistsError('Email already in use')
     )
-  })
-
-  it('handles empty form data gracefully', async () => {
-    vi.mocked(userRepository.update).mockResolvedValue({
-      id: 'u1',
-      name: 'Test',
-      email: 'test@example.com',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-
-    const request = new Request('http://localhost/dashboard/users/u1', {
-      method: 'POST',
-      body: new FormData(),
-    })
-
-    await updateUserAction(request, 'u1')
-
-    expect(redirect).toHaveBeenCalledWith('/dashboard/users')
-  })
-
-  it('passes correct user ID to repository', async () => {
-    vi.mocked(userRepository.update).mockResolvedValue({
-      id: 'u999',
-      name: 'Test',
-      email: 'test@example.com',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
 
     const request = buildFormRequest({
-      name: 'Test',
-      email: 'test@example.com',
+      name: 'Test User',
+      email: 'taken@example.com',
     })
 
-    await updateUserAction(request, 'u999')
+    const result = await updateUserAction(buildActionArgs(request, 'u1'))
 
-    expect(userRepository.update).toHaveBeenCalledWith('u999', expect.anything())
+    expect(result).toHaveProperty('errors')
+    expect((result as any).errors.email).toContain('Email already in use')
   })
 })

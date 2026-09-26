@@ -1,21 +1,25 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import type { ActionArgs } from '~/lib/types'
 import { updateCategoryAction } from './update-category-action'
 
-vi.mock('../repositories', () => ({
-  categoryRepository: {
-    update: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  update: vi.fn(),
 }))
 
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
 
-function buildFormRequest(data: Record<string, string>): Request {
+function buildActionArgs(data: Record<string, string>, id: string): ActionArgs {
   const formData = new FormData()
   Object.entries(data).forEach(([key, value]) => formData.append(key, value))
-  return new Request('http://localhost/dashboard/categories/c1', {
+  const request = new Request(`http://localhost/dashboard/categories/${id}`, {
     method: 'POST',
     body: formData,
   })
+  return {
+    request,
+    context: new Map(),
+    params: { id },
+  }
 }
 
 describe('updateCategoryAction', () => {
@@ -24,20 +28,17 @@ describe('updateCategoryAction', () => {
   })
 
   it('updates a category and redirects on success', async () => {
-    vi.mocked(categoryRepository.update).mockResolvedValue(undefined)
+    vi.mocked(categoryService.update).mockResolvedValue(undefined)
 
-    const request = buildFormRequest({ title: 'Updated Category' })
-    await updateCategoryAction(request, 'c1')
+    const args = buildActionArgs({ title: 'Updated Category' }, 'c1')
+    await updateCategoryAction(args)
 
-    expect(categoryRepository.update).toHaveBeenCalledWith(
-      'c1',
-      expect.objectContaining({ title: 'Updated Category' }),
-    )
+    expect(categoryService.update).toHaveBeenCalledWith('c1', { title: 'Updated Category' })
   })
 
   it('returns validation errors when title is empty', async () => {
-    const request = buildFormRequest({ title: '' })
-    const result = await updateCategoryAction(request, 'c1')
+    const args = buildActionArgs({ title: '' }, 'c1')
+    const result = await updateCategoryAction(args)
 
     expect(result).toHaveProperty('errors')
     const errorResult = result as { errors: Record<string, string[] | undefined> }
@@ -46,22 +47,22 @@ describe('updateCategoryAction', () => {
 
   it('returns validation errors when title exceeds max length', async () => {
     const longTitle = 'a'.repeat(101)
-    const request = buildFormRequest({ title: longTitle })
-    const result = await updateCategoryAction(request, 'c1')
+    const args = buildActionArgs({ title: longTitle }, 'c1')
+    const result = await updateCategoryAction(args)
 
     expect(result).toHaveProperty('errors')
     const errorResult = result as { errors: Record<string, string[] | undefined> }
     expect(errorResult.errors?.title).toBeDefined()
   })
 
-  it('returns failure when repository throws', async () => {
-    vi.mocked(categoryRepository.update).mockRejectedValue(new Error('DB error'))
+  it('returns failure when service throws', async () => {
+    vi.mocked(categoryService.update).mockRejectedValue(new Error('DB error'))
 
-    const request = buildFormRequest({ title: 'Test Category' })
-    const result = await updateCategoryAction(request, 'c1')
+    const args = buildActionArgs({ title: 'Test Category' }, 'c1')
+    const result = await updateCategoryAction(args)
 
     expect(result).toHaveProperty('errors')
     const errorResult = result as { errors: Record<string, string[] | undefined> }
-    expect(errorResult.errors?.title?.[0]).toContain('Failed')
+    expect(errorResult.errors?.title?.[0]).toContain('An unexpected error occurred')
   })
 })

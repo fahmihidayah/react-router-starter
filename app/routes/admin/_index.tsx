@@ -1,6 +1,7 @@
 import { Calendar, LogIn, Mail, User2 } from 'lucide-react'
+import { useRouteLoaderData } from 'react-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-import { useSession } from '~/lib/auth-client'
+import type { loader as adminLoader } from '../admin'
 
 export function meta() {
   return [
@@ -10,9 +11,11 @@ export function meta() {
 }
 
 export default function DashboardIndex() {
-  const { data: session } = useSession()
+  // Get user data from parent admin layout loader
+  const parentData = useRouteLoaderData<typeof adminLoader>('admin-layout')
+  const user = parentData?.user
 
-  if (!session) {
+  if (!user) {
     return null
   }
 
@@ -21,7 +24,7 @@ export default function DashboardIndex() {
       <div className="space-y-6">
         {/* Welcome Section */}
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back, {session.user.name}!</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user.name}!</h1>
           <p className="text-muted-foreground mt-2">
             Here's what's happening with your account today.
           </p>
@@ -36,10 +39,10 @@ export default function DashboardIndex() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {session.user.emailVerified ? 'Verified' : 'Unverified'}
+                {user.emailVerified ? 'Verified' : 'Unverified'}
               </div>
               <p className="text-xs text-muted-foreground">
-                {session.user.emailVerified ? 'Your email is verified' : 'Please verify your email'}
+                {user.emailVerified ? 'Your email is verified' : 'Please verify your email'}
               </p>
             </CardContent>
           </Card>
@@ -50,7 +53,7 @@ export default function DashboardIndex() {
               <Mail />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold truncate">{session.user.email}</div>
+              <div className="text-2xl font-bold truncate">{user.email}</div>
               <p className="text-xs text-muted-foreground">Your account email</p>
             </CardContent>
           </Card>
@@ -62,7 +65,7 @@ export default function DashboardIndex() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {new Date(session.user.createdAt).toLocaleDateString()}
+                {new Date(user.createdAt).toLocaleDateString()}
               </div>
               <p className="text-xs text-muted-foreground">Account creation date</p>
             </CardContent>
@@ -79,23 +82,23 @@ export default function DashboardIndex() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">User ID</p>
-                <p className="text-sm font-mono mt-1">{session.user.id}</p>
+                <p className="text-sm font-mono mt-1">{user.id}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                <p className="text-sm mt-1">{session.user.name}</p>
+                <p className="text-sm mt-1">{user.name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Email Address</p>
-                <p className="text-sm mt-1">{session.user.email}</p>
+                <p className="text-sm mt-1">{user.email}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Email Verification</p>
                 <p className="text-sm mt-1">
-                  {session.user.emailVerified ? (
-                    <span className="text-green-600 dark:text-green-400">✓ Verified</span>
+                  {user.emailVerified ? (
+                    <span className="text-primary dark:text-primary">✓ Verified</span>
                   ) : (
-                    <span className="text-yellow-600 dark:text-yellow-400">⚠ Not verified</span>
+                    <span className="text-chart-4">⚠ Not verified</span>
                   )}
                 </p>
               </div>

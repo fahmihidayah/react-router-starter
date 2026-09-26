@@ -80,9 +80,9 @@ export default function Settings() {
           </Card>
 
           {/* Danger Zone */}
-          <Card className="border-red-200">
+          <Card className="border-destructive/20">
             <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
               <CardDescription>Irreversible actions</CardDescription>
             </CardHeader>
             <CardContent>

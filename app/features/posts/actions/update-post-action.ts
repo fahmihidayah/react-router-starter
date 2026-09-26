@@ -1,7 +1,11 @@
 import { redirect } from 'react-router'
-import { createSlugFrom } from '~/utils/slug'
-import { postRepository } from '../repositories'
-import { updatePostSchema } from '../schemas/post-schema'
+import { updatePostSchema } from '../schemas/form/post-schema'
+import * as postService from '../services'
+import {
+  PostNotFoundError,
+  PostUpdateFailedError,
+  SlugAlreadyExistsError,
+} from '../types/errors/post-errors'
 
 export async function updatePostAction(request: Request, id: string) {
   const formData = await request.formData()
@@ -14,45 +18,39 @@ export async function updatePostAction(request: Request, id: string) {
   }
 
   try {
-    const { title, content, categoryId } = result.data
-    const slug = createSlugFrom(title)
-
-    // Get the current post to check slug changes
-    const currentPost = await postRepository.findById(id)
-    if (!currentPost) {
+    await postService.update(id, result.data)
+    return redirect('/admin/posts')
+  } catch (error) {
+    if (error instanceof PostNotFoundError) {
       return {
         errors: {
-          title: ['Post not found'],
+          title: [error.message],
           content: [],
           categoryId: [],
         },
       }
     }
 
-    // Check if new slug is different and already exists
-    if (slug !== currentPost.slug) {
-      const exists = await postRepository.slugExists(slug)
-      if (exists) {
-        return {
-          errors: {
-            title: ['A post with this title already exists'],
-            content: [],
-            categoryId: [],
-          },
-        }
+    if (error instanceof SlugAlreadyExistsError) {
+      return {
+        errors: {
+          title: [error.message],
+          content: [],
+          categoryId: [],
+        },
       }
     }
 
-    await postRepository.update(id, {
-      slug,
-      title,
-      content,
-      categoryId,
-      updatedAt: new Date(),
-    })
+    if (error instanceof PostUpdateFailedError) {
+      return {
+        errors: {
+          title: [error.message],
+          content: [],
+          categoryId: [],
+        },
+      }
+    }
 
-    return redirect('/admin/posts')
-  } catch (_error) {
     return {
       errors: {
         title: ['Failed to update post. Please try again.'],

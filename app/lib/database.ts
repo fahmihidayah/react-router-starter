@@ -1,13 +1,15 @@
 import 'dotenv/config'
-import { drizzle } from 'drizzle-orm/libsql'
-import { createClient } from '@libsql/client'
-import * as schema from '~/db/schema'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import { databaseRelations } from '~/db/relations'
 
-const client = createClient({
-  url: process.env.DATABASE_URL ?? 'file:./app.db',
-})
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required')
+}
+
+export const databaseClient = postgres(process.env.DATABASE_URL)
 
 export const db = drizzle({
-  client,
-  schema,
+  client: databaseClient,
+  relations: databaseRelations,
 })

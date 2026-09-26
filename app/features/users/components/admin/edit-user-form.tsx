@@ -1,0 +1,46 @@
+import { Button } from '~/components/ui/button'
+import { ErrorDisplay } from '~/components/ui/error-display'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import type { TUser } from '~/db/schema'
+import type { ErrorType } from '~/lib/types'
+
+interface EditUserFormProps {
+  user: TUser
+  errors?: ErrorType
+}
+
+export function EditUserForm({ user, errors }: EditUserFormProps) {
+  return (
+    <>
+      {errors && <ErrorDisplay errors={errors} />}
+      <form method="post" className="space-y-4">
+        <div className="flex flex-row justify-end">
+          <Button type="submit">Save</Button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="User name"
+            defaultValue={user.name || ''}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="user@example.com"
+            defaultValue={user.email || ''}
+          />
+        </div>
+      </form>
+    </>
+  )
+}

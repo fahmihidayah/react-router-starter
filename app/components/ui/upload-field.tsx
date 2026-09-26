@@ -113,7 +113,7 @@ export function UploadField({
     if (file) {
       return (
         <div className="flex flex-col items-center gap-3">
-          <FileIcon className="h-12 w-12 text-gray-400" />
+          <FileIcon className="h-12 w-12 text-muted-foreground" />
           <div className="text-center">
             <p className="text-sm font-medium">{file.name}</p>
             <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
@@ -133,7 +133,7 @@ export function UploadField({
 
     return (
       <div className="flex flex-col items-center gap-2">
-        <Upload className="h-8 w-8 text-gray-400" />
+        <Upload className="h-8 w-8 text-muted-foreground" />
         <div className="text-center">
           <p className="text-sm font-medium">Drag and drop your file here</p>
           <p className="text-xs text-muted-foreground">or click to select</p>
@@ -158,10 +158,10 @@ export function UploadField({
         disabled={disabled}
         className={cn(
           'w-full border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors text-left',
-          isDragging && 'border-blue-500 bg-blue-50',
-          !isDragging && 'border-gray-300 hover:border-gray-400',
+          isDragging && 'border-primary bg-primary/10',
+          !isDragging && 'border-border hover:border-ring/50',
           disabled && 'opacity-50 cursor-not-allowed',
-          error && 'border-red-500 bg-red-50',
+          error && 'border-destructive bg-destructive/10',
         )}
       >
         <input
@@ -184,14 +184,14 @@ export function UploadField({
         <button
           type="button"
           onClick={handleClear}
-          className="mt-2 inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
+          className="mt-2 inline-flex items-center gap-1 text-sm text-destructive hover:text-destructive/80"
         >
           <X className="h-4 w-4" />
           Clear
         </button>
       )}
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
     </div>
   )
 }

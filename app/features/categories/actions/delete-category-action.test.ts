@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { deleteCategoryAction } from './delete-category-action'
+import { CategoryNotFoundError } from '../types/errors/category-errors'
 
-vi.mock('../repositories', () => ({
-  categoryRepository: {
-    delete: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  deleteById: vi.fn(),
 }))
 
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
 
 describe('deleteCategoryAction', () => {
   afterEach(() => {
@@ -15,16 +14,27 @@ describe('deleteCategoryAction', () => {
   })
 
   it('deletes a category and returns success', async () => {
-    vi.mocked(categoryRepository.delete).mockResolvedValue(undefined)
+    vi.mocked(categoryService.deleteById).mockResolvedValue(undefined)
 
     const result = await deleteCategoryAction('c1')
 
     expect(result.success).toBe(true)
-    expect(categoryRepository.delete).toHaveBeenCalledWith('c1')
+    expect(categoryService.deleteById).toHaveBeenCalledWith('c1')
   })
 
-  it('throws error when repository fails', async () => {
-    vi.mocked(categoryRepository.delete).mockRejectedValue(new Error('DB error'))
+  it('returns failure when category is not found', async () => {
+    vi.mocked(categoryService.deleteById).mockRejectedValue(
+      new CategoryNotFoundError()
+    )
+
+    const result = await deleteCategoryAction('c1')
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBeDefined()
+  })
+
+  it('throws error when service fails with unexpected error', async () => {
+    vi.mocked(categoryService.deleteById).mockRejectedValue(new Error('DB error'))
 
     await expect(deleteCategoryAction('c1')).rejects.toThrow('DB error')
   })

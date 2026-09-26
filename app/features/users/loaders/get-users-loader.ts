@@ -1,18 +1,21 @@
-import { like } from 'drizzle-orm/sql'
-import type { TUser } from '~/db/schema'
-import { users } from '~/db/schema'
+import { type ApiResponse, createSuccessResponse, type LoaderArgs } from '~/lib/types'
 import type { PaginateDocs } from '~/types/pagination'
-import { userRepository } from '../repositories'
+import * as userService from '../services'
+import type { UserWithRoles } from '../types'
 
-export async function getUsersLoader(request: Request): Promise<PaginateDocs<TUser>> {
-  const url = new URL(request.url)
+export async function getUsersLoader(
+  args: LoaderArgs,
+): Promise<ApiResponse<PaginateDocs<UserWithRoles> | undefined>> {
+  const url = new URL(args.request.url)
   const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
   const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)
   const search = url.searchParams.get('search') || ''
 
-  return await userRepository.findManyPaginated({
-    where: search ? like(users.name, `%${search}%`) : undefined,
-    page,
-    limit,
-  })
+  return createSuccessResponse(
+    await userService.findPaginated({
+      page,
+      limit,
+      name: search || undefined,
+    }),
+  )
 }

@@ -1,8 +1,6 @@
-import { like } from 'drizzle-orm/sql'
-import { categories } from '~/db/schema'
 import type { PaginateDocs } from '~/types/pagination'
 import type { TCategory } from '~/db/schema'
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
 
 export async function getCategoriesLoader(
   request: Request,
@@ -12,9 +10,9 @@ export async function getCategoriesLoader(
   const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)
   const search = url.searchParams.get('search') || ''
 
-  return await categoryRepository.findManyPaginated({
-    where: search ? like(categories.title, `%${search}%`) : undefined,
+  return await categoryService.findPaginated({
     page,
     limit,
+    title: search || undefined,
   })
 }

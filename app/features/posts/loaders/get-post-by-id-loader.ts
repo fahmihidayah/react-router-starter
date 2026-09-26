@@ -1,5 +1,5 @@
-import { postRepository } from '../repositories'
+import * as postService from '../services'
 
 export async function getPostByIdLoader(id: string) {
-  return postRepository.findById(id)
+  return postService.findById(id)
 }

@@ -1,11 +1,23 @@
-import { userRepository } from '../repositories'
+import {
+  type ApiResponse,
+  createErrorResponse,
+  createSuccessResponse,
+  type LoaderArgs,
+} from '~/lib/types'
+import * as userService from '../services'
+import type { UserWithRoles } from '../types'
 
-export async function getUserByIdLoader(id: string) {
-  const user = await userRepository.findById(id)
-
-  if (!user) {
-    throw new Response('User not found', { status: 404 })
+export async function getUserByIdLoader(args: LoaderArgs): Promise<ApiResponse<UserWithRoles>> {
+  const id = args.params.id
+  if (!id) {
+    return createErrorResponse('User not found', 404)
   }
 
-  return user
+  const user = await userService.findById(id)
+
+  if (!user) {
+    return createErrorResponse('User not found', 404)
+  }
+
+  return createSuccessResponse(user)
 }

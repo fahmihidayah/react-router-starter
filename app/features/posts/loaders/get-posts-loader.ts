@@ -1,5 +1,4 @@
-import { postRepository } from '../repositories'
-import type { TPostFilter } from '../schemas/post-schema'
+import * as postService from '../services'
 
 export async function getPostsLoader(request: Request) {
   const url = new URL(request.url)
@@ -8,12 +7,10 @@ export async function getPostsLoader(request: Request) {
   const search = url.searchParams.get('search') || ''
   const categoryId = url.searchParams.get('categoryId') || ''
 
-  const filter: Partial<TPostFilter> = {
+  return postService.findPaginated({
     page,
     limit,
     ...(search && { search }),
     ...(categoryId && { categoryId }),
-  }
-
-  return postRepository.findWithFilter(filter)
+  })
 }

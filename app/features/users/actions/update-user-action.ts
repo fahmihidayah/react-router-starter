@@ -1,28 +1,42 @@
 import { redirect } from 'react-router'
-import { userRepository } from '../repositories'
-import { updateUserSchema } from '../schemas/user-schema'
+import type { ActionArgs } from '~/lib/types'
+import { updateUserSchema } from '../schemas/form/user-schema'
+import * as userService from '../services'
+import { EmailAlreadyExistsError, UserNotFoundError } from '../types/errors/user-errors'
 
-export async function updateUserAction(request: Request, id: string) {
-  const formData = await request.formData()
+export async function updateUserAction(args: ActionArgs) {
+  const id = args.params.id
+  if (!id) {
+    throw new Response('User ID is required', { status: 400 })
+  }
+
+  const formData = await args.request.formData()
   const result = updateUserSchema.safeParse(Object.fromEntries(formData))
+
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors }
   }
 
   try {
-    const { name, email } = result.data
-
-    await userRepository.update(id, {
-      name,
-      email,
-      updatedAt: new Date(),
-    })
-
+    await userService.update(id, result.data)
     return redirect('/admin/users')
-  } catch (_error) {
+  } catch (error) {
+    if (error instanceof UserNotFoundError) {
+      throw new Response(error.message, { status: 404 })
+    }
+
+    if (error instanceof EmailAlreadyExistsError) {
+      return {
+        errors: {
+          name: [],
+          email: [error.message],
+        },
+      }
+    }
+
     return {
       errors: {
-        name: ['Failed to update user. Please try again.'],
+        name: ['An unexpected error occurred. Please try again.'],
         email: [],
       },
     }

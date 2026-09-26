@@ -1,17 +1,16 @@
 import { createAuthClient } from 'better-auth/react'
 import { authLogger } from '~/utils/logger'
 
-// Get base URL from environment or use window location in browser
+// Get base URL - always use current origin in browser
+// This ensures auth requests go to the same server serving the app
 const getBaseURL = () => {
-  // In production, use the current domain
   if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol
-    const host = window.location.host
-    return `${protocol}//${host}`
+    // Use the current origin (protocol + host)
+    return window.location.origin
   }
 
-  // Fallback for SSR or development
-  return import.meta.env.BETTER_AUTH_URL || 'http://localhost:5173'
+  // Fallback for SSR (shouldn't be called client-side)
+  return 'http://localhost:5173'
 }
 
 const baseURL = getBaseURL()

@@ -1,15 +1,14 @@
-import { inArray } from 'drizzle-orm'
-import { categories } from '~/db/schema'
-import { categoryRepository } from '../repositories'
+import * as categoryService from '../services'
+import { InvalidCategoryDataError } from '../types/errors/category-errors'
 
 export async function deleteManyCategoriesAction(ids: string[]) {
-  if (ids.length === 0) return { success: false }
-
   try {
-    await categoryRepository.deleteMany(inArray(categories.id, ids))
+    await categoryService.deleteMany(ids)
     return { success: true }
   } catch (error) {
-    console.error('Bulk delete error:', error)
+    if (error instanceof InvalidCategoryDataError) {
+      return { success: false, message: error.message }
+    }
     throw error
   }
 }

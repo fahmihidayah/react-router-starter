@@ -1,17 +1,24 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { LoaderArgs } from '~/lib/types'
 import { getUserByIdLoader } from './get-user-by-id-loader'
 
-vi.mock('../repositories', () => ({
-  userRepository: {
-    findById: vi.fn(),
-  },
+vi.mock('../services', () => ({
+  findById: vi.fn(),
 }))
 
-import { userRepository } from '../repositories'
+import * as userService from '../services'
+
+function buildLoaderArgs(id: string): LoaderArgs {
+  return {
+    request: new Request(`http://localhost/admin/users/${id}`),
+    context: new Map(),
+    params: { id },
+  }
+}
 
 describe('getUserByIdLoader', () => {
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
   it('returns user when it exists', async () => {
@@ -23,29 +30,24 @@ describe('getUserByIdLoader', () => {
       image: null,
       createdAt: new Date('2025-01-01'),
       updatedAt: new Date('2025-01-01'),
+      roles: [],
     }
-    vi.mocked(userRepository.findById).mockResolvedValue(mockUser)
+    vi.mocked(userService.findById).mockResolvedValue(mockUser)
 
-    const result = await getUserByIdLoader('u1')
+    const result = await getUserByIdLoader(buildLoaderArgs('u1'))
 
-    expect(result).toEqual(mockUser)
-    expect(userRepository.findById).toHaveBeenCalledWith('u1')
+    expect(result.data).toEqual(mockUser)
+    expect(userService.findById).toHaveBeenCalledWith('u1')
   })
 
-  it('throws 404 response when user does not exist', async () => {
-    vi.mocked(userRepository.findById).mockResolvedValue(null)
-
-    try {
-      await getUserByIdLoader('nonexistent')
-      expect.fail('Should have thrown')
-    } catch (error) {
-      expect(error).toBeInstanceOf(Response)
-      expect((error as Response).status).toBe(404)
-      expect(await (error as Response).text()).toBe('User not found')
-    }
+  it('returns a not-found response when user does not exist', async () => {
+    vi.mocked(userService.findById).mockResolvedValue(undefined)
+    const result = await getUserByIdLoader(buildLoaderArgs('nonexistent'))
+    expect(result.success).toBe(false)
+    expect(result.status).toBe(404)
   })
 
-  it('calls repository with the correct ID', async () => {
+  it('calls service with the correct ID', async () => {
     const mockUser = {
       id: 'u42',
       name: 'Test User',
@@ -54,16 +56,17 @@ describe('getUserByIdLoader', () => {
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      roles: [],
     }
-    vi.mocked(userRepository.findById).mockResolvedValue(mockUser)
+    vi.mocked(userService.findById).mockResolvedValue(mockUser)
 
-    await getUserByIdLoader('u42')
+    await getUserByIdLoader(buildLoaderArgs('u42'))
 
-    expect(userRepository.findById).toHaveBeenCalledWith('u42')
-    expect(userRepository.findById).toHaveBeenCalledTimes(1)
+    expect(userService.findById).toHaveBeenCalledWith('u42')
+    expect(userService.findById).toHaveBeenCalledTimes(1)
   })
 
-  it('returns user with all fields intact', async () => {
+  it('returns user with all fields intact including roles', async () => {
     const mockUser = {
       id: 'u1',
       name: 'Full User Data',
@@ -72,15 +75,28 @@ describe('getUserByIdLoader', () => {
       image: 'https://example.com/avatar.jpg',
       createdAt: new Date('2025-01-15'),
       updatedAt: new Date('2025-02-01'),
+      roles: [
+        {
+          id: 'role-1',
+          name: 'Admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
     }
-    vi.mocked(userRepository.findById).mockResolvedValue(mockUser)
+    vi.mocked(userService.findById).mockResolvedValue(mockUser)
 
-    const result = await getUserByIdLoader('u1')
+    const response = await getUserByIdLoader(buildLoaderArgs('u1'))
+    const result = response.data
+    if (!result) throw new Error('Expected user data')
 
     expect(result.id).toBe('u1')
     expect(result.name).toBe('Full User Data')
     expect(result.email).toBe('full@example.com')
     expect(result.emailVerified).toBe(true)
     expect(result.image).toBe('https://example.com/avatar.jpg')
+    expect(result.roles).toHaveLength(1)
+    expect(result.roles[0].name).toBe('Admin')
   })
 })

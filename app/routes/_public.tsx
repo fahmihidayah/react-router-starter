@@ -6,8 +6,8 @@ import { auth } from '~/lib/auth'
 
 export function meta() {
   return [
-    { title: 'Starter App - Build Something Amazing' },
-    { name: 'description', content: 'Modern full-stack starter app with authentication' },
+    { title: 'Learning Group Tracker' },
+    { name: 'description', content: 'Track goals and progress together with your learning group.' },
   ]
 }
 

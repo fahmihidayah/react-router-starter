@@ -1,29 +1,33 @@
 import { useState } from 'react'
 import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
 import { toast } from 'sonner'
-import createColumn from '~/components/admin/table/column/create-column'
-import { DataTable, DeleteDialog, TablePagination } from '~/components/admin/table/table-list'
+import type { TUser } from '~/db/schema'
+import createColumn from '~/features/admin/components/table/column/create-column'
+import {
+  DataTable,
+  DeleteDialog,
+  TablePagination,
+} from '~/features/admin/components/table/table-list'
 import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
 import { deleteUserAction } from '~/features/users/actions/delete-user-action'
 import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
-import type { TUser } from '~/db/schema'
 import type { Route } from './+types/users._index'
 
 // Loader - Fetch users with pagination and search
-export async function loader({ request }: Route.LoaderArgs) {
-  return await getUsersLoader(request)
+export async function loader(args: Route.LoaderArgs) {
+  return await getUsersLoader(args)
 }
 
 // Action - Handle delete and delete-many operations
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData()
+export async function action(args: Route.ActionArgs) {
+  const formData = await args.request.formData()
   const intent = formData.get('intent')
 
   try {
     if (intent === 'delete') {
       const userId = formData.get('userId')?.toString()
       if (userId) {
-        return deleteUserAction(userId)
+        return deleteUserAction({ ...args, params: { id: userId } })
       }
     }
 
@@ -31,7 +35,7 @@ export async function action({ request }: Route.ActionArgs) {
       const idsJson = formData.get('ids')?.toString()
       if (idsJson) {
         const ids = JSON.parse(idsJson) as string[]
-        return deleteManyUsersAction(ids)
+        return deleteManyUsersAction(args)
       }
     }
 
@@ -47,7 +51,8 @@ export function meta() {
 }
 
 export default function DashboardUsersPage() {
-  const loaderData = useLoaderData<typeof loader>()
+  const response = useLoaderData<typeof loader>()
+  const loaderData = response.data
   const [searchParams, setSearchParams] = useSearchParams()
 
   const submit = useSubmit()
@@ -156,7 +161,7 @@ export default function DashboardUsersPage() {
       <div className="space-y-6">
         {/* Data Table */}
         <DataTable
-          data={loaderData.docs}
+          data={loaderData?.docs || []}
           columns={columns}
           searchPlaceholder="Search users..."
           searchValue={searchValue}
@@ -165,15 +170,15 @@ export default function DashboardUsersPage() {
           enableRowSelection
           tableName="users"
           onDeleteSelected={handleDeleteSelected}
-          totalPages={loaderData.totalPages}
+          totalPages={loaderData?.totalPages || 0}
           manualPagination
         />
 
         {/* Table Pagination */}
-        {loaderData.totalPages > 1 && (
+        {(loaderData?.totalPages || 0) > 1 && (
           <TablePagination
-            currentPage={loaderData.page}
-            totalPages={loaderData.totalPages}
+            currentPage={loaderData?.page || 1}
+            totalPages={loaderData?.totalPages || 1}
             onPageChange={handlePageChange}
           />
         )}

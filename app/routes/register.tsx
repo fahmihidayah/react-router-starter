@@ -8,7 +8,6 @@ import {
   Form as ReactRouterForm,
   redirect,
   useActionData,
-  useNavigate,
   useSubmit,
 } from 'react-router'
 import { toast } from 'sonner'
@@ -31,14 +30,13 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { auth } from '~/lib/auth'
+import { registerUserAction } from '~/features/users/actions/register-user-action'
+import { countAdmin } from '~/features/users/queries'
+import { registerUserSchema } from '~/features/users/schemas/form/user-schema'
 import type { Route } from './+types/register'
 
-const registerSchema = z
-  .object({
-    name: z.string().min(1, 'Name is required').max(50, 'Name must be less than 50 characters'),
-    email: z.string().email('Please enter a valid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+const registerSchema = registerUserSchema
+  .extend({
     confirmPassword: z.string().min(1, 'Please confirm your password'),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -49,154 +47,32 @@ const registerSchema = z
 type RegisterSchema = z.infer<typeof registerSchema>
 
 type ActionResponse = {
-  success: boolean
-  error?: string
-  token?: string
-  user?: {
-    id: string
-    email: string
-    name: string
+  success: false
+  error: string
+}
+
+export async function action(args: ActionFunctionArgs) {
+  const result = await registerUserAction(args)
+
+  if (!result.success) {
+    return data<ActionResponse>({ success: false, error: result.error }, { status: result.status })
+  }
+
+  if (result.setCookie) {
+    return redirect('/admin', { headers: { 'Set-Cookie': result.setCookie } })
+  }
+
+  return redirect('/admin')
+}
+
+export async function loader(_route: Route.LoaderArgs) {
+  const numberOfAdmin = await countAdmin()
+  return {
+    count: numberOfAdmin,
   }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  console.log('[Register Action] Starting registration process')
-
-  try {
-    const form = await request.formData()
-    const name = form.get('name')?.toString()
-    const email = form.get('email')?.toString()
-    const password = form.get('password')?.toString()
-
-    console.log('[Register Action] Form data received:', {
-      name,
-      email,
-      passwordLength: password?.length,
-    })
-
-    // Validate required fields
-    if (!name || !email || !password) {
-      console.error('[Register Action] Missing required fields:', {
-        name: !!name,
-        email: !!email,
-        password: !!password,
-      })
-      return data<ActionResponse>(
-        {
-          success: false,
-          error: 'All fields are required',
-        },
-        { status: 400 },
-      )
-    }
-
-    // Attempt to register the user
-    console.log('[Register Action] Calling auth.api.signUpEmail...')
-    const result = await auth.api.signUpEmail({
-      body: {
-        name,
-        email,
-        password,
-      },
-      asResponse: true,
-    })
-
-    console.log('[Register Action] API Response Status:', result.status)
-    console.log(
-      '[Register Action] API Response Headers:',
-      Object.fromEntries(result.headers.entries()),
-    )
-
-    // Check if registration was successful
-    if (!result.ok) {
-      const errorData = await result.json()
-      console.error('[Register Action] Registration failed:', {
-        status: result.status,
-        statusText: result.statusText,
-        errorData,
-      })
-
-      let errorMessage = 'Registration failed. Please try again.'
-
-      // Handle specific error cases
-      if (result.status === 400) {
-        errorMessage = errorData.message || 'Invalid registration data'
-      } else if (result.status === 409) {
-        errorMessage = 'An account with this email already exists'
-      } else if (result.status === 500) {
-        errorMessage = 'Server error. Please try again later'
-      }
-
-      return data<ActionResponse>(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: result.status },
-      )
-    }
-
-    // Parse successful response
-    const responseData = await result.json()
-    console.log('[Register Action] Registration successful:', {
-      userId: responseData.user?.id,
-      userEmail: responseData.user?.email,
-      hasToken: !!responseData.token,
-    })
-
-    // Attempt automatic login by setting the session
-    console.log('[Register Action] Attempting automatic login...')
-
-    try {
-      // Sign in the user immediately after registration
-      const signInResult = await auth.api.signInEmail({
-        body: {
-          email,
-          password,
-        },
-        asResponse: true,
-      })
-
-      console.log('[Register Action] Auto-login response status:', signInResult.status)
-
-      if (signInResult.ok) {
-        await signInResult.json()
-        console.log('[Register Action] Auto-login successful, redirecting to dashboard')
-
-        // Return success with redirect
-        return redirect('/admin')
-      } else {
-        console.warn('[Register Action] Auto-login failed, returning success without redirect')
-        return data<ActionResponse>({
-          success: true,
-          error: 'Account created but auto-login failed. Please sign in manually.',
-        })
-      }
-    } catch (loginError) {
-      console.error('[Register Action] Auto-login error:', loginError)
-      return data<ActionResponse>({
-        success: true,
-        error: 'Account created but auto-login failed. Please sign in manually.',
-      })
-    }
-  } catch (error) {
-    console.error('[Register Action] Unexpected error during registration:', {
-      error,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-
-    return data<ActionResponse>(
-      {
-        success: false,
-        error: 'An unexpected error occurred. Please try again.',
-      },
-      { status: 500 },
-    )
-  }
-}
-
-export function meta({ loaderData }: Route.MetaArgs) {
+export function meta() {
   return [
     { title: 'Register - Starter App' },
     { name: 'description', content: 'Create a new account' },
@@ -204,8 +80,8 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export default function Register() {
-  const navigate = useNavigate()
   const actionData = useActionData<ActionResponse>()
+
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<RegisterSchema>({
@@ -220,57 +96,23 @@ export default function Register() {
 
   const submit = useSubmit()
 
-  // Handle action data responses
   useEffect(() => {
-    console.log('[Register Component] Action data received:', actionData)
+    if (!actionData) return
 
-    if (actionData) {
-      setIsLoading(false)
-
-      if (actionData.success) {
-        console.log('[Register Component] Registration successful')
-
-        if (actionData.error) {
-          // Partial success (registered but not logged in)
-          toast.warning(actionData.error)
-          console.log('[Register Component] Redirecting to login page')
-          setTimeout(() => navigate('/login'), 2000)
-        } else {
-          // Full success (should have already redirected in action)
-          toast.success('Account created successfully! Redirecting...')
-          console.log('[Register Component] Should already be redirecting to dashboard')
-        }
-      } else if (actionData.error) {
-        console.error('[Register Component] Registration failed:', actionData.error)
-        toast.error(actionData.error)
-
-        // Set form errors if applicable
-        if (actionData.error.includes('email')) {
-          form.setError('email', { message: actionData.error })
-        }
-      }
-    }
-  }, [actionData, navigate, form])
+    setIsLoading(false)
+    toast.error(actionData.error)
+  }, [actionData])
 
   const onSubmit = async (data: RegisterSchema) => {
-    console.log('[Register Component] Form submitted:', {
-      name: data.name,
-      email: data.email,
-      passwordLength: data.password.length,
-    })
-
     setIsLoading(true)
     const formData = new FormData()
     formData.append('name', data.name)
     formData.append('email', data.email)
     formData.append('password', data.password)
 
-    // Sends to your `action()` on this route
     submit(formData, {
       method: 'post',
     })
-    // The form will automatically submit to the action
-    console.log('[Register Component] Submitting form data to action...')
   }
 
   return (

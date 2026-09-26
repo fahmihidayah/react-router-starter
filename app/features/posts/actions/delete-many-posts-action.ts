@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm'
-import { postRepository } from '../repositories'
-import { posts } from '~/db/schema'
+import * as postService from '../services'
 
 export async function deleteManyPostsAction(ids: string[]) {
   if (!ids.length) {
@@ -8,8 +6,7 @@ export async function deleteManyPostsAction(ids: string[]) {
   }
 
   try {
-    const conditions = ids.map((id) => eq(posts.id, id))
-    await postRepository.deleteMany(conditions)
+    await postService.deleteMany(ids)
     return { success: true }
   } catch (error) {
     console.error('Delete many error:', error)

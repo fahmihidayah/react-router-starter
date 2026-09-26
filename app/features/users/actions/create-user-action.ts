@@ -1,56 +1,72 @@
-import { randomUUID } from 'node:crypto'
 import { redirect } from 'react-router'
-import { accountRepository, userRepository } from '../repositories'
-import { createUserSchema } from '../schemas/user-schema'
+import {
+  type ActionArgs,
+  type ApiResponse,
+  createErrorResponse,
+  createSuccessResponse,
+} from '~/lib/types'
+import { createUserSchema } from '../schemas/form/user-schema'
+import * as userService from '../services'
+import {
+  EmailAlreadyExistsError,
+  InvalidUserDataError,
+  UserCreationFailedError,
+} from '../types/errors/user-errors'
 
-export async function createUserAction(request: Request) {
-  const formData = await request.formData()
+export async function createUserAction(
+  args: ActionArgs,
+): Promise<ApiResponse<{ userId: string; setCookie: string | null }>> {
+  const formData = await args.request.formData()
   const result = createUserSchema.safeParse(Object.fromEntries(formData))
+
   if (!result.success) {
-    return { errors: result.error.flatten().fieldErrors }
+    return createErrorResponse(result.error.flatten().fieldErrors, 400)
   }
 
   try {
-    const { name, email, password } = result.data
-    const userId = randomUUID()
-    const now = new Date()
+    const createResult = await userService.create(result.data)
+    return createSuccessResponse(createResult)
+  } catch (error) {
+    if (error instanceof EmailAlreadyExistsError) {
+      return createErrorResponse(
+        {
+          name: [],
+          email: [error.message],
+          password: [],
+        },
+        409,
+      )
+    }
 
-    // Create user via repository
-    await userRepository.create({
-      id: userId,
-      name,
-      email,
-      emailVerified: false,
-      image: null,
-      createdAt: now,
-      updatedAt: now,
-    })
+    if (error instanceof InvalidUserDataError) {
+      return createErrorResponse(
+        {
+          name: [error.message],
+          email: [],
+          password: [],
+        },
+        400,
+      )
+    }
 
-    // Create account via repository
-    await accountRepository.create({
-      id: randomUUID(),
-      accountId: email,
-      providerId: 'credential',
-      userId: userId,
-      password,
-      accessToken: null,
-      refreshToken: null,
-      idToken: null,
-      accessTokenExpiresAt: null,
-      refreshTokenExpiresAt: null,
-      scope: null,
-      createdAt: now,
-      updatedAt: now,
-    })
+    if (error instanceof UserCreationFailedError) {
+      return createErrorResponse(
+        {
+          name: [error.message],
+          email: [],
+          password: [],
+        },
+        500,
+      )
+    }
 
-    return redirect('/admin/users')
-  } catch (_error) {
-    return {
-      errors: {
-        name: ['Failed to create user. Please try again.'],
+    return createErrorResponse(
+      {
+        name: ['An unexpected error occurred. Please try again.'],
         email: [],
         password: [],
       },
-    }
+      500,
+    )
   }
 }
