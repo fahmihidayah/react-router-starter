@@ -1,6 +1,6 @@
 import { ArrowLeftIcon } from 'lucide-react'
 import { useLoaderData, useNavigate } from 'react-router'
-import { RichEditorViewer } from '~/components/ui/rich-editor-viewer'
+import { RichEditorViewer } from '~/components/ui/rich-editor'
 import { getPostBySlugLoader } from '~/features/posts/loaders/get-post-by-slug-loader'
 import { formatDate } from '~/lib/utils'
 

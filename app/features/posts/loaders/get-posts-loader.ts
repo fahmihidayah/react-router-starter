@@ -2,8 +2,8 @@ import * as postService from '../services'
 
 export async function getPostsLoader(request: Request) {
   const url = new URL(request.url)
-  const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
-  const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)
+  const page = positiveInteger(url.searchParams.get('page'), 1)
+  const limit = Math.min(100, positiveInteger(url.searchParams.get('limit'), 10))
   const search = url.searchParams.get('search') || ''
   const categoryId = url.searchParams.get('categoryId') || ''
 
@@ -13,4 +13,9 @@ export async function getPostsLoader(request: Request) {
     ...(search && { search }),
     ...(categoryId && { categoryId }),
   })
+}
+
+function positiveInteger(value: string | null, fallback: number) {
+  const number = Number(value)
+  return Number.isSafeInteger(number) && number > 0 ? number : fallback
 }

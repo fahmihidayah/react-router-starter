@@ -1,12 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import {
-  createPostSchema,
-  updatePostSchema,
-  postFilterSchema,
-  type TCreatePost,
-  type TUpdatePost,
-  type TPostFilter,
-} from './post-schema'
+import { describe, expect, it } from 'vitest'
+import { createPostSchema, postFilterSchema, updatePostSchema } from './post-schema'
 
 describe('createPostSchema', () => {
   it('validates a valid create post object with plain text', () => {
@@ -38,21 +31,21 @@ describe('createPostSchema', () => {
                 text: 'Post content',
                 type: 'text',
                 version: 1,
-              }
+              },
             ],
             direction: 'ltr',
             format: '',
             indent: 0,
             type: 'paragraph',
             version: 1,
-          }
+          },
         ],
         direction: 'ltr',
         format: '',
         indent: 0,
         type: 'root',
         version: 1,
-      }
+      },
     })
 
     const data = {
@@ -172,21 +165,21 @@ describe('updatePostSchema', () => {
                 text: 'Updated JSON content',
                 type: 'text',
                 version: 1,
-              }
+              },
             ],
             direction: 'ltr',
             format: '',
             indent: 0,
             type: 'paragraph',
             version: 1,
-          }
+          },
         ],
         direction: 'ltr',
         format: '',
         indent: 0,
         type: 'root',
         version: 1,
-      }
+      },
     })
 
     const data = {
@@ -302,5 +295,25 @@ describe('createSlugFrom utility in schemas', () => {
   it('imports createSlugFrom successfully', async () => {
     const { createSlugFrom } = await import('~/utils/slug')
     expect(typeof createSlugFrom).toBe('function')
+  })
+})
+
+describe('rich content validation', () => {
+  it('rejects a serialized empty editor', () => {
+    const content = JSON.stringify({ root: { children: [{ type: 'paragraph', children: [] }] } })
+    expect(
+      createPostSchema.safeParse({ title: 'Post', categoryId: 'category', content }).success,
+    ).toBe(false)
+  })
+
+  it('accepts an image-only post', () => {
+    const content = JSON.stringify({
+      root: {
+        children: [{ type: 'paragraph', children: [{ type: 'image', src: '/uploads/photo.jpg' }] }],
+      },
+    })
+    expect(
+      createPostSchema.safeParse({ title: 'Post', categoryId: 'category', content }).success,
+    ).toBe(true)
   })
 })

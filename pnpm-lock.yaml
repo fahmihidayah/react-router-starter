@@ -20,6 +20,9 @@ importers:
       '@hookform/resolvers':
         specifier: 5.2.2
         version: 5.2.2(react-hook-form@7.75.0(react@19.2.6))
+      '@lexical/code':
+        specifier: 0.44.0
+        version: 0.44.0
       '@lexical/list':
         specifier: ^0.44.0
         version: 0.44.0
@@ -28,6 +31,12 @@ importers:
         version: 0.44.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(yjs@13.6.30)
       '@lexical/rich-text':
         specifier: ^0.44.0
+        version: 0.44.0
+      '@lexical/selection':
+        specifier: 0.44.0
+        version: 0.44.0
+      '@lexical/utils':
+        specifier: 0.44.0
         version: 0.44.0
       '@libsql/client':
         specifier: 0.17.3
@@ -1386,6 +1395,12 @@ packages:
 
   '@lexical/code-core@0.44.0':
     resolution: {integrity: sha512-m57JyXTIvW1tsqw/Vuogk8jqWCZZIeFQbWybRc46ytR8ReDgzPRODpN8+dacIIeRH5yC5UC3lAa743mtdNkxqg==}
+
+  '@lexical/code-prism@0.44.0':
+    resolution: {integrity: sha512-E8hmosuviwDfZqNyFKf2Vym8lV4shRFRHsRgYHzA3UCp88OqsxcSpyIwZk276khvJ2Zd4DupqJht/h+djezO4Q==}
+
+  '@lexical/code@0.44.0':
+    resolution: {integrity: sha512-d2rZUlGC8noGn/XbVrPyPZ86gYKT5a1DdsCSYIWnw/aqAs9G0xaIBcV9ABH+9cUS9fY5GDHaKTllHKIA8VRAxQ==}
 
   '@lexical/devtools-core@0.44.0':
     resolution: {integrity: sha512-X3uNG3P1vOsdzmEcy+7m9DxAcIVtVUZnvskmLqqLs6VluVVwH9xy7h1bPsvlDKvj1Nj73tWJ3TW0qXQWDTo5tw==}
@@ -4651,6 +4666,10 @@ packages:
     resolution: {integrity: sha512-Qb1gy5OrP5+zDf2Bvnzdl3jsTf1qXVMazbvCoKhtKqVs4/YK4ozX4gKQJJVyNe+cajNPn0KoC0MC3FUmaHWEmQ==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
 
+  prismjs@1.30.0:
+    resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
+    engines: {node: '>=6'}
+
   promise-limit@2.7.0:
     resolution: {integrity: sha512-7nJ6v5lnJsXwGprnGXga4wx6d1POjvi5Qmf1ivTRxTjH4Z/9Czja/UCMLVmB9N93GeWOU93XaFaEt6jbuoagNw==}
 
@@ -6435,6 +6454,20 @@ snapshots:
 
   '@lexical/code-core@0.44.0':
     dependencies:
+      '@lexical/extension': 0.44.0
+      lexical: 0.44.0
+
+  '@lexical/code-prism@0.44.0':
+    dependencies:
+      '@lexical/code-core': 0.44.0
+      '@lexical/extension': 0.44.0
+      lexical: 0.44.0
+      prismjs: 1.30.0
+
+  '@lexical/code@0.44.0':
+    dependencies:
+      '@lexical/code-core': 0.44.0
+      '@lexical/code-prism': 0.44.0
       '@lexical/extension': 0.44.0
       lexical: 0.44.0
 
@@ -9471,7 +9504,7 @@ snapshots:
 
   node-abi@3.92.0:
     dependencies:
-      semver: 7.8.0
+      semver: 7.8.5
     optional: true
 
   node-exports-info@1.6.0:
@@ -9708,6 +9741,8 @@ snapshots:
       ansi-regex: 5.0.1
       ansi-styles: 5.2.0
       react-is: 17.0.2
+
+  prismjs@1.30.0: {}
 
   promise-limit@2.7.0: {}
 
