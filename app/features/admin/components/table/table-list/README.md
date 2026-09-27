@@ -1,6 +1,6 @@
 # Table List Components
 
-Reusable components for building table-based list views with headers, search, pagination, and dialogs.
+Reusable components for building table-based list views with headers, pagination, and dialogs.
 
 ## Structure
 
@@ -8,7 +8,7 @@ Reusable components for building table-based list views with headers, search, pa
 table-list/
 ├── index.tsx              # Main exports
 ├── page-header.tsx        # Page title and action button
-├── data-table.tsx         # Reusable data table with search
+├── data-table.tsx         # Reusable data table with row selection
 ├── table-pagination.tsx   # Pagination controls
 ├── delete-dialog.tsx      # Reusable delete confirmation dialog
 └── README.md             # This file
@@ -39,33 +39,21 @@ Displays a page title, description, and an optional "Add" button.
 
 ### DataTable
 
-A reusable table component with built-in search functionality.
+A reusable table component with built-in row selection.
 
 **Props:**
-- `title: string` - Table card title
-- `description?: string` - Table card description
 - `data: TData[]` - Array of data items
 - `columns: ColumnDef<TData>[]` - TanStack Table column definitions
-- `searchable?: boolean` - Enable search (default: true)
-- `searchPlaceholder?: string` - Search input placeholder
-- `searchValue?: string` - Controlled search value
-- `onSearchChange?: (value: string) => void` - Search change handler
 - `emptyMessage?: string` - Message when no data
-- `totalPages?: number` - For manual pagination
-- `manualPagination?: boolean` - Use manual pagination (default: false)
+- `onDeleteSelected?: (selectedRows: TData[]) => void` - Bulk-delete handler
 
 **Usage:**
 ```tsx
 <DataTable
-  title="All Tasks"
-  description="10 tasks total"
   data={tasks}
   columns={columns}
-  searchPlaceholder="Search tasks..."
-  searchValue={searchValue}
-  onSearchChange={handleSearch}
-  totalPages={totalPages}
-  manualPagination
+  emptyMessage="No tasks found."
+  onDeleteSelected={handleDeleteSelected}
 />
 ```
 
@@ -123,7 +111,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/u
 
 export default function TasksPage() {
   const { tasks, page, totalPages } = useLoaderData<typeof loader>();
-  const [searchValue, setSearchValue] = useState("");
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
   const columns: ColumnDef<Task>[] = [
@@ -146,13 +133,8 @@ export default function TasksPage() {
         />
 
         <DataTable
-          title="All Tasks"
           data={tasks}
           columns={columns}
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          totalPages={totalPages}
-          manualPagination
         />
 
         <TablePagination
@@ -190,7 +172,7 @@ export default function TasksPage() {
 3. **Less Code** - Reduced boilerplate
 4. **Type Safe** - Full TypeScript support
 5. **Customizable** - Props for common customizations
-6. **TanStack Table** - Built-in table features (sorting, filtering, pagination)
+6. **TanStack Table** - Type-safe table rendering and row selection
 
 ## Customization
 
@@ -219,18 +201,6 @@ const columns: ColumnDef<Task>[] = [
 ];
 ```
 
-### No Search
-
-Disable search in the DataTable:
-
-```tsx
-<DataTable
-  data={data}
-  columns={columns}
-  searchable={false}
-/>
-```
-
 ### Custom Empty Message
 
 ```tsx
@@ -244,7 +214,6 @@ Disable search in the DataTable:
 ## Future Enhancements
 
 Potential additions:
-- Bulk actions (checkboxes, select all)
 - Column visibility toggle
 - Export to CSV/Excel
 - Advanced filters

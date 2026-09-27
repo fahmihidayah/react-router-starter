@@ -1,22 +1,17 @@
-import { Outlet, RouterContextProvider, redirect, useNavigate } from 'react-router'
-import { Config, createAdminMenu } from '~/features/admin'
+import { Outlet, useNavigate } from 'react-router'
+import { Config } from '~/features/admin'
 import { AdminLayout } from '~/features/admin/components/admin-layout'
 import { userContext } from '~/features/users/contexts'
-import { requireAuth } from '~/features/users/middlewares'
+import { requireAdmin } from '~/features/users/middlewares'
 import { authClient } from '~/lib/auth-client'
 import type { Route } from './+types/admin'
 
 // Apply admin middleware to protect all admin routes
-export const middleware: Route.MiddlewareFunction[] = [requireAuth]
+export const middleware: Route.MiddlewareFunction[] = [requireAdmin]
 
 export async function loader({ context }: Route.LoaderArgs) {
   // Get user from context (set by requireAdmin middleware)
   const authSession = context.get(userContext)
-  console.log('data session user : ', authSession.user)
-  if (authSession.user === null) {
-    redirect('/login')
-  }
-
   return {
     user: authSession.user,
   }

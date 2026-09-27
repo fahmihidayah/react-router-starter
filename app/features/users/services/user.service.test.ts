@@ -2,8 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as queries from '../queries'
 import * as service from './user.service'
 
-const { signUpEmail } = vi.hoisted(() => ({ signUpEmail: vi.fn<() => Promise<Response>>() }))
-vi.mock('~/lib/auth', () => ({ auth: { api: { signUpEmail } } }))
+const { createUser, signUpEmail } = vi.hoisted(() => ({
+  createUser: vi.fn<() => Promise<Response>>(),
+  signUpEmail: vi.fn<() => Promise<Response>>(),
+}))
+vi.mock('~/lib/auth', () => ({ auth: { api: { createUser, signUpEmail } } }))
 vi.mock('../queries', () => ({
   countAdmin: vi.fn(),
   assignRoleByName: vi.fn(),
@@ -27,34 +30,46 @@ const user = {
 const input = { name: user.name, email: user.email, password: 'password123' }
 describe('user service', () => {
   beforeEach(() => vi.resetAllMocks())
-  it.each([0, 1])('assigns only User when there are %s admins', async (admins) => {
-    vi.mocked(queries.countAdmin).mockResolvedValue(admins)
-    signUpEmail.mockResolvedValue(
-      Response.json({ user: { id: user.id } }, { headers: { 'set-cookie': 'session=example' } }),
-    )
+  it('creates a user with the Better Auth admin API and assigns the app role', async () => {
+    createUser.mockResolvedValue(Response.json({ user: { id: user.id } }))
+
     await expect(service.create(input)).resolves.toEqual({
       userId: user.id,
-      setCookie: 'session=example',
+      setCookie: null,
+    })
+    expect(createUser).toHaveBeenCalledWith({
+      body: { ...input, role: 'user' },
+      asResponse: true,
     })
     expect(queries.assignRoleByName).toHaveBeenCalledWith(user.id, 'User')
-    expect(queries.countAdmin).not.toHaveBeenCalled()
   })
   it.each([
     [400, 'Invalid user data'],
     [409, 'Email already exists'],
     [500, 'Failed to create user'],
   ])('propagates signup error %s', async (status, message) => {
-    signUpEmail.mockResolvedValue(Response.json({ message }, { status: Number(status) }))
+    createUser.mockResolvedValue(Response.json({ message }, { status: Number(status) }))
     await expect(service.create(input)).rejects.toThrow(String(message))
   })
   it('propagates unexpected authentication failures', async () => {
-    signUpEmail.mockRejectedValue(new Error('Network error'))
+    createUser.mockRejectedValue(new Error('Network error'))
     await expect(service.create(input)).rejects.toThrow('Network error')
   })
   it('rejects a signup response without a user', async () => {
-    signUpEmail.mockResolvedValue(Response.json({}))
+    createUser.mockResolvedValue(Response.json({}))
     await expect(service.create(input)).rejects.toThrow('Failed to create user')
     expect(queries.assignRoleByName).not.toHaveBeenCalled()
+  })
+  it('registers through Better Auth and returns its session cookie', async () => {
+    signUpEmail.mockResolvedValue(
+      Response.json({ user: { id: user.id } }, { headers: { 'set-cookie': 'session=example' } }),
+    )
+
+    await expect(service.register(input)).resolves.toEqual({
+      userId: user.id,
+      setCookie: 'session=example',
+    })
+    expect(queries.assignRoleByName).toHaveBeenCalledWith(user.id, 'User')
   })
   it('returns paginated users', async () => {
     const page = {

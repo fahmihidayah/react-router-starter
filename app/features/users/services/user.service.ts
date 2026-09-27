@@ -20,6 +20,42 @@ export async function create(
   data: TCreateUser,
 ): Promise<{ userId: string; setCookie: string | null }> {
   const { name, email, password } = data
+  const response = await auth.api.createUser({
+    body: { name, email, password, role: 'user' },
+    asResponse: true,
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null)
+    if (response.status === 400) {
+      const message = errorData?.message ?? 'Invalid user data'
+      if (message.toLowerCase().includes('exist')) {
+        throw new EmailAlreadyExistsError(message)
+      }
+      throw new InvalidUserDataError(message)
+    }
+    if (response.status === 409) {
+      throw new EmailAlreadyExistsError(errorData?.message)
+    }
+    throw new UserCreationFailedError(errorData?.message)
+  }
+
+  const body = (await response.json().catch(() => null)) as { user?: { id?: string } } | null
+  if (!body?.user?.id) {
+    throw new UserCreationFailedError('Failed to create user')
+  }
+
+  await assignDefaultRole(body.user.id)
+  return {
+    userId: body.user.id,
+    setCookie: null,
+  }
+}
+
+export async function register(
+  data: TCreateUser,
+): Promise<{ userId: string; setCookie: string | null }> {
+  const { name, email, password } = data
   const response = await auth.api.signUpEmail({
     body: { name, email, password },
     asResponse: true,
@@ -27,8 +63,12 @@ export async function create(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null)
-    if (response.status === 400) {
-      throw new InvalidUserDataError(errorData?.message)
+    if (response.status === 400 || response.status === 422) {
+      const message = errorData?.message ?? 'Invalid user data'
+      if (message.toLowerCase().includes('exist')) {
+        throw new EmailAlreadyExistsError(message)
+      }
+      throw new InvalidUserDataError(message)
     }
     if (response.status === 409) {
       throw new EmailAlreadyExistsError(errorData?.message)

@@ -3,7 +3,7 @@ import type { ActionArgs } from '~/lib/types'
 import { registerUserAction } from './register-user-action'
 
 vi.mock('../services', () => ({
-  create: vi.fn(),
+  register: vi.fn(),
 }))
 
 import * as userService from '../services'
@@ -39,7 +39,7 @@ describe('registerUserAction', () => {
   })
 
   it('returns success when registration succeeds', async () => {
-    vi.mocked(userService.create).mockResolvedValue({
+    vi.mocked(userService.register).mockResolvedValue({
       userId: 'u1',
       setCookie: 'session=abc123',
     })
@@ -52,15 +52,15 @@ describe('registerUserAction', () => {
     }
   })
 
-  it('calls userService.create with parsed form data', async () => {
-    vi.mocked(userService.create).mockResolvedValue({
+  it('calls userService.register with parsed form data', async () => {
+    vi.mocked(userService.register).mockResolvedValue({
       userId: 'u1',
       setCookie: null,
     })
 
     await registerUserAction(buildActionArgs(buildFormRequest(validInput)))
 
-    expect(userService.create).toHaveBeenCalledWith({
+    expect(userService.register).toHaveBeenCalledWith({
       name: 'John Doe',
       email: 'john@example.com',
       password: 'password123',
@@ -86,7 +86,7 @@ describe('registerUserAction', () => {
   it('returns error when email already exists', async () => {
     const error = new Error('An account with this email already exists')
     ;(error as any).status = 409
-    vi.mocked(userService.create).mockRejectedValue(error)
+    vi.mocked(userService.register).mockRejectedValue(error)
 
     const result = await registerUserAction(buildActionArgs(buildFormRequest(validInput)))
 
@@ -100,7 +100,7 @@ describe('registerUserAction', () => {
   it('returns error when server error occurs', async () => {
     const error = new Error('Server error. Please try again later')
     ;(error as any).status = 500
-    vi.mocked(userService.create).mockRejectedValue(error)
+    vi.mocked(userService.register).mockRejectedValue(error)
 
     const result = await registerUserAction(buildActionArgs(buildFormRequest(validInput)))
 

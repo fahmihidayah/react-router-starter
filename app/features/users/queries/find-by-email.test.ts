@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { findByEmail } from './find-by-email'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { findByEmail } from './find-by-email'
 
 vi.mock('~/lib/database', () => ({
   db: {
@@ -19,6 +19,10 @@ describe('findByEmail', () => {
 
   it('should find user by email', async () => {
     const mockUser = {
+      role: 'user',
+      banned: false,
+      banReason: null,
+      banExpires: null,
       id: '1',
       name: 'John Doe',
       email: 'john@example.com',
@@ -59,6 +63,10 @@ describe('findByEmail', () => {
 
   it('should handle user with multiple roles', async () => {
     const mockUser = {
+      role: 'user',
+      banned: false,
+      banReason: null,
+      banExpires: null,
       id: '2',
       name: 'Jane Doe',
       email: 'jane@example.com',

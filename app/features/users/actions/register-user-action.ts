@@ -1,6 +1,7 @@
 import type { ActionArgs } from '~/lib/types'
-import * as userService from '../services'
 import { registerUserSchema } from '../schemas/form/user-schema'
+import * as userService from '../services'
+import { EmailAlreadyExistsError, InvalidUserDataError } from '../types/errors/user-errors'
 
 export type RegisterUserSuccess = {
   success: true
@@ -33,16 +34,25 @@ export async function registerUserAction(args: ActionArgs): Promise<RegisterUser
   }
 
   try {
-    const result = await userService.create(parsed.data)
+    const result = await userService.register(parsed.data)
     return {
       success: true,
       setCookie: result.setCookie,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Registration failed'
+    const status =
+      error instanceof EmailAlreadyExistsError
+        ? 409
+        : error instanceof InvalidUserDataError
+          ? 400
+          : typeof error === 'object' && error !== null && 'status' in error
+            ? Number(error.status)
+            : 500
     return {
       success: false,
-      error: error.message || 'Registration failed',
-      status: error.status || 500,
+      error: message,
+      status: Number.isFinite(status) ? status : 500,
     }
   }
 }

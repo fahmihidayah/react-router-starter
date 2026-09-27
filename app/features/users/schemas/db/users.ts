@@ -13,6 +13,14 @@ export const users = pgTable('users', {
 
   image: text('image'),
 
+  // Better Auth admin plugin fields
+  role: text('role').default('user'),
+  banned: boolean('banned').default(false),
+  banReason: text('banReason'),
+  banExpires: timestamp('banExpires', {
+    withTimezone: true,
+  }),
+
   createdAt: timestamp('createdAt', {
     withTimezone: true,
   }).notNull(),
@@ -42,6 +50,8 @@ export const sessions = pgTable('sessions', {
   ipAddress: text('ipAddress'),
 
   userAgent: text('userAgent'),
+
+  impersonatedBy: text('impersonatedBy'),
 
   userId: text('userId')
     .notNull()
@@ -112,7 +122,7 @@ export const verifications = pgTable('verifications', {
 
 // Types
 
-export type TUser = typeof users.$inferSelect
+export type TUser = Omit<typeof users.$inferSelect, 'role' | 'banned' | 'banReason' | 'banExpires'>
 export type TInsertUser = typeof users.$inferInsert
 
 export type TSession = typeof sessions.$inferSelect

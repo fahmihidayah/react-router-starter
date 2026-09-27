@@ -1,4 +1,3 @@
-import { redirect } from 'react-router'
 import {
   type ActionArgs,
   type ApiResponse,

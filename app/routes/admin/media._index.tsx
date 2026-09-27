@@ -49,17 +49,8 @@ export default function MediaPage() {
   const data = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
   const submit = useSubmit()
-  const [search, setSearch] = useState(searchParams.get('search') || '')
   const [deleting, setDeleting] = useState<TMedia[]>([])
   const columns = useMemo(() => createMediaTableColumns((item) => setDeleting([item])), [])
-
-  const updateSearch = (value: string) => {
-    setSearch(value)
-    const next = new URLSearchParams(searchParams)
-    value ? next.set('search', value) : next.delete('search')
-    next.set('page', '1')
-    setSearchParams(next)
-  }
 
   const changePage = (page: number) => {
     const next = new URLSearchParams(searchParams)
@@ -82,17 +73,8 @@ export default function MediaPage() {
         <DataTable
           data={data.docs}
           columns={columns}
-          tableName="media"
-          pageTitle="Media library"
-          addButtonText="Upload image"
-          searchPlaceholder="Search media..."
-          searchValue={search}
-          onSearchChange={updateSearch}
           emptyMessage="No media found."
-          enableRowSelection
           onDeleteSelected={setDeleting}
-          totalPages={data.totalPages}
-          manualPagination
         />
         {data.totalPages > 1 && (
           <TablePagination

@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { useLoaderData, useNavigate, useSearchParams, useSubmit } from 'react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { useActionData, useLoaderData, useSearchParams, useSubmit } from 'react-router'
 import { toast } from 'sonner'
 import type { TUser } from '~/db/schema'
 import createColumn from '~/features/admin/components/table/column/create-column'
 import {
   DataTable,
   DeleteDialog,
+  PageHeader,
   TablePagination,
 } from '~/features/admin/components/table/table-list'
 import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
@@ -34,7 +35,6 @@ export async function action(args: Route.ActionArgs) {
     if (intent === 'deleteMany') {
       const idsJson = formData.get('ids')?.toString()
       if (idsJson) {
-        const ids = JSON.parse(idsJson) as string[]
         return deleteManyUsersAction(args)
       }
     }
@@ -52,71 +52,71 @@ export function meta() {
 
 export default function DashboardUsersPage() {
   const response = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
   const loaderData = response.data
   const [searchParams, setSearchParams] = useSearchParams()
 
   const submit = useSubmit()
 
   // State
-  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
   const [deletingUser, setDeletingUser] = useState<TUser | null>(null)
   const [deletingMultiple, setDeletingMultiple] = useState<TUser[]>([])
-  const _navigate = useNavigate()
+
+  useEffect(() => {
+    if (!actionData) return
+
+    if (actionData.success) {
+      toast.success(actionData.message)
+    } else {
+      toast.error(actionData.message)
+    }
+  }, [actionData])
 
   // Table columns
-  const columns = createColumn<TUser>({
-    tableName: 'users',
+  const columns = useMemo(
+    () =>
+      createColumn<TUser>({
+        tableName: 'users',
 
-    columnConfig: [
-      {
-        type: 'text',
-        accessorKey: 'id',
-        header: 'ID',
-        fallback: 'No ID',
-        isBold: false,
-      },
-      {
-        type: 'text',
-        accessorKey: 'email',
-        header: 'Email',
-        fallback: 'No email',
-        isBold: false,
-      },
-      {
-        type: 'text',
-        accessorKey: 'name',
-        header: 'Name',
-        fallback: 'No Name',
-      },
-      {
-        type: 'date',
-        accessorKey: 'createdAt',
-        header: 'Created',
-      },
-      {
-        type: 'date',
-        accessorKey: 'updatedAt',
-        header: 'Updated',
-      },
-    ],
-    actionColumnConfig: {
-      getItemId: (user) => user.id,
-      onDelete: (user) => setDeletingUser(user),
-    },
-  })
-
-  // Handle search
-  const handleSearch = (value: string) => {
-    setSearchValue(value)
-    const params = new URLSearchParams(searchParams)
-    if (value) {
-      params.set('search', value)
-    } else {
-      params.delete('search')
-    }
-    params.set('page', '1') // Reset to first page
-    setSearchParams(params)
-  }
+        columnConfig: [
+          {
+            type: 'text',
+            accessorKey: 'id',
+            header: 'ID',
+            fallback: 'No ID',
+            isBold: false,
+          },
+          {
+            type: 'text',
+            accessorKey: 'email',
+            header: 'Email',
+            fallback: 'No email',
+            isBold: false,
+          },
+          {
+            type: 'text',
+            accessorKey: 'name',
+            header: 'Name',
+            fallback: 'No Name',
+          },
+          {
+            type: 'date',
+            accessorKey: 'createdAt',
+            header: 'Created',
+          },
+          {
+            type: 'date',
+            accessorKey: 'updatedAt',
+            header: 'Updated',
+          },
+        ],
+        actionColumnConfig: {
+          getItemId: (user) => user.id,
+          onDelete: (user) => setDeletingUser(user),
+        },
+      }),
+    [],
+  )
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -135,7 +135,6 @@ export default function DashboardUsersPage() {
 
     submit(formData, { method: 'post' })
     setDeletingUser(null)
-    toast.success('User deleted successfully')
   }
 
   // Handle delete multiple users
@@ -148,7 +147,6 @@ export default function DashboardUsersPage() {
 
     submit(formData, { method: 'post' })
     setDeletingMultiple([])
-    toast.success(`${deletingMultiple.length} user(s) deleted successfully`)
   }
 
   // Handle selected rows for bulk delete
@@ -159,19 +157,19 @@ export default function DashboardUsersPage() {
   return (
     <div className="flex-1 p-6">
       <div className="space-y-6">
+        <PageHeader
+          title="Users"
+          description="Create and manage user accounts."
+          addButtonText="Add user"
+          addButtonLink="/admin/users/new"
+        />
+
         {/* Data Table */}
         <DataTable
           data={loaderData?.docs || []}
           columns={columns}
-          searchPlaceholder="Search users..."
-          searchValue={searchValue}
-          onSearchChange={handleSearch}
           emptyMessage="No users found."
-          enableRowSelection
-          tableName="users"
           onDeleteSelected={handleDeleteSelected}
-          totalPages={loaderData?.totalPages || 0}
-          manualPagination
         />
 
         {/* Table Pagination */}

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { findPaginated } from './find-paginated'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { findPaginated } from './find-paginated'
 
 vi.mock('~/lib/database', () => ({
   db: {
@@ -21,6 +21,10 @@ describe('findPaginated', () => {
   it('should return paginated users with default parameters', async () => {
     const mockUsers = [
       {
+        role: 'user',
+        banned: false,
+        banReason: null,
+        banExpires: null,
         id: '1',
         name: 'User 1',
         email: 'user1@example.com',
@@ -41,6 +45,10 @@ describe('findPaginated', () => {
         ],
       },
       {
+        role: 'user',
+        banned: false,
+        banReason: null,
+        banExpires: null,
         id: '2',
         name: 'User 2',
         email: 'user2@example.com',
@@ -73,6 +81,10 @@ describe('findPaginated', () => {
 
   it('should handle pagination correctly', async () => {
     const mockUsers = Array.from({ length: 10 }, (_, i) => ({
+      role: 'user',
+      banned: false,
+      banReason: null,
+      banExpires: null,
       id: `${i + 1}`,
       name: `User ${i + 1}`,
       email: `user${i + 1}@example.com`,
@@ -133,6 +145,10 @@ describe('findPaginated', () => {
 
   it('should filter by email', async () => {
     const mockUser = {
+      role: 'user',
+      banned: false,
+      banReason: null,
+      banExpires: null,
       id: '1',
       name: 'John Doe',
       email: 'john@example.com',
@@ -177,6 +193,10 @@ describe('findPaginated', () => {
 
   it('should transform user roles correctly', async () => {
     const mockUser = {
+      role: 'user',
+      banned: false,
+      banReason: null,
+      banExpires: null,
       id: '1',
       name: 'Admin User',
       email: 'admin@example.com',
