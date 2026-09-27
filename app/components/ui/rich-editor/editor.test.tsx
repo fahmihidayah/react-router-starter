@@ -5,7 +5,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RichEditor, type RichEditorHandle } from './editor'
 import { RichEditorViewer } from './viewer'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 describe('rich editor', () => {
   it('preserves plain text and supports controlled resets without echoing changes', async () => {
@@ -92,5 +95,84 @@ describe('rich editor', () => {
     await waitFor(() => expect(screen.getByAltText('A photo')).toBeTruthy())
     fireEvent.click(screen.getByRole('button', { name: 'Remove image' }))
     await waitFor(() => expect(screen.queryByAltText('A photo')).toBeNull())
+  })
+})
+
+describe('image uploads', () => {
+  it('uploads once and inserts the returned media URL instead of a local preview URL', async () => {
+    vi.stubGlobal(
+      'URL',
+      class extends URL {
+        static createObjectURL() {
+          return 'blob:preview'
+        }
+        static revokeObjectURL() {
+          /* No browser object URL is allocated in this test. */
+        }
+      },
+    )
+    const upload = vi.fn().mockResolvedValue({
+      ok: true,
+      redirected: false,
+      json: async () => ({ url: '/api/media/files/uploaded.webp' }),
+    })
+    vi.stubGlobal('fetch', upload)
+    const ref = createRef<RichEditorHandle>()
+    render(<RichEditor ref={ref} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Insert image' }))
+    const file = new File(['photo'], 'photo.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Upload image'), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Image description'), {
+      target: { value: 'Uploaded photo' },
+    })
+    const button = screen.getByRole('button', { name: 'Upload and insert' })
+    fireEvent.click(button)
+    fireEvent.click(button)
+    await waitFor(() =>
+      expect(screen.getByAltText('Uploaded photo').getAttribute('src')).toBe(
+        '/api/media/files/uploaded.webp',
+      ),
+    )
+    expect(upload).toHaveBeenCalledOnce()
+    const [url, options] = upload.mock.calls[0]
+    expect(url).toBe('/admin/media/upload')
+    expect(options.body.get('file')).toBe(file)
+    expect(options.body.get('alt')).toBe('Uploaded photo')
+    expect(ref.current?.getJSON()).toContain('/api/media/files/uploaded.webp')
+    expect(ref.current?.getJSON()).not.toContain('blob:preview')
+  })
+
+  it('keeps the dialog open and permits retry after an upload failure', async () => {
+    vi.stubGlobal(
+      'URL',
+      class extends URL {
+        static createObjectURL() {
+          return 'blob:preview'
+        }
+        static revokeObjectURL() {
+          /* No browser object URL is allocated in this test. */
+        }
+      },
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ errors: { form: ['Image exceeds size limit'] } }),
+      }),
+    )
+    render(<RichEditor />)
+    fireEvent.click(screen.getByRole('button', { name: 'Insert image' }))
+    fireEvent.change(screen.getByLabelText('Upload image'), {
+      target: { files: [new File(['photo'], 'photo.png', { type: 'image/png' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload and insert' }))
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe('Image exceeds size limit'),
+    )
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Upload and insert' }).hasAttribute('disabled')).toBe(
+      false,
+    )
   })
 })
