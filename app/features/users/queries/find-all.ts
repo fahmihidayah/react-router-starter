@@ -1,5 +1,3 @@
-import { eq, type SQL } from 'drizzle-orm'
-import { roles, userRoles, users } from '~/db/schema'
 import { db } from '~/lib/database'
 import type { UserWithRoles } from '../types'
 import { toUserWithRoles } from './utils'

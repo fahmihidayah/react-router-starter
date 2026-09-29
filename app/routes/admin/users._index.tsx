@@ -1,7 +1,7 @@
+import { ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useActionData, useLoaderData, useSearchParams, useSubmit } from 'react-router'
 import { toast } from 'sonner'
-import type { TUser } from '~/db/schema'
 import createColumn from '~/features/admin/components/table/column/create-column'
 import {
   DataTable,
@@ -9,19 +9,24 @@ import {
   PageHeader,
   TablePagination,
 } from '~/features/admin/components/table/table-list'
+import { getAllRolesLoader } from '~/features/roles/loaders/get-all-roles-loader'
 import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
 import { deleteUserAction } from '~/features/users/actions/delete-user-action'
+import { updateUserRoleAction } from '~/features/users/actions/update-user-role-action'
+import { ChangeUserRoleDialog } from '~/features/users/components/admin/change-user-role-dialog'
 import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
+import type { UserWithRoles } from '~/features/users/types'
 import type { Route } from './+types/users._index'
 
 // Loader - Fetch users with pagination and search
 export async function loader(args: Route.LoaderArgs) {
-  return await getUsersLoader(args)
+  const [users, roles] = await Promise.all([getUsersLoader(args), getAllRolesLoader()])
+  return { users, roles }
 }
 
 // Action - Handle delete and delete-many operations
 export async function action(args: Route.ActionArgs) {
-  const formData = await args.request.formData()
+  const formData = await args.request.clone().formData()
   const intent = formData.get('intent')
 
   try {
@@ -39,6 +44,14 @@ export async function action(args: Route.ActionArgs) {
       }
     }
 
+    if (intent === 'changeRole') {
+      const userId = formData.get('userId')
+      const roleId = formData.get('roleId')
+      if (typeof userId === 'string' && typeof roleId === 'string') {
+        return updateUserRoleAction(userId, roleId)
+      }
+    }
+
     return { success: false, message: 'Invalid action' }
   } catch (error) {
     console.error('Action error:', error)
@@ -51,7 +64,7 @@ export function meta() {
 }
 
 export default function DashboardUsersPage() {
-  const response = useLoaderData<typeof loader>()
+  const { users: response, roles } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const loaderData = response.data
   const [searchParams, setSearchParams] = useSearchParams()
@@ -59,8 +72,9 @@ export default function DashboardUsersPage() {
   const submit = useSubmit()
 
   // State
-  const [deletingUser, setDeletingUser] = useState<TUser | null>(null)
-  const [deletingMultiple, setDeletingMultiple] = useState<TUser[]>([])
+  const [deletingUser, setDeletingUser] = useState<UserWithRoles | null>(null)
+  const [deletingMultiple, setDeletingMultiple] = useState<UserWithRoles[]>([])
+  const [changingRoleFor, setChangingRoleFor] = useState<UserWithRoles | null>(null)
 
   useEffect(() => {
     if (!actionData) return
@@ -75,7 +89,7 @@ export default function DashboardUsersPage() {
   // Table columns
   const columns = useMemo(
     () =>
-      createColumn<TUser>({
+      createColumn<UserWithRoles>({
         tableName: 'users',
 
         columnConfig: [
@@ -100,6 +114,14 @@ export default function DashboardUsersPage() {
             fallback: 'No Name',
           },
           {
+            type: 'text',
+            accessorKey: 'roles',
+            header: 'Role',
+            fallback: 'No role',
+            isBold: false,
+            format: (assignedRoles) => assignedRoles[0]?.name ?? 'No role',
+          },
+          {
             type: 'date',
             accessorKey: 'createdAt',
             header: 'Created',
@@ -113,6 +135,13 @@ export default function DashboardUsersPage() {
         actionColumnConfig: {
           getItemId: (user) => user.id,
           onDelete: (user) => setDeletingUser(user),
+          customActions: [
+            {
+              label: 'Change role',
+              icon: ShieldCheck,
+              onClick: (user) => setChangingRoleFor(user),
+            },
+          ],
         },
       }),
     [],
@@ -150,8 +179,18 @@ export default function DashboardUsersPage() {
   }
 
   // Handle selected rows for bulk delete
-  const handleDeleteSelected = (selectedUsers: TUser[]) => {
+  const handleDeleteSelected = (selectedUsers: UserWithRoles[]) => {
     setDeletingMultiple(selectedUsers)
+  }
+
+  const handleChangeRole = (roleId: string) => {
+    if (!changingRoleFor) return
+    const formData = new FormData()
+    formData.set('intent', 'changeRole')
+    formData.set('userId', changingRoleFor.id)
+    formData.set('roleId', roleId)
+    submit(formData, { method: 'post' })
+    setChangingRoleFor(null)
   }
 
   return (
@@ -190,6 +229,13 @@ export default function DashboardUsersPage() {
         itemName={deletingUser?.email || ''}
         onConfirm={handleDeleteUser}
         onCancel={() => setDeletingUser(null)}
+      />
+
+      <ChangeUserRoleDialog
+        user={changingRoleFor}
+        roles={roles}
+        onOpenChange={(open) => !open && setChangingRoleFor(null)}
+        onSubmit={handleChangeRole}
       />
 
       {/* Delete Multiple Users Dialog */}

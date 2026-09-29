@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import { userRoles } from '~/db/schema'
 import { db } from '~/lib/database'
 
@@ -8,5 +9,8 @@ export async function assignRoleByName(userId: string, roleName: string): Promis
 
   if (!role) return
 
-  await db.insert(userRoles).values({ userId, roleId: role.id }).onConflictDoNothing()
+  await db.transaction(async (tx) => {
+    await tx.delete(userRoles).where(eq(userRoles.userId, userId))
+    await tx.insert(userRoles).values({ userId, roleId: role.id })
+  })
 }

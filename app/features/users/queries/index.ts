@@ -1,3 +1,4 @@
+export * from './assign-role'
 export * from './assign-role-by-name'
 export * from './count-admin'
 export * from './create'

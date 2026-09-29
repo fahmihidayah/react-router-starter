@@ -14,6 +14,10 @@ export const Config: AdminConfig = {
       icon: LucideReact.Users,
     },
     {
+      slug: 'roles',
+      icon: LucideReact.ShieldCheck,
+    },
+    {
       slug: 'media',
       icon: LucideReact.Images,
     },

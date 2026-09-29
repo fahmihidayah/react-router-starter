@@ -13,5 +13,5 @@ export async function findById(id: string): Promise<UserWithRoles | undefined> {
       },
     },
   })
-  return toUserWithRoles(result)
+  return result ? toUserWithRoles(result) : undefined
 }

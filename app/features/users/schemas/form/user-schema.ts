@@ -7,6 +7,7 @@ export const createUserSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .max(100, 'Password must be less than 100 characters'),
+  roleId: z.string().min(1, 'Role is required'),
 })
 
 export type TCreateUser = z.infer<typeof createUserSchema>
@@ -17,6 +18,11 @@ export const updateUserSchema = z.object({
 })
 
 export type TUpdateUser = z.infer<typeof updateUserSchema>
+
+export const updateUserRoleSchema = z.object({
+  userId: z.string().min(1, 'User is required'),
+  roleId: z.string().min(1, 'Role is required'),
+})
 
 export const registerUserSchema = z.object({
   name: z

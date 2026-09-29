@@ -13,5 +13,5 @@ export async function findByName(name: string): Promise<RoleWithPermissions | un
       },
     },
   })
-  return toRoleWithPermissions(result)
+  return result ? toRoleWithPermissions(result) : undefined
 }

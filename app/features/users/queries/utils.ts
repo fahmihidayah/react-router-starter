@@ -1,14 +1,17 @@
-import type { TUser, TUserRole } from '~/db/schema'
+import type { TRole, TUser } from '~/db/schema'
 import type { UserWithRoles } from '../types'
 
-export function toUserWithRoles(user: any): UserWithRoles {
+type UserWithRoleRelations = TUser & { userRoles: Array<{ role: TRole }> }
+
+export function toUserWithRoles(user: undefined): undefined
+export function toUserWithRoles(user: UserWithRoleRelations): UserWithRoles
+export function toUserWithRoles(
+  user: UserWithRoleRelations | undefined,
+): UserWithRoles | undefined {
+  if (!user) return undefined
+  const { userRoles, ...userData } = user
   return {
-    ...user,
-    userRoles: undefined,
-    roles: user.userRoles.map((e: any) => {
-      return {
-        ...e.role,
-      }
-    }),
+    ...userData,
+    roles: userRoles.map(({ role }) => role),
   }
 }

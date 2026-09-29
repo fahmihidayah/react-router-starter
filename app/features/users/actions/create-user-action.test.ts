@@ -46,6 +46,7 @@ describe('createUserAction', () => {
       name: 'New User',
       email: 'newuser@example.com',
       password: 'password123',
+      roleId: 'role-user',
     })
 
     const result = await createUserAction(buildActionArgs(request))
@@ -67,6 +68,7 @@ describe('createUserAction', () => {
       name: 'Alice Johnson',
       email: 'alice@example.com',
       password: 'secret123',
+      roleId: 'role-user',
     })
 
     await createUserAction(buildActionArgs(request))
@@ -75,6 +77,7 @@ describe('createUserAction', () => {
       name: 'Alice Johnson',
       email: 'alice@example.com',
       password: 'secret123',
+      roleId: 'role-user',
     })
   })
 
@@ -88,6 +91,7 @@ describe('createUserAction', () => {
       name: 'Failed User',
       email: 'failed@example.com',
       password: 'password',
+      roleId: 'role-user',
     })
 
     const result = await createUserAction(buildActionArgs(request))
@@ -104,6 +108,7 @@ describe('createUserAction', () => {
       name: '',
       email: 'invalid-email',
       password: '123',
+      roleId: 'role-user',
     })
 
     const result = await createUserAction(buildActionArgs(request))
@@ -124,6 +129,7 @@ describe('createUserAction', () => {
       name: 'Error User',
       email: 'error@example.com',
       password: 'testpass123',
+      roleId: 'role-user',
     })
 
     const result = await createUserAction(buildActionArgs(request))

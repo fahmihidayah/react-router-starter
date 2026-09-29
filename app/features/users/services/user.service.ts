@@ -1,7 +1,9 @@
+import * as roleQueries from '~/features/roles/queries'
+import { RoleNotFoundError } from '~/features/roles/types/errors'
 import { auth } from '~/lib/auth'
 import type { PaginateDocs } from '~/types/pagination'
 import * as userQueries from '../queries'
-import type { TCreateUser, TUpdateUser } from '../schemas/form/user-schema'
+import type { TCreateUser, TRegisterUser, TUpdateUser } from '../schemas/form/user-schema'
 import type { UserWithRoles } from '../types'
 import {
   EmailAlreadyExistsError,
@@ -19,7 +21,8 @@ async function assignDefaultRole(userId: string): Promise<void> {
 export async function create(
   data: TCreateUser,
 ): Promise<{ userId: string; setCookie: string | null }> {
-  const { name, email, password } = data
+  const { name, email, password, roleId } = data
+  if (!(await roleQueries.findById(roleId))) throw new RoleNotFoundError()
   const response = await auth.api.createUser({
     body: { name, email, password, role: 'user' },
     asResponse: true,
@@ -45,7 +48,7 @@ export async function create(
     throw new UserCreationFailedError('Failed to create user')
   }
 
-  await assignDefaultRole(body.user.id)
+  await userQueries.assignRole(body.user.id, roleId)
   return {
     userId: body.user.id,
     setCookie: null,
@@ -53,7 +56,7 @@ export async function create(
 }
 
 export async function register(
-  data: TCreateUser,
+  data: TRegisterUser,
 ): Promise<{ userId: string; setCookie: string | null }> {
   const { name, email, password } = data
   const response = await auth.api.signUpEmail({
@@ -112,6 +115,12 @@ export async function update(id: string, data: TUpdateUser): Promise<void> {
   }
 
   await userQueries.update(id, data)
+}
+
+export async function updateRole(userId: string, roleId: string): Promise<void> {
+  if (!(await userQueries.findById(userId))) throw new UserNotFoundError()
+  if (!(await roleQueries.findById(roleId))) throw new RoleNotFoundError()
+  await userQueries.assignRole(userId, roleId)
 }
 
 export async function deleteById(id: string): Promise<void> {

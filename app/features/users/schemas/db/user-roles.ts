@@ -2,12 +2,13 @@ import { pgTable, primaryKey, text } from 'drizzle-orm/pg-core'
 import { roles } from '~/features/roles/schemas/db/roles'
 import { users } from './users'
 
-// Junction table for user <-> role many-to-many relationship
+// A role can belong to many users, but each user has only one app role.
 export const userRoles = pgTable(
   'user_roles',
   {
     userId: text('userId')
       .notNull()
+      .unique()
       .references(() => users.id, {
         onDelete: 'cascade',
       }),
