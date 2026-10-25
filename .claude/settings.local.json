@@ -44,7 +44,21 @@
       "Bash(git rm:*)",
       "Bash(git add:*)",
       "Bash(pnpm paraglide-js compile:*)",
-      "Bash(pnpm paraglide-js:*)"
+      "Bash(pnpm paraglide-js:*)",
+      "Bash(git checkout:*)",
+      "Bash(pnpm check:*)",
+      "Bash(awk:*)",
+      "Bash(pnpm test:coverage:*)",
+      "Bash(wc:*)",
+      "Bash(pnpm db:generate:*)",
+      "Bash(pnpm create-starter:*)",
+      "Bash(zip:*)",
+      "Bash(unzip:*)",
+      "Bash(tsx scripts/create-starter.ts:*)",
+      "Bash(pnpm exec tsx:*)",
+      "Bash(chmod:*)",
+      "Bash(psql:*)",
+      "Bash(wait)"
     ],
     "deny": [],
     "ask": []

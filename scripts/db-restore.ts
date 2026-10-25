@@ -1,79 +1,62 @@
 import 'dotenv/config'
-import { copyFileSync, existsSync, readdirSync } from 'node:fs'
+import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { stdin, stdout } from 'node:process'
-import * as readline from 'node:readline'
+import * as readline from 'node:readline/promises'
+import { createBackup } from './db-backup'
+import { runPostgresCommand } from './postgres-cli'
 
-/**
- * Database restore script
- * Restores database from a backup file
- */
 async function restore() {
+  const backupDir = join(process.cwd(), 'backups')
+  const backups = (await readdir(backupDir))
+    .filter((file) => file.endsWith('.dump'))
+    .sort()
+    .reverse()
+
+  if (backups.length === 0) {
+    throw new Error(`No .dump backups found in ${backupDir}`)
+  }
+
+  console.log('Available backups:')
+  backups.forEach((backup, index) => {
+    console.log(`  ${index + 1}. ${backup}`)
+  })
+
+  const prompt = readline.createInterface({ input: stdin, output: stdout })
   try {
-    const backupDir = join(process.cwd(), 'backups')
-
-    if (!existsSync(backupDir)) {
-      console.error('❌ No backups directory found')
-      process.exit(1)
-    }
-
-    // List available backups
-    const backups = readdirSync(backupDir)
-      .filter((file) => file.endsWith('.db'))
-      .sort()
-      .reverse()
-
-    if (backups.length === 0) {
-      console.error('❌ No backup files found')
-      process.exit(1)
-    }
-
-    console.log('📋 Available backups:')
-    backups.forEach((backup, index) => {
-      console.log(`  ${index + 1}. ${backup}`)
-    })
-
-    const rl = readline.createInterface({
-      input: stdin,
-      output: stdout,
-    })
-
-    const backupNumber = await new Promise<string>((resolve) => {
-      rl.question('\n🔢 Enter backup number to restore (or press Ctrl+C to cancel): ', resolve)
-    })
-
-    rl.close()
-
-    const selectedIndex = Number.parseInt(backupNumber, 10) - 1
-
-    if (selectedIndex < 0 || selectedIndex >= backups.length) {
-      console.error('❌ Invalid backup number')
-      process.exit(1)
-    }
-
+    const answer = await prompt.question('\nEnter the backup number to restore: ')
+    const selectedIndex = Number.parseInt(answer, 10) - 1
     const selectedBackup = backups[selectedIndex]
-    const backupFile = join(backupDir, selectedBackup)
-    const dbPath = process.env.DB_FILE_NAME ?? 'file:./app.db'
-    const dbFile = dbPath.replace('file:', '')
-
-    // Create backup of current database before restoring
-    if (existsSync(dbFile)) {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-      const preRestoreBackup = join(backupDir, `pre-restore-${timestamp}.db`)
-      copyFileSync(dbFile, preRestoreBackup)
-      console.log(`📦 Current database backed up to: ${preRestoreBackup}`)
+    if (!selectedBackup) {
+      throw new Error('Invalid backup number')
     }
 
-    // Restore from backup
-    copyFileSync(backupFile, dbFile)
+    const confirmation = await prompt.question(
+      'This replaces data in the DATABASE_URL target. Type RESTORE to continue: ',
+    )
+    if (confirmation !== 'RESTORE') {
+      console.log('Restore cancelled.')
+      return
+    }
 
-    console.log('✅ Database restored successfully!')
-    console.log(`📁 Restored from: ${backupFile}`)
-    console.log(`📊 Database location: ${dbFile}`)
-  } catch (error) {
-    console.error('❌ Error restoring backup:', error)
-    process.exit(1)
+    const safetyBackup = await createBackup('pre-restore')
+    console.log(`Current database backed up to: ${safetyBackup}`)
+
+    const backupFile = join(backupDir, selectedBackup)
+    await runPostgresCommand('pg_restore', [
+      '--clean',
+      '--if-exists',
+      '--no-owner',
+      '--no-privileges',
+      backupFile,
+    ])
+    console.log(`Database restored from: ${backupFile}`)
+  } finally {
+    prompt.close()
   }
 }
 
-restore()
+restore().catch((error) => {
+  console.error('Unable to restore database:', error)
+  process.exitCode = 1
+})

@@ -1,18 +1,16 @@
-import { eq, type SQL } from 'drizzle-orm'
-import { roles, userRoles, users } from '~/db/schema'
 import { db } from '~/lib/database'
-import type { UserWithRoles } from '../types'
-import { toUserWithRoles } from './utils'
+import type { UserWithRole } from '../types'
+import { toUserWithRole } from './utils'
 
-export async function findAll(): Promise<UserWithRoles[]> {
+export async function findAll(): Promise<UserWithRole[]> {
   const result = await db.query.users.findMany({
     with: {
-      userRoles: {
+      userRole: {
         with: {
           role: true,
         },
       },
     },
   })
-  return result.map(toUserWithRoles)
+  return result.map(toUserWithRole)
 }

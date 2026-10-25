@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { deleteManyCategoriesAction } from './delete-many-categories-action'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { InvalidCategoryDataError } from '../types/errors/category-errors'
+import { deleteManyCategoriesAction } from './delete-many-categories-action'
 
 vi.mock('../services', () => ({
   deleteMany: vi.fn(),
@@ -24,7 +24,7 @@ describe('deleteManyCategoriesAction', () => {
 
   it('returns failure when given empty array', async () => {
     vi.mocked(categoryService.deleteMany).mockRejectedValue(
-      new InvalidCategoryDataError('Invalid category IDs provided')
+      new InvalidCategoryDataError('Invalid category IDs provided'),
     )
 
     const result = await deleteManyCategoriesAction([])

@@ -1,9 +1,9 @@
-import { type RouteMatch, redirect } from 'react-router'
+import { redirect } from 'react-router'
 import { userContext } from '~/features/users/contexts/user-context'
 import { auth } from '~/lib/auth'
 import type { Arguments } from '~/lib/types'
-import { findById } from '../queries'
-import type { UserWithRoles } from '../types'
+import { assignRoleByKey, findById } from '../queries'
+import type { UserWithRole } from '../types'
 
 export type AuthSession = {
   session: {
@@ -12,7 +12,7 @@ export type AuthSession = {
     expiresAt: Date
     token: string
   }
-  user: UserWithRoles
+  user: UserWithRole
 }
 
 /**
@@ -24,14 +24,36 @@ export async function getSession(request: Request): Promise<AuthSession | null> 
     headers: request.headers,
   })
 
+  // Diagnostic logging for session debugging
+  console.log('[Auth Debug] Session check:', {
+    hasSession: !!session,
+    hasUser: !!session?.user,
+    userId: session?.user?.id,
+    cookies: request.headers.get('cookie'),
+    url: request.url,
+  })
+
   if (!session?.user?.id) {
     return null
   }
 
-  const user = await findById(session.user.id)
+  let user = await findById(session.user.id)
 
   if (!user) {
+    console.log('[Auth Debug] User not found in database:', session.user.id)
     return null
+  }
+
+  // If user has no role assigned, automatically assign the default 'user' role
+  if (!user.role) {
+    console.log('[Auth Debug] User has no role, assigning default "user" role:', session.user.id)
+    await assignRoleByKey(session.user.id, 'user')
+    // Re-fetch user to get the updated role
+    user = await findById(session.user.id)
+    if (!user) {
+      console.log('[Auth Debug] Failed to fetch user after role assignment:', session.user.id)
+      return null
+    }
   }
 
   return {

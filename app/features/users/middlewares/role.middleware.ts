@@ -1,18 +1,20 @@
+import { redirect } from 'react-router'
+import { getEmailVerificationPath } from '~/features/auth/email-verification'
 import { userContext } from '~/features/users/contexts/user-context'
 import type { Arguments } from '~/lib/types'
 import { requireAuth } from './auth.middleware'
 
 /**
  * Role-based authorization middleware
- * Requires user to have specific role(s)
- * First ensures authentication, then checks roles
+ * Requires the user to have a specific role key.
+ * First ensures authentication, then checks the single app role.
  *
  * @param args - Middleware arguments
- * @param roles - Single role or array of roles (user must have at least one)
+ * @param roleKeys - One or more accepted immutable role keys
  * @throws 403 Forbidden if user doesn't have required role
  * @throws 401 Unauthorized if user is not authenticated
  */
-export async function requireRole(args: Arguments, roles: string | string[]): Promise<void> {
+export async function requireRole(args: Arguments, roleKeys: string | string[]): Promise<void> {
   // First ensure user is authenticated (this sets context)
   await requireAuth(args)
 
@@ -23,10 +25,11 @@ export async function requireRole(args: Arguments, roles: string | string[]): Pr
     throw new Response('Unauthorized', { status: 401 })
   }
 
-  const roleNames = authSession.user.roles.map((role: any) => role.name)
-  const requiredRoles = Array.isArray(roles) ? roles : [roles]
+  const requiredRoleKeys = Array.isArray(roleKeys) ? roleKeys : [roleKeys]
 
-  const hasRole = requiredRoles.some((role) => roleNames.includes(role))
+  const hasRole = authSession.user.role
+    ? requiredRoleKeys.includes(authSession.user.role.key)
+    : false
 
   if (!hasRole) {
     throw new Response('Forbidden - Insufficient permissions', { status: 403 })
@@ -38,5 +41,18 @@ export async function requireRole(args: Arguments, roles: string | string[]): Pr
  * Requires user to have Admin role
  */
 export async function requireAdmin(args: Arguments) {
-  await requireRole(args, 'Admin')
+  await requireRole(args, 'admin')
+}
+
+/** Requires the standard application User role. */
+export async function requireUser(args: Arguments) {
+  await requireRole(args, 'user')
+
+  const authSession = args.context.get(userContext)
+  if (!authSession?.user) {
+    throw redirect('/login')
+  }
+  if (!authSession.user.emailVerified) {
+    throw redirect(getEmailVerificationPath(authSession.user.email))
+  }
 }

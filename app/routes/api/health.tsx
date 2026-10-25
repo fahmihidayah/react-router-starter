@@ -1,6 +1,9 @@
-import type { LoaderFunctionArgs } from 'react-router'
-
-export async function loader({ request }: LoaderFunctionArgs) {
+/**
+ * Liveness endpoint: indicates the application process is running.
+ * Does NOT check dependencies (database, queue, storage) - use /api/ready for that.
+ * Always returns 200 if the process is alive.
+ */
+export async function loader() {
   return Response.json(
     {
       status: 'ok',

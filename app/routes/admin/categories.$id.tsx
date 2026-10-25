@@ -2,7 +2,15 @@ import { useActionData, useLoaderData } from 'react-router'
 import { updateCategoryAction } from '~/features/categories/actions/update-category-action'
 import { EditCategoryForm } from '~/features/categories/components/admin/form/edit-category-form'
 import { getCategoryByIdLoader } from '~/features/categories/loaders/get-category-by-id-loader'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import type { Route } from './+types/categories.$id'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.CATEGORIES_UPDATE,
+    loader: PERMISSION_KEYS.CATEGORIES_READ,
+  }),
+]
 
 export async function loader({ params }: Route.LoaderArgs) {
   if (!params.id) {

@@ -1,17 +1,17 @@
 import { db } from '~/lib/database'
-import type { UserWithRoles } from '../types'
-import { toUserWithRoles } from './utils'
+import type { UserWithRole } from '../types'
+import { toUserWithRole } from './utils'
 
-export async function findByEmail(email: string): Promise<UserWithRoles | undefined> {
+export async function findByEmail(email: string): Promise<UserWithRole | undefined> {
   const result = await db.query.users.findFirst({
     where: { email: email },
     with: {
-      userRoles: {
+      userRole: {
         with: {
           role: true,
         },
       },
     },
   })
-  return result ? toUserWithRoles(result) : undefined
+  return result ? toUserWithRole(result) : undefined
 }

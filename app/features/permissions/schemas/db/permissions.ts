@@ -4,6 +4,7 @@ export const permissions = pgTable(
   'permissions',
   {
     id: text('id').primaryKey(),
+    key: text('key').notNull().unique(),
     resource: text('resource').notNull(),
     action: text('action').notNull(),
     name: text('name').notNull(),

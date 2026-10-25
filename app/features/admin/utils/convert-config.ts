@@ -1,4 +1,3 @@
-import type { UserWithRoles } from '~/features/users/types'
 import type { AdminConfig } from '../types/admin-config'
 import type { SidebarHeader } from '../types/sidebar-header'
 import type { SidebarNavigationGroup, SidebarNavigationItem } from '../types/sidebar-navigation'
@@ -16,7 +15,7 @@ const createSidebarNavigationGroup = (
 
   admin.menus.forEach((menu) => {
     // Check if menu should be hidden for this user
-    if (menu.hide && menu.hide(user)) {
+    if (menu.hide?.(user)) {
       return
     }
 
@@ -24,15 +23,15 @@ const createSidebarNavigationGroup = (
     const groupLabel = menu.group?.label ?? menu.group?.slug.toUpperCase() ?? defaultGroupLabel
 
     // Get or create the group
-    if (!groupMap.has(groupSlug)) {
-      groupMap.set(groupSlug, {
+    let group = groupMap.get(groupSlug)
+    if (!group) {
+      group = {
         slug: groupSlug,
         label: groupLabel,
         items: [],
-      })
+      }
+      groupMap.set(groupSlug, group)
     }
-
-    const group = groupMap.get(groupSlug)!
 
     // Create the navigation item from the menu
     const navigationItem: SidebarNavigationItem = {
@@ -62,7 +61,7 @@ export const createAdminMenu = (
       .split(' ')
       .map((word) => word[0]?.toUpperCase() ?? '')
       .join(''),
-    subtitle: '',
+    subtitle: admin.subTitle ?? '',
   }
 
   const sidebarGroup = createSidebarNavigationGroup(admin, user)

@@ -1,5 +1,4 @@
-import type { RouteMatch, RouterContextProvider } from 'react-router'
-import type { userContext } from '~/features/users/contexts'
+import type { RouterContextProvider } from 'react-router'
 
 /**
  * Extended arguments for loaders and actions that include user context

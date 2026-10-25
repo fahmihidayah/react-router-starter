@@ -36,7 +36,11 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue={session.user.name || ''} placeholder="Enter your name" />
+                <Input
+                  id="name"
+                  defaultValue={session.user.name || ''}
+                  placeholder="Enter your name"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

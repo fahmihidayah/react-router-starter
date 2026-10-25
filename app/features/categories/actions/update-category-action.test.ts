@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ActionArgs } from '~/lib/types'
 import { updateCategoryAction } from './update-category-action'
 
@@ -10,8 +10,10 @@ import * as categoryService from '../services'
 
 function buildActionArgs(data: Record<string, string>, id: string): ActionArgs {
   const formData = new FormData()
-  Object.entries(data).forEach(([key, value]) => formData.append(key, value))
-  const request = new Request(`http://localhost/dashboard/categories/${id}`, {
+  Object.entries(data).forEach(([key, value]) => {
+    formData.append(key, value)
+  })
+  const request = new Request(`http://localhost/admin/categories/${id}`, {
     method: 'POST',
     body: formData,
   })

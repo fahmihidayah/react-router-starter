@@ -22,7 +22,7 @@ describe('getCategoriesLoader', () => {
     }
     vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request('http://localhost/dashboard/categories?page=2&limit=5')
+    const request = new Request('http://localhost/admin/categories?page=2&limit=5')
     await getCategoriesLoader(request)
 
     expect(categoryService.findPaginated).toHaveBeenCalledWith(
@@ -42,7 +42,7 @@ describe('getCategoriesLoader', () => {
     }
     vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request('http://localhost/dashboard/categories')
+    const request = new Request('http://localhost/admin/categories')
     await getCategoriesLoader(request)
 
     expect(categoryService.findPaginated).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe('getCategoriesLoader', () => {
     }
     vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request('http://localhost/dashboard/categories?search=electronics')
+    const request = new Request('http://localhost/admin/categories?search=electronics')
     const result = await getCategoriesLoader(request)
 
     expect(categoryService.findPaginated).toHaveBeenCalledWith(
@@ -83,7 +83,7 @@ describe('getCategoriesLoader', () => {
     }
     vi.mocked(categoryService.findPaginated).mockResolvedValue(mockResult)
 
-    const request = new Request('http://localhost/dashboard/categories')
+    const request = new Request('http://localhost/admin/categories')
     const result = await getCategoriesLoader(request)
 
     expect(result).toEqual(

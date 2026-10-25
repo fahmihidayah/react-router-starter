@@ -25,3 +25,10 @@ export class InvalidUserDataError extends Error {
     this.name = 'InvalidUserDataError'
   }
 }
+
+export class CaptchaVerificationError extends Error {
+  constructor(message = 'Captcha verification failed') {
+    super(message)
+    this.name = 'CaptchaVerificationError'
+  }
+}

@@ -3,8 +3,9 @@ import { useLoaderData, useNavigate } from 'react-router'
 import { RichEditorViewer } from '~/components/ui/rich-editor'
 import { getPostBySlugLoader } from '~/features/posts/loaders/get-post-by-slug-loader'
 import { formatDate } from '~/lib/utils'
+import type { Route } from './+types/_public.posts.$slug'
 
-export async function loader({ params }: { params: { slug: string } }) {
+export async function loader({ params }: Route.LoaderArgs) {
   const post = await getPostBySlugLoader(params.slug)
   if (!post) {
     throw new Response('Post not found', { status: 404 })
@@ -12,9 +13,9 @@ export async function loader({ params }: { params: { slug: string } }) {
   return post
 }
 
-export function meta({ data }: { data: any }) {
+export function meta({ data }: Route.MetaArgs) {
   return [
-    { title: `${data?.title || 'Post'} - Blog` },
+    { title: `${data?.title || 'Post'} - Catat Progress` },
     { name: 'description', content: data?.content ? data.content.substring(0, 160) : '' },
   ]
 }

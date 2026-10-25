@@ -29,7 +29,7 @@ export function ListPostsPage({ posts, currentPage, totalPages }: IListPostsPage
   }
 
   const getPaginationItems = () => {
-    const items: (number | string)[] = []
+    const items: (number | 'ellipsis-start' | 'ellipsis-end')[] = []
     const maxVisible = 5
 
     if (totalPages <= maxVisible) {
@@ -40,7 +40,7 @@ export function ListPostsPage({ posts, currentPage, totalPages }: IListPostsPage
       items.push(1)
 
       if (currentPage > 3) {
-        items.push('...')
+        items.push('ellipsis-start')
       }
 
       const start = Math.max(2, currentPage - 1)
@@ -53,7 +53,7 @@ export function ListPostsPage({ posts, currentPage, totalPages }: IListPostsPage
       }
 
       if (currentPage < totalPages - 2) {
-        items.push('...')
+        items.push('ellipsis-end')
       }
 
       items.push(totalPages)
@@ -67,7 +67,9 @@ export function ListPostsPage({ posts, currentPage, totalPages }: IListPostsPage
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3">
           <h3 className="text-lg font-semibold">No posts found</h3>
-          <p className="text-sm text-muted-foreground">Try adjusting your filters or check back later</p>
+          <p className="text-sm text-muted-foreground">
+            Try adjusting your filters or check back later
+          </p>
         </div>
       </div>
     )
@@ -96,9 +98,9 @@ export function ListPostsPage({ posts, currentPage, totalPages }: IListPostsPage
               </PaginationItem>
             )}
 
-            {getPaginationItems().map((item, index) => (
-              <PaginationItem key={`${item}-${index}`}>
-                {item === '...' ? (
+            {getPaginationItems().map((item) => (
+              <PaginationItem key={item}>
+                {typeof item === 'string' ? (
                   <PaginationEllipsis />
                 ) : (
                   <PaginationLink
@@ -106,7 +108,7 @@ export function ListPostsPage({ posts, currentPage, totalPages }: IListPostsPage
                     isActive={currentPage === item}
                     onClick={(e) => {
                       e.preventDefault()
-                      handlePageChange(item as number)
+                      handlePageChange(item)
                     }}
                   >
                     {item}

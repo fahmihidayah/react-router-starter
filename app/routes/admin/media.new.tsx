@@ -1,7 +1,15 @@
 import { useActionData } from 'react-router'
 import { createMediaAction } from '~/features/media/actions'
 import { NewMediaForm } from '~/features/media/components/admin/form'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import type { Route } from './+types/media.new'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.MEDIA_CREATE,
+    loader: PERMISSION_KEYS.MEDIA_CREATE,
+  }),
+]
 
 export function action(args: Route.ActionArgs) {
   return createMediaAction(args)

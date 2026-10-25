@@ -1,5 +1,5 @@
 import { AlertCircle } from 'lucide-react'
-import type { ErrorType, ValidationErrors } from '~/lib/types'
+import type { ErrorType } from '~/lib/types'
 
 interface ErrorDisplayProps {
   errors: ErrorType

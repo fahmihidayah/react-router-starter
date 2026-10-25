@@ -33,7 +33,7 @@ Displays a page title, description, and an optional "Add" button.
   title="Tasks"
   description="Manage your tasks"
   addButtonText="Add Task"
-  addButtonLink="/dashboard/tasks/add"
+  addButtonLink="/admin/tasks/new"
 />
 ```
 
@@ -103,7 +103,7 @@ A reusable confirmation dialog for deletions.
 
 ## Complete Example
 
-Here's how all components work together (see [dashboard.tasks.tsx](../../../routes/dashboard.tasks.tsx)):
+Here's how the components work together in an admin list route:
 
 ```tsx
 import { PageHeader, DataTable, TablePagination, DeleteDialog } from "~/components/layout/table-list";

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { findById } from './find-by-id'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { findById } from './find-by-id'
 
 vi.mock('~/lib/database', () => ({
   db: {

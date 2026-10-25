@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { deleteCategoryAction } from './delete-category-action'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CategoryNotFoundError } from '../types/errors/category-errors'
+import { deleteCategoryAction } from './delete-category-action'
 
 vi.mock('../services', () => ({
   deleteById: vi.fn(),
@@ -23,9 +23,7 @@ describe('deleteCategoryAction', () => {
   })
 
   it('returns failure when category is not found', async () => {
-    vi.mocked(categoryService.deleteById).mockRejectedValue(
-      new CategoryNotFoundError()
-    )
+    vi.mocked(categoryService.deleteById).mockRejectedValue(new CategoryNotFoundError())
 
     const result = await deleteCategoryAction('c1')
 

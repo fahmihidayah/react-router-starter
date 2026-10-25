@@ -1,340 +1,119 @@
-# Application Starter
+# Catat Progress
 
-A modern, full-stack React Router 7 application starter with authentication, CRUD operations, and admin dashboard.
+Catat Progress is a full-stack learning tracker for organizing learner profiles, goals, activities,
+schedules, reports, and shared learning records. It also includes an admin area for users, content,
+taxonomy, and media management.
 
-## Technical Stack
+## Stack
 
-- **React Router 7.11.0** - File-based routing with SSR
-- **TypeScript 5.8** - Type-safe development
-- **Vite 7.1** - Fast build tooling with HMR
-- **Biome 2.4** - Fast linting and formatting
-- **Drizzle ORM** + **SQLite** (better-sqlite3) - Type-safe database layer
-- **Better Auth** - Authentication and session management
-- **Radix UI** + **Tailwind 4** - Accessible UI components and styling
-- **Lucide Icons** - Icon library
-- **Sonner** - Toast notifications
-- **React Hook Form** + **Zod** - Form handling and validation
-- **TanStack React Query** + **React Table** - Data fetching and table management
+- React Router 7 with SSR, React 19, TypeScript, and Vite
+- PostgreSQL with Drizzle ORM and `postgres-js`
+- Better Auth with role- and ownership-based authorization
+- Tailwind CSS 4, Radix UI, TanStack Table, and Lexical
+- Native React Router forms with Zod validation
+- Paraglide localization for English and Indonesian
+- Vitest, Testing Library, Playwright, and Biome
 
-## Features
+## Local setup
 
-### Implemented
-
-- **User Management** - Full CRUD operations with authentication
-  - Search by name/email
-  - Pagination support
-  - Single and bulk delete operations
-  - Form validation with Zod
-  - Role-based access control
-
-- **Categories** - Organize and categorize content
-  - Hierarchical structure support
-  - Color coding
-  - Slug generation
-
-- **Posts** - Content management system
-  - Rich text editor (Lexical)
-  - Draft/publish workflow
-  - Category assignment
-  - Featured images
-
-- **Media Library** - File upload and management
-  - Image optimization
-  - File type validation
-  - Bulk operations
-
-- **Tags** - Flexible tagging system
-  - Multi-select support
-  - Tag-based filtering
-  - Color customization
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ (with pnpm installed)
-- SQLite3
-
-### Installation
-
-Install dependencies:
+Requirements: Node.js 20.19 or newer, pnpm, PostgreSQL, and PostgreSQL client tools when using the
+backup/restore scripts.
 
 ```bash
 pnpm install
+cp .env.example .env
 ```
 
-### Database Setup
-
-Complete database setup (recommended for first-time setup):
-
-```bash
-pnpm db:setup
-```
-
-Or manually:
+Set at least `DATABASE_URL`, `BETTER_AUTH_SECRET`, and the application URL values in `.env`. Then
+prepare the local database, create the first administrator, and start the app:
 
 ```bash
-# Push the database schema
 pnpm db:push
+pnpm db:seed:local
 
-# Seed with sample data (optional)
-pnpm db:seed
-```
+ADMIN_EMAIL=owner@example.com \
+ADMIN_PASSWORD='a-unique-long-passphrase' \
+pnpm db:bootstrap-admin
 
-**Tip:** Use `pnpm db:studio` to visually browse and edit your database.
-
-### Development
-
-Start the development server with HMR:
-
-```bash
 pnpm dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+`pnpm db:seed` only synchronizes roles and the permission registry, so it is safe to run against a
+production database. `pnpm db:seed:demo` adds sample records for local work, and
+`pnpm db:bootstrap-admin` creates or rotates one administrator from environment credentials. The
+repository ships no default login. See [`seeds/README.md`](./seeds/README.md) for the full seed and
+password-rotation guide.
 
-## Project Structure
+The template preview endpoint `POST /api/send/email` requires an administrator session and is
+disabled when `NODE_ENV=production` unless `EMAIL_TEST_ENDPOINT_ENABLED=true` is set.
 
+Production authentication is rate-limited through Redis. Set `RATE_LIMIT_ENABLED=false` to disable
+the feature completely; when enabled, configure `RATE_LIMIT_REDIS_URL` (or `REDIS_URL`) and an
+application-specific `RATE_LIMIT_REDIS_PREFIX`. Configure `AUTH_IP_HEADERS` and
+`AUTH_TRUSTED_PROXIES` to match the reverse proxy that is allowed to reach the application; never
+trust a client-controlled forwarding header. Global security headers, including CSP and HSTS in
+production, are applied by the server entry point.
+
+`db:push` is convenient for a disposable local database. For reviewed, persistent schema changes,
+use `pnpm db:generate`, inspect the SQL in `drizzle/`, and apply it with `pnpm db:migrate`.
+
+## Architecture
+
+Current tracker features follow this dependency direction:
+
+```text
+schemas/db + schemas/form
+          ↓
+        queries
+          ↓
+        services
+          ↓
+   actions and loaders
+          ↓
+ routes and components
 ```
-app/
-├── routes/              # File-based routing (flatRoutes convention)
-├── features/            # Feature modules with CRUD patterns
-│   ├── users/           # User management
-│   ├── categories/      # Category management
-│   ├── posts/           # Post/content management
-│   ├── media/           # Media library
-│   ├── tags/            # Tag system
-│   │   ├── type.ts      # TypeScript types (T-prefixed)
-│   │   ├── repositories/
-│   │   ├── schemas/     # Zod validation schemas
-│   │   ├── loaders/     # Server-side data fetching
-│   │   ├── actions/     # Server-side mutations
-│   │   └── components/
-│   └── ...
-├── components/
-│   ├── ui/              # Shared Radix UI base components
-│   ├── admin/           # Admin-specific (DataTable, DeleteDialog)
-│   └── layouts/         # Header, Footer
-├── lib/                 # Core services (auth, database, repository)
-├── db/                  # Drizzle schema definitions
-├── hooks/               # Shared custom hooks
-├── providers/           # React Query provider
-└── utils/               # Utilities (logger, etc.)
-```
 
-## Development Commands
+The clearest examples are under `app/features/learners`, `app/features/goals`,
+`app/features/activities`, and `app/features/schedules`. Route configuration lives in
+`app/routes.ts`; shared UI primitives live in `app/components/ui`; source translations live in
+`messages/`.
+
+The application has three main route trees:
+
+- public and authentication pages under the optional locale prefix
+- authenticated learner workflows under `/track-app`
+- administrator workflows under `/admin`
+
+Every route under `/api` declares its access level on the server; the audit table and the rules for
+API authorization live in [`docs/api-access-control.md`](./docs/api-access-control.md).
+
+## Common commands
 
 ```bash
-# Development server
-pnpm dev
+pnpm dev               # start the development server
+pnpm build             # create the application and worker builds
+pnpm typecheck         # generate route types and run TypeScript
+pnpm test              # run all Vitest tests once
+pnpm test:watch        # run Vitest in watch mode
+pnpm check             # run Biome checks
+pnpm check:fix         # apply safe Biome formatting and fixes
+pnpm i18n:compile      # compile Paraglide messages
 
-# Database operations
-pnpm db:push          # Push schema changes to database
-pnpm db:seed          # Seed database with sample data
-pnpm db:generate      # Generate migration files
-pnpm db:migrate       # Run migrations
-pnpm db:studio        # Open Drizzle Studio (visual database browser)
-pnpm db:inspect       # Display database statistics and table info
-pnpm db:backup        # Create timestamped database backup
-pnpm db:restore       # Restore from backup (interactive)
-pnpm db:snapshot      # Generate migration + create backup
-pnpm db:reset         # Drop, push, and reseed (⚠️ destructive)
-pnpm db:fresh         # Push and reseed
-pnpm db:setup         # Complete database setup from scratch
-pnpm db:validate      # Check migrations and validate types
-
-# Code quality
-pnpm lint:fix         # Fix linting issues with Biome
-pnpm typecheck        # Run TypeScript type checking
-pnpm format           # Format code with Biome
-
-# Build
-pnpm build            # Production build
+pnpm db:generate       # generate a reviewed migration from schema changes
+pnpm db:migrate        # apply migrations to the configured database
+pnpm db:seed           # synchronize roles and permissions (production-safe)
+pnpm db:seed:demo      # add local sample records
+pnpm db:bootstrap-admin # create or rotate one administrator from environment credentials
+pnpm db:studio         # open Drizzle Studio
+pnpm db:backup         # create a PostgreSQL custom-format backup
+pnpm db:restore        # interactively restore a backup
 ```
 
-For detailed database utilities documentation, see [scripts/README.md](./scripts/README.md).
+Database reset, restore, migration, and seed commands operate on `DATABASE_URL`. Confirm the target
+before running them; never point destructive commands at an unknown or production database.
 
-## CRUD Feature Implementation
+## Contributor and agent guidance
 
-This project follows a consistent CRUD pattern for all features. Each feature includes:
-
-1. **Schema** - Database table definition in `app/db/schema.ts`
-2. **Types** - TypeScript types with `T` prefix in `app/features/[name]/type.ts`
-3. **Repository** - Data access layer extending `BaseRepository`
-4. **Loaders** - Server-side data fetching with pagination and search
-5. **Actions** - Server-side mutations (create, update, delete, bulk delete)
-6. **Schemas** - Zod validation schemas for forms
-7. **Forms** - React Hook Form components with Zod resolver
-8. **Routes** - Page components following flatRoutes convention
-
-### Example Feature Structure
-
-```
-app/features/users/
-├── type.ts                                    # TUser type
-├── repositories/
-│   ├── user-repository.ts                     # Extends BaseRepository
-│   └── index.ts
-├── schemas/
-│   └── user-schema.ts                         # Zod schemas
-├── loaders/
-│   ├── get-users-loader.ts                    # List with pagination
-│   └── get-user-by-id-loader.ts               # Single item
-├── actions/
-│   ├── create-user-action.ts
-│   ├── update-user-action.ts
-│   ├── delete-user-action.ts
-│   └── delete-many-users-action.ts
-└── components/admin/form/
-    ├── add-user-form.tsx
-    └── edit-user-form.tsx
-```
-
-### Corresponding Routes
-
-```
-app/routes/
-├── dashboard.users._index.tsx    # List page
-├── dashboard.users.add.tsx       # Create page
-└── dashboard.users.$id.tsx       # Edit page
-```
-
-For detailed implementation guide, see `.claude/skills/feature-crud.md`.
-
-## Code Conventions
-
-- **File naming** - kebab-case for all files
-- **Types** - `T` prefix (e.g., `TUser`, `TTask`)
-- **Interfaces** - `I` prefix if needed
-- **No `any`** - Use `unknown` + type narrowing
-- **No default exports** - Except route components (React Router requirement)
-- **Imports** - Use `~/` alias (maps to `app/`)
-- **Formatting** - Biome: single quotes, no semicolons, 2-space indent, 100 char line width
-
-## Database Schema
-
-The database schema is organized in `app/db/schema/` with individual files for each entity:
-
-### Schema Organization
-
-```
-app/db/schema/
-├── index.ts                 # Central export (source of truth)
-├── users.ts                 # User authentication and profiles
-├── categories.ts            # Content categories
-├── posts.ts                 # Blog posts/content
-├── media.ts                 # Media assets
-├── tags.ts                  # Tag system
-└── post-tags.ts             # Many-to-many junction table
-```
-
-### Key Tables
-
-#### Users
-
-- Authentication and session management
-- Role-based access control (admin, user)
-- Profile information (name, email, avatar)
-
-#### Categories
-
-- Hierarchical content organization
-- Color-coded for visual distinction
-- Slug generation for SEO-friendly URLs
-
-#### Posts
-
-- Rich text content with Lexical editor
-- Draft/publish workflow
-- Category and tag assignment
-- Featured image support
-
-#### Media
-
-- File upload and storage
-- Metadata tracking (size, type, dimensions)
-- Relationship with posts and users
-
-#### Tags
-
-- Flexible tagging system
-- Many-to-many relationships
-- Color customization
-- Search and filtering support
-
-For complete schema details, inspect with:
-
-```bash
-pnpm db:inspect
-# or
-pnpm db:studio
-```
-
-## Route File Naming (flatRoutes Convention)
-
-- `_index.tsx` → index route
-- `dashboard.tsx` → layout route for /dashboard
-- `dashboard.users.$id.tsx` → /dashboard/users/:id
-- `api.auth.$.tsx` → catch-all /api/auth/*
-
-## Authentication
-
-This project uses **Better Auth** for authentication and session management.
-
-- Server-side auth configured in `~/lib/auth`
-- Client-side auth hooks in `~/lib/auth-client`
-
-## Building for Production
-
-Create a production build:
-
-```bash
-pnpm build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t app-starter .
-
-# Run the container
-docker run -p 3000:3000 app-starter
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `pnpm build`:
-
-```
-├── package.json
-├── pnpm-lock.yaml
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Documentation
-
-- Project Overview: `/docs/README.md`
-- CRUD Implementation: `.claude/skills/feature-crud.md`
-- Additional Skills: `.claude/skills/` directory
-- Project Instructions: `CLAUDE.md`
-
-## License
-
-MIT
+[`AGENTS.md`](./AGENTS.md) is the repository-wide source of truth for architecture, conventions,
+security boundaries, and verification. Task-specific guidance is available as proper skills under
+`.claude/skills/<skill-name>/SKILL.md`.

@@ -5,7 +5,12 @@ import { createImageColumn, type ImageColumnConfig } from './image-column'
 import { createTextColumn, type TextColumnConfig } from './text-column'
 
 interface CreateColumnProps<T> {
-  columnConfig: (string | TextColumnConfig<T> | DateColumnConfig<T> | ImageColumnConfig<T>)[]
+  columnConfig: (
+    | (keyof T & string)
+    | TextColumnConfig<T>
+    | DateColumnConfig<T>
+    | ImageColumnConfig<T>
+  )[]
   actionColumnConfig: ActionColumnConfig<T>
   tableName?: string
   idKey?: keyof T
@@ -21,7 +26,7 @@ export default function createColumn<T>(props: CreateColumnProps<T>): ColumnDef<
       const header = e.charAt(0).toUpperCase() + e.slice(1)
       columns.push(
         createTextColumn<T>({
-          accessorKey: e as any,
+          accessorKey: e,
           header: header,
           type: 'text',
           tableName: props.tableName,

@@ -9,7 +9,15 @@ import {
 import { deleteManyMediaAction, deleteMediaAction } from '~/features/media/actions'
 import { createMediaTableColumns } from '~/features/media/components/admin/media-table-columns'
 import { getMediaLoader } from '~/features/media/loaders/get-media-loader'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import type { Route } from './+types/media._index'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.MEDIA_DELETE,
+    loader: PERMISSION_KEYS.MEDIA_READ,
+  }),
+]
 
 export function loader({ request }: Route.LoaderArgs) {
   return getMediaLoader(request)

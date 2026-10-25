@@ -8,7 +8,7 @@ export interface TextColumnConfig<T> {
   header: string
   className?: string
   fallback?: string
-  format?: (value: any) => string
+  format?: (value: unknown) => string
   isBold?: boolean
   tableName?: string
   isFirstColumn?: boolean

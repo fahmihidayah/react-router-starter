@@ -49,7 +49,7 @@ export type ErrorResponse = {
  */
 export function createSuccessResponse<TData>(
   data: TData,
-  status: number = 200
+  status: number = 200,
 ): SuccessResponse<TData> {
   return {
     success: true,
@@ -61,10 +61,7 @@ export function createSuccessResponse<TData>(
 /**
  * Helper function to create an error response
  */
-export function createErrorResponse(
-  error: ErrorType,
-  status: number = 400
-): ErrorResponse {
+export function createErrorResponse(error: ErrorType, status: number = 400): ErrorResponse {
   return {
     success: false,
     status,
@@ -86,14 +83,8 @@ export function toJsonResponse<TData>(response: ApiResponse<TData>): Response {
   const { status, success, data, error } = response
 
   if (success) {
-    return Response.json(
-      { success, data },
-      { status }
-    )
+    return Response.json({ success, data }, { status })
   }
 
-  return Response.json(
-    { success, error },
-    { status }
-  )
+  return Response.json({ success, error }, { status })
 }

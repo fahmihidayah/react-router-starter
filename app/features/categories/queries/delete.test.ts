@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { deleteById } from './delete'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { deleteById } from './delete'
 
 vi.mock('~/lib/database', () => ({
   db: {
@@ -20,7 +20,7 @@ describe('deleteById', () => {
       where: vi.fn().mockResolvedValue(undefined),
     }
 
-    vi.mocked(db.delete).mockReturnValue(mockDelete as any)
+    vi.mocked(db.delete).mockReturnValue(mockDelete as unknown as ReturnType<typeof db.delete>)
 
     await deleteById(categoryId)
 
@@ -35,7 +35,7 @@ describe('deleteById', () => {
       where: vi.fn().mockResolvedValue(undefined),
     }
 
-    vi.mocked(db.delete).mockReturnValue(mockDelete as any)
+    vi.mocked(db.delete).mockReturnValue(mockDelete as unknown as ReturnType<typeof db.delete>)
 
     await expect(deleteById(categoryId)).resolves.not.toThrow()
 

@@ -1,0 +1,58 @@
+services:
+  # ============================================
+  # React Router Application
+  # ============================================
+  app:
+    image: ${IMAGE_NAME:-ghcr.io/fahmihidayah/learning-tracker}:${IMAGE_TAG:-latest}
+    container_name: learning-tracker
+    restart: unless-stopped
+    # ports:
+    #   - "${PORT:-3000}:${PORT:-3000}"
+    expose:
+      - ${PORT:-3000}
+    volumes:
+      - media-uploads:/app/uploads/media
+    env_file:
+      - .env
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:${PORT:-3000}/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.learning-tracker.rule=Host(`catat-progres.fahmihidayah.my.id`)"
+      - "traefik.http.routers.learning-tracker.entrypoints=websecure"
+      - "traefik.http.routers.learning-tracker.tls=true"
+      - "traefik.http.routers.learning-tracker.tls.certresolver=letsencrypt"
+      - "traefik.http.services.learning-tracker.loadbalancer.server.port=3000"
+
+  # ============================================
+  # Database Migration
+  # ============================================
+  # Run explicitly during deployment before replacing the application container.
+  migrate:
+    image: ${IMAGE_NAME:-ghcr.io/fahmihidayah/learning-tracker}:${IMAGE_TAG:-latest}-migrate
+    env_file:
+      - .env
+    networks:
+      - web
+    profiles:
+      - tools
+
+networks:
+  web:
+    external: true
+
+volumes:
+  media-uploads:
+    driver: local

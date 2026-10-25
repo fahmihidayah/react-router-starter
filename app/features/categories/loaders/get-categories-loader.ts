@@ -1,10 +1,8 @@
-import type { PaginateDocs } from '~/types/pagination'
 import type { TCategory } from '~/db/schema'
+import type { PaginateDocs } from '~/types/pagination'
 import * as categoryService from '../services'
 
-export async function getCategoriesLoader(
-  request: Request,
-): Promise<PaginateDocs<TCategory>> {
+export async function getCategoriesLoader(request: Request): Promise<PaginateDocs<TCategory>> {
   const url = new URL(request.url)
   const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
   const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)

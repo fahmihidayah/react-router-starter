@@ -1,16 +1,13 @@
 import { redirect } from 'react-router'
-import { auth } from '~/lib/auth'
+import { getSession } from '~/features/users/middlewares'
+import { getPostLoginPath } from '../utils/get-post-login-path'
 
 export async function redirectAuthenticatedUser(request: Request) {
-  try {
-    const session = await auth.api.getSession({ headers: request.headers })
+  const session = await getSession(request)
 
-    if (session?.user) {
-      throw redirect('/admin')
-    }
-
-    return null
-  } catch {
-    return null
+  if (session?.user) {
+    throw redirect(getPostLoginPath(session.user.role))
   }
+
+  return null
 }

@@ -1,12 +1,9 @@
-import * as React from 'react'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import * as React from 'react'
 
 import { cn } from '~/lib/utils'
 
-function PasswordInput({
-  className,
-  ...props
-}: Omit<React.ComponentProps<'input'>, 'type'>) {
+function PasswordInput({ className, ...props }: Omit<React.ComponentProps<'input'>, 'type'>) {
   const [showPassword, setShowPassword] = React.useState(false)
 
   const togglePasswordVisibility = () => {
@@ -34,11 +31,7 @@ function PasswordInput({
         disabled={props.disabled}
         aria-label={showPassword ? 'Hide password' : 'Show password'}
       >
-        {showPassword ? (
-          <EyeOffIcon className="h-4 w-4" />
-        ) : (
-          <EyeIcon className="h-4 w-4" />
-        )}
+        {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
       </button>
     </div>
   )

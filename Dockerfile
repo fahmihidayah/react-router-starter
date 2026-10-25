@@ -1,7 +1,7 @@
 # ============================================
 # Stage 1: Base - Install pnpm
 # ============================================
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 # Enable corepack for pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .pnpmfile.cjs ./
 
 # ============================================
 # Stage 2: Development Dependencies
@@ -33,15 +33,11 @@ RUN pnpm install --frozen-lockfile --prod
 # ============================================
 FROM base AS build
 
-# Build arguments (optional - can be passed at build time)
-ARG DATABASE_URL
-ARG BETTER_AUTH_SECRET
-ARG BETTER_AUTH_URL
-
-# Set as environment variables for build process
-ENV DATABASE_URL=${DATABASE_URL}
-ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
+# The server modules require these variables while the bundle is compiled.
+# Use non-sensitive placeholders here; production values are injected at runtime.
+ENV DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build \
+    BETTER_AUTH_SECRET=build-only-secret-not-valid-at-runtime \
+    BETTER_AUTH_URL=http://localhost:3000
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -55,25 +51,18 @@ RUN pnpm run build
 # ============================================
 # Stage 5: Production Runner
 # ============================================
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 # Enable corepack for pnpm in production
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Runtime arguments (can be overridden at runtime)
-ARG DATABASE_URL
-ARG BETTER_AUTH_SECRET
-ARG BETTER_AUTH_URL
 ARG PORT=3000
 
-# Set production environment variables
+# Secrets and other production configuration are injected by Docker Compose.
 ENV NODE_ENV=production \
-    PORT=${PORT} \
-    DATABASE_URL=${DATABASE_URL} \
-    BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET} \
-    BETTER_AUTH_URL=${BETTER_AUTH_URL}
+    PORT=${PORT}
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
@@ -84,9 +73,10 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 # Copy built application
 COPY --from=build /app/build ./build
 
-# Create non-root user for security
+# Create the persistent-upload mount point and a non-root user for security.
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 reactrouter && \
+    mkdir -p /app/uploads/media && \
     chown -R reactrouter:nodejs /app
 
 USER reactrouter
@@ -94,9 +84,22 @@ USER reactrouter
 # Expose port (dynamic based on PORT env)
 EXPOSE ${PORT}
 
-# Health check
+# Health check (liveness)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:${PORT:-3000}', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:${PORT:-3000}/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the React Router server
 CMD ["pnpm", "run", "start"]
+
+# ============================================
+# Stage 6: Database migrator
+# ============================================
+FROM base AS migrator
+
+ENV NODE_ENV=production
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY drizzle.config.ts ./
+COPY drizzle ./drizzle
+
+CMD ["pnpm", "run", "db:migrate"]

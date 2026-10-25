@@ -1,8 +1,16 @@
 import { useActionData, useLoaderData } from 'react-router'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import { createPostAction } from '~/features/posts/actions/create-post-action'
 import { NewPostForm } from '~/features/posts/components/admin/form/new-post-form'
 import { getPostCategoriesLoader } from '~/features/posts/loaders/get-post-categories-loader'
 import type { Route } from './+types/posts.new'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.POSTS_CREATE,
+    loader: { allOf: [PERMISSION_KEYS.POSTS_CREATE, PERMISSION_KEYS.CATEGORIES_READ] },
+  }),
+]
 
 export function loader() {
   return getPostCategoriesLoader()

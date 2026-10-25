@@ -5,8 +5,8 @@ import type { loader as adminLoader } from '../admin'
 
 export function meta() {
   return [
-    { title: 'Dashboard - Starter App' },
-    { name: 'description', content: 'Your personal dashboard' },
+    { title: 'Admin - Catat Progress' },
+    { name: 'description', content: 'Manage Catat Progress content and access' },
   ]
 }
 

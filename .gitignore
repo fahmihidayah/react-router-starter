@@ -14,3 +14,8 @@
 *.db-wal
 /backups/*
 !backups/.gitkeep
+
+# Test coverage
+/coverage/
+
+react-router-starter.zip

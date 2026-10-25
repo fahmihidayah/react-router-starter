@@ -5,7 +5,5 @@
     "dbaeumer.vscode-eslint",
     "inlang.vs-code-extension"
   ],
-  "unwantedRecommendations": [
-    "esbenp.prettier-vscode"
-  ]
+  "unwantedRecommendations": ["esbenp.prettier-vscode"]
 }

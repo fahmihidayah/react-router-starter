@@ -2,7 +2,15 @@ import { useActionData, useLoaderData } from 'react-router'
 import { updateMediaAction } from '~/features/media/actions'
 import { EditMediaForm } from '~/features/media/components/admin/form'
 import { getMediaByIdLoader } from '~/features/media/loaders/get-media-by-id-loader'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import type { Route } from './+types/media.$id'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.MEDIA_UPDATE,
+    loader: PERMISSION_KEYS.MEDIA_READ,
+  }),
+]
 
 export async function loader({ params }: Route.LoaderArgs) {
   const item = await getMediaByIdLoader(params.id)

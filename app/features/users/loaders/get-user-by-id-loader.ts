@@ -5,9 +5,9 @@ import {
   type LoaderArgs,
 } from '~/lib/types'
 import * as userService from '../services'
-import type { UserWithRoles } from '../types'
+import type { UserWithRole } from '../types'
 
-export async function getUserByIdLoader(args: LoaderArgs): Promise<ApiResponse<UserWithRoles>> {
+export async function getUserByIdLoader(args: LoaderArgs): Promise<ApiResponse<UserWithRole>> {
   const id = args.params.id
   if (!id) {
     return createErrorResponse('User not found', 404)

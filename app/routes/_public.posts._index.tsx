@@ -7,7 +7,10 @@ export async function loader({ request }: { request: Request }) {
 }
 
 export function meta() {
-  return [{ title: 'Posts' }, { name: 'description', content: 'Read our latest blog posts' }]
+  return [
+    { title: 'Posts - Catat Progress' },
+    { name: 'description', content: 'Read our latest posts' },
+  ]
 }
 
 export default function PostsPage() {

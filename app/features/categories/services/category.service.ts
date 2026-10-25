@@ -28,7 +28,7 @@ export async function create(data: TCreateCategory): Promise<string> {
       updatedAt: now,
     })
     return categoryId
-  } catch (error) {
+  } catch (_error) {
     throw new CategoryCreationFailedError()
   }
 }

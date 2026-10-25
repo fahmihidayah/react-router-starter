@@ -1,0 +1,32 @@
+<div class="-ml-8 -mr-8 mb-8 h-1 bg-brand-mint"></div>
+<h1 class="m-0 mb-4 text-[28px] leading-9 font-extrabold tracking-[-0.7px] text-[#17233e]">
+  {{heading}}
+</h1>
+<p class="m-0 mb-4 text-[15px] leading-6 text-[#101b2d]">{{greeting}}</p>
+<p class="m-0 mb-6 text-[15px] leading-6 text-[#526574]">
+  {{introBeforeEmail}} <strong class="text-[#101b2d]">{{email}}</strong>{{introAfterEmail}}
+</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" class="mb-6">
+  <tr>
+    <td align="center" class="rounded-[10px] bg-brand-indigo text-center">
+      <a
+        href="{{activationUrl}}"
+        class="inline-block pt-[14px] pr-6 pb-[14px] pl-6 text-sm leading-5 font-bold text-white no-underline"
+      >{{buttonLabel}}</a>
+    </td>
+  </tr>
+</table>
+<div
+  class="mb-6 rounded-lg border-l-4 border-brand-mint bg-[#dff6f3] p-4 text-[13px] leading-[21px] text-[#174d64]"
+>
+  {{expiryNotice}}
+</div>
+<p class="m-0 mb-2 text-[13px] leading-[21px] text-[#526574]">
+  {{fallbackInstructions}}
+</p>
+<p class="m-0 break-all text-xs leading-[19px]">
+  <a href="{{activationUrl}}" class="text-brand-blue underline">{{activationUrl}}</a>
+</p>
+<p class="m-0 mt-6 text-[13px] leading-[21px] text-[#778999]">
+  {{ignoreNotice}}
+</p>

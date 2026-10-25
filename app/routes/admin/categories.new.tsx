@@ -1,7 +1,15 @@
 import { useActionData } from 'react-router'
 import { createCategoryAction } from '~/features/categories/actions/create-category-action'
 import { NewCategoryForm } from '~/features/categories/components/admin/form/new-category-form'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import type { Route } from './+types/categories.new'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.CATEGORIES_CREATE,
+    loader: PERMISSION_KEYS.CATEGORIES_CREATE,
+  }),
+]
 
 export function action(args: Route.ActionArgs) {
   return createCategoryAction(args)

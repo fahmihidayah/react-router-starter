@@ -1,110 +1,58 @@
 import 'dotenv/config'
-import { randomUUID } from 'node:crypto'
-import { roles, tags, userRoles, users } from '../app/db/schema'
-import { auth } from '../app/lib/auth'
-import { databaseClient, db } from '../app/lib/database'
+import { databaseClient } from '../app/lib/database'
+import { seedBootstrapAdmin } from './admin'
+import { seedDemoData } from './demo'
+import { resolveBootstrapAdminCredentials } from './lib/credentials'
+import { seedSystem } from './system'
 
-const now = new Date()
+const SEED_MODES = ['system', 'demo', 'local', 'admin'] as const
+type SeedMode = (typeof SEED_MODES)[number]
 
-const ADMIN_EMAIL = 'admin@fahmihidayah.my.id'
-const ADMIN_PASSWORD = 'Test@1234'
+function resolveSeedMode(argument: string | undefined): SeedMode {
+  if (!argument) return 'system'
 
-const seedRoles = [
-  {
-    id: randomUUID(),
-    name: 'Admin',
-    description: 'Administrator with full access',
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'User',
-    description: 'Standard application user',
-    createdAt: now,
-    updatedAt: now,
-  },
-]
-
-// Seed data for tags
-const seedTags = [
-  {
-    id: randomUUID(),
-    name: 'Youth',
-    color: '#3B82F6',
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Family',
-    color: '#10B981',
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: randomUUID(),
-    name: 'Education',
-    color: '#F59E0B',
-    createdAt: now,
-    updatedAt: now,
-  },
-]
-
-async function seed() {
-  try {
-    console.log('🌱 Seeding database...')
-
-    // Clear existing data (optional)
-    console.log('🗑️  Clearing existing data...')
-    await db.delete(users)
-    await db.delete(tags)
-
-    console.log('🛡️  Ensuring application roles exist...')
-    await db.insert(roles).values(seedRoles).onConflictDoNothing({ target: roles.name })
-
-    console.log('👤 Creating admin through Better Auth...')
-    const response = await auth.api.signUpEmail({
-      body: {
-        name: 'Admin',
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD,
-      },
-      asResponse: true,
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Better Auth could not create the admin (${response.status}): ${error}`)
-    }
-
-    const result = (await response.json()) as { user?: { id?: string } }
-    if (!result.user?.id) {
-      throw new Error('Better Auth created no user ID for the admin')
-    }
-
-    const adminRole = await db.query.roles.findFirst({ where: { name: 'Admin' } })
-    if (!adminRole) {
-      throw new Error('Admin role was not found after seeding roles')
-    }
-
-    await db.insert(userRoles).values({
-      userId: result.user.id,
-      roleId: adminRole.id,
-    })
-
-    console.log('📝 Inserting seed tags...')
-    await db.insert(tags).values(seedTags)
-
-    console.log('✅ Seeding completed successfully!')
-    console.log(`👤 Created admin user: ${ADMIN_EMAIL}`)
-    console.log(`📊 Inserted ${seedTags.length} tags`)
-  } catch (error) {
-    console.error('❌ Error seeding database:', error)
-    process.exitCode = 1
-  } finally {
-    await databaseClient.end()
+  const mode = SEED_MODES.find((candidate) => candidate === argument)
+  if (!mode) {
+    throw new Error(`Unknown seed target "${argument}". Expected one of: ${SEED_MODES.join(', ')}.`)
   }
+
+  return mode
 }
 
-seed()
+async function runSystemSeed(): Promise<void> {
+  const { permissionCount, roleCount } = await seedSystem()
+  console.log(`🔐 Synchronized ${roleCount} system roles and ${permissionCount} permissions`)
+}
+
+async function runDemoSeed(): Promise<void> {
+  const tagCount = await seedDemoData()
+  console.log(`📊 Synchronized ${tagCount} demo tags`)
+}
+
+async function runAdminBootstrap(): Promise<void> {
+  const credentials = resolveBootstrapAdminCredentials()
+  const { created, email } = await seedBootstrapAdmin(credentials)
+
+  console.log(`${created ? '👤 Created' : '👤 Updated'} bootstrap administrator: ${email}`)
+  console.log('🔑 Change this password after the first sign-in and rotate it on a schedule.')
+}
+
+async function main(): Promise<void> {
+  const mode = resolveSeedMode(process.argv[2])
+  console.log(`🌱 Seeding database (${mode})...`)
+
+  if (mode === 'system' || mode === 'local') await runSystemSeed()
+  if (mode === 'demo' || mode === 'local') await runDemoSeed()
+  if (mode === 'admin') await runAdminBootstrap()
+
+  console.log('✅ Seeding completed successfully!')
+}
+
+main()
+  .catch((error: unknown) => {
+    console.error(`❌ ${error instanceof Error ? error.message : 'Seeding failed'}`)
+    process.exitCode = 1
+  })
+  .finally(async () => {
+    await databaseClient.end()
+  })

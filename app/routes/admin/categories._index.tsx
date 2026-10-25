@@ -12,7 +12,15 @@ import {
 import { deleteCategoryAction } from '~/features/categories/actions/delete-category-action'
 import { deleteManyCategoriesAction } from '~/features/categories/actions/delete-many-categories-action'
 import { getCategoriesLoader } from '~/features/categories/loaders/get-categories-loader'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import type { Route } from './+types/categories._index'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.CATEGORIES_DELETE,
+    loader: PERMISSION_KEYS.CATEGORIES_READ,
+  }),
+]
 
 export function loader({ request }: Route.LoaderArgs) {
   return getCategoriesLoader(request)
@@ -153,11 +161,7 @@ export default function CategoriesPage() {
         open={deleting.length > 0}
         onOpenChange={(open) => !open && setDeleting([])}
         title={deleting.length === 1 ? 'Delete Category' : 'Delete Categories'}
-        itemName={
-          deleting.length === 1
-            ? deleting[0].title
-            : `${deleting.length} categories`
-        }
+        itemName={deleting.length === 1 ? deleting[0].title : `${deleting.length} categories`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleting([])}
       />

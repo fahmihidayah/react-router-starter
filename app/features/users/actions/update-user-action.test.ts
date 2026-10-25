@@ -67,9 +67,7 @@ describe('updateUserAction', () => {
 
   it('throws Response when user not found', async () => {
     const { UserNotFoundError } = await import('../types/errors/user-errors')
-    vi.mocked(userService.update).mockRejectedValue(
-      new UserNotFoundError('User not found')
-    )
+    vi.mocked(userService.update).mockRejectedValue(new UserNotFoundError('User not found'))
 
     const request = buildFormRequest({
       name: 'Failed Update',
@@ -99,7 +97,7 @@ describe('updateUserAction', () => {
   it('handles email already in use error', async () => {
     const { EmailAlreadyExistsError } = await import('../types/errors/user-errors')
     vi.mocked(userService.update).mockRejectedValue(
-      new EmailAlreadyExistsError('Email already in use')
+      new EmailAlreadyExistsError('Email already in use'),
     )
 
     const request = buildFormRequest({
@@ -110,6 +108,8 @@ describe('updateUserAction', () => {
     const result = await updateUserAction(buildActionArgs(request, 'u1'))
 
     expect(result).toHaveProperty('errors')
-    expect((result as any).errors.email).toContain('Email already in use')
+    if ('errors' in result) {
+      expect(result.errors.email).toContain('Email already in use')
+    }
   })
 })

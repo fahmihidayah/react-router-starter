@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { update } from './update'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { update } from './update'
 
 vi.mock('~/lib/database', () => ({
   db: {
@@ -22,7 +22,7 @@ describe('update', () => {
       where: vi.fn().mockResolvedValue(undefined),
     }
 
-    vi.mocked(db.update).mockReturnValue(mockUpdate as any)
+    vi.mocked(db.update).mockReturnValue(mockUpdate as unknown as ReturnType<typeof db.update>)
 
     await update(categoryId, updateData)
 
@@ -31,7 +31,7 @@ describe('update', () => {
       expect.objectContaining({
         title: 'Updated Title',
         updatedAt: expect.any(Date),
-      })
+      }),
     )
     expect(mockUpdate.where).toHaveBeenCalled()
   })
@@ -45,14 +45,14 @@ describe('update', () => {
       where: vi.fn().mockResolvedValue(undefined),
     }
 
-    vi.mocked(db.update).mockReturnValue(mockUpdate as any)
+    vi.mocked(db.update).mockReturnValue(mockUpdate as unknown as ReturnType<typeof db.update>)
 
     await update(categoryId, updateData)
 
     expect(mockUpdate.set).toHaveBeenCalledWith(
       expect.objectContaining({
         updatedAt: expect.any(Date),
-      })
+      }),
     )
   })
 })

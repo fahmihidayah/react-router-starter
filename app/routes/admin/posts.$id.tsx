@@ -1,9 +1,17 @@
 import { useActionData, useLoaderData } from 'react-router'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import { updatePostAction } from '~/features/posts/actions/update-post-action'
 import { EditPostForm } from '~/features/posts/components/admin/form/edit-post-form'
 import { getPostByIdLoader } from '~/features/posts/loaders/get-post-by-id-loader'
 import { getPostCategoriesLoader } from '~/features/posts/loaders/get-post-categories-loader'
 import type { Route } from './+types/posts.$id'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.POSTS_UPDATE,
+    loader: { allOf: [PERMISSION_KEYS.POSTS_READ, PERMISSION_KEYS.CATEGORIES_READ] },
+  }),
+]
 
 export async function loader({ params }: Route.LoaderArgs) {
   const [post, categories] = await Promise.all([

@@ -49,6 +49,7 @@ describe('registerUserAction', () => {
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.setCookie).toBe('session=abc123')
+      expect(result.email).toBe('john@example.com')
     }
   })
 
@@ -60,11 +61,15 @@ describe('registerUserAction', () => {
 
     await registerUserAction(buildActionArgs(buildFormRequest(validInput)))
 
-    expect(userService.register).toHaveBeenCalledWith({
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: 'password123',
-    })
+    expect(userService.register).toHaveBeenCalledWith(
+      {
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123',
+      },
+      undefined,
+      'en',
+    )
   })
 
   it('returns validation error when form data is invalid', async () => {
@@ -84,8 +89,9 @@ describe('registerUserAction', () => {
   })
 
   it('returns error when email already exists', async () => {
-    const error = new Error('An account with this email already exists')
-    ;(error as any).status = 409
+    const error = Object.assign(new Error('An account with this email already exists'), {
+      status: 409,
+    })
     vi.mocked(userService.register).mockRejectedValue(error)
 
     const result = await registerUserAction(buildActionArgs(buildFormRequest(validInput)))
@@ -98,8 +104,7 @@ describe('registerUserAction', () => {
   })
 
   it('returns error when server error occurs', async () => {
-    const error = new Error('Server error. Please try again later')
-    ;(error as any).status = 500
+    const error = Object.assign(new Error('Server error. Please try again later'), { status: 500 })
     vi.mocked(userService.register).mockRejectedValue(error)
 
     const result = await registerUserAction(buildActionArgs(buildFormRequest(validInput)))
@@ -107,7 +112,7 @@ describe('registerUserAction', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.status).toBe(500)
-      expect(result.error).toContain('Server error')
+      expect(result.error).toContain('Registration failed')
     }
   })
 

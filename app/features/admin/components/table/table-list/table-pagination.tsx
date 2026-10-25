@@ -66,7 +66,6 @@ export function TablePagination({ currentPage, totalPages, onPageChange }: Table
           </PaginationItem>
 
           {generatePaginationItems().map((item, _index) => (
-
             <PaginationItem key={`${item}`}>
               {item === 'ellipsis' ? (
                 <PaginationEllipsis />

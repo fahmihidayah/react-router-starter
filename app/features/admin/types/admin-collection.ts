@@ -1,5 +1,4 @@
 import type { LucideIcon } from 'lucide-react'
-import type { UserWithRoles } from '~/features/users/types'
 import type { UserAdmin } from './user'
 
 export type AdminGroup = {

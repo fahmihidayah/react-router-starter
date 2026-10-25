@@ -1,4 +1,5 @@
-import { Outlet, useNavigate } from 'react-router'
+import { isRouteErrorResponse, Outlet, useNavigate } from 'react-router'
+import { ErrorStatusPage, getErrorStatus } from '~/components/error-status-page'
 import { Config } from '~/features/admin'
 import { AdminLayout } from '~/features/admin/components/admin-layout'
 import { userContext } from '~/features/users/contexts'
@@ -33,7 +34,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
         id: user?.id ?? '',
         name: user?.name ?? '',
         payload: user,
-        roles: user?.roles.map((e) => e.name),
+        roles: user?.role ? [user.role.key] : [],
       }}
       config={Config}
       onSignOut={handleSignOut}
@@ -41,4 +42,16 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
       <Outlet />
     </AdminLayout>
   )
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  if (isRouteErrorResponse(error)) {
+    const status = getErrorStatus(error.status)
+    if (status) return <ErrorStatusPage status={status} />
+  }
+
+  const technicalDetails =
+    import.meta.env.DEV && error instanceof Error ? error.stack || error.message : undefined
+
+  return <ErrorStatusPage status={500} technicalDetails={technicalDetails} />
 }

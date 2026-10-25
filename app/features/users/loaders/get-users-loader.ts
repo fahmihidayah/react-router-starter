@@ -1,11 +1,11 @@
 import { type ApiResponse, createSuccessResponse, type LoaderArgs } from '~/lib/types'
 import type { PaginateDocs } from '~/types/pagination'
 import * as userService from '../services'
-import type { UserWithRoles } from '../types'
+import type { UserWithRole } from '../types'
 
 export async function getUsersLoader(
   args: LoaderArgs,
-): Promise<ApiResponse<PaginateDocs<UserWithRoles> | undefined>> {
+): Promise<ApiResponse<PaginateDocs<UserWithRole> | undefined>> {
   const url = new URL(args.request.url)
   const page = Number.parseInt(url.searchParams.get('page') || '1', 10)
   const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10)

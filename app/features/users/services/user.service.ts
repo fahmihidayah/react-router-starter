@@ -1,25 +1,26 @@
+import { EMAIL_VERIFICATION_CALLBACK_PATH } from '~/features/auth/email-verification'
+import { type TEmailLocale, withEmailLocale } from '~/features/email/index.server'
+import { recordTermsAcceptanceService } from '~/features/privacy/services/terms.service'
+import * as roleQueries from '~/features/roles/queries'
+import { RoleNotFoundError } from '~/features/roles/types/errors'
 import { auth } from '~/lib/auth'
 import type { PaginateDocs } from '~/types/pagination'
 import * as userQueries from '../queries'
-import type { TCreateUser, TUpdateUser } from '../schemas/form/user-schema'
-import type { UserWithRoles } from '../types'
+import type { TCreateUser, TRegisterUser, TUpdateUser } from '../schemas/form/user-schema'
+import type { UserWithRole } from '../types'
 import {
+  CaptchaVerificationError,
   EmailAlreadyExistsError,
   InvalidUserDataError,
   UserCreationFailedError,
   UserNotFoundError,
 } from '../types/errors/user-errors'
 
-const ROLE_USER = 'User'
-
-async function assignDefaultRole(userId: string): Promise<void> {
-  await userQueries.assignRoleByName(userId, ROLE_USER)
-}
-
 export async function create(
   data: TCreateUser,
 ): Promise<{ userId: string; setCookie: string | null }> {
-  const { name, email, password } = data
+  const { name, email, password, roleId } = data
+  if (!(await roleQueries.findById(roleId))) throw new RoleNotFoundError()
   const response = await auth.api.createUser({
     body: { name, email, password, role: 'user' },
     asResponse: true,
@@ -45,7 +46,7 @@ export async function create(
     throw new UserCreationFailedError('Failed to create user')
   }
 
-  await assignDefaultRole(body.user.id)
+  await userQueries.assignRole(body.user.id, roleId)
   return {
     userId: body.user.id,
     setCookie: null,
@@ -53,18 +54,32 @@ export async function create(
 }
 
 export async function register(
-  data: TCreateUser,
+  data: TRegisterUser,
+  captchaResponse?: string,
+  locale: TEmailLocale = 'en',
 ): Promise<{ userId: string; setCookie: string | null }> {
   const { name, email, password } = data
+  const headers = withEmailLocale(undefined, locale)
+  if (captchaResponse) headers.set('x-captcha-response', captchaResponse)
+
   const response = await auth.api.signUpEmail({
-    body: { name, email, password },
+    body: {
+      name,
+      email,
+      password,
+      callbackURL: EMAIL_VERIFICATION_CALLBACK_PATH,
+    },
     asResponse: true,
+    headers,
   })
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null)
+    const message = errorData?.message ?? 'Failed to create user'
+    if (message.toLowerCase().includes('captcha')) {
+      throw new CaptchaVerificationError(message)
+    }
     if (response.status === 400 || response.status === 422) {
-      const message = errorData?.message ?? 'Invalid user data'
       if (message.toLowerCase().includes('exist')) {
         throw new EmailAlreadyExistsError(message)
       }
@@ -73,7 +88,7 @@ export async function register(
     if (response.status === 409) {
       throw new EmailAlreadyExistsError(errorData?.message)
     }
-    throw new UserCreationFailedError(errorData?.message)
+    throw new UserCreationFailedError(message)
   }
 
   const body = (await response.json().catch(() => null)) as { user?: { id?: string } } | null
@@ -81,7 +96,21 @@ export async function register(
     throw new UserCreationFailedError('Failed to create user')
   }
 
-  await assignDefaultRole(body.user.id)
+  // The Better Auth user-create hook assigns the default User role. Keeping that
+  // responsibility in the hook also makes the generic duplicate-signup response
+  // safe when email verification is required.
+
+  // Record terms acceptance for GDPR compliance
+  try {
+    await recordTermsAcceptanceService({
+      userId: body.user.id,
+      acceptanceType: 'registration',
+    })
+  } catch (error) {
+    // Log but don't fail registration if terms recording fails
+    console.error('Failed to record terms acceptance during registration:', error)
+  }
+
   return {
     userId: body.user.id,
     setCookie: response.headers.get('set-cookie'),
@@ -90,15 +119,15 @@ export async function register(
 
 export async function findPaginated(
   params: userQueries.FindPaginatedParams,
-): Promise<PaginateDocs<UserWithRoles>> {
+): Promise<PaginateDocs<UserWithRole>> {
   return await userQueries.findPaginated(params)
 }
 
-export async function findById(id: string): Promise<UserWithRoles | undefined> {
+export async function findById(id: string): Promise<UserWithRole | undefined> {
   return await userQueries.findById(id)
 }
 
-export async function update(id: string, data: TUpdateUser): Promise<void> {
+export async function update(id: string, data: Partial<TUpdateUser>): Promise<void> {
   const existingUser = await userQueries.findById(id)
   if (!existingUser) {
     throw new UserNotFoundError()
@@ -112,6 +141,12 @@ export async function update(id: string, data: TUpdateUser): Promise<void> {
   }
 
   await userQueries.update(id, data)
+}
+
+export async function updateRole(userId: string, roleId: string): Promise<void> {
+  if (!(await userQueries.findById(userId))) throw new UserNotFoundError()
+  if (!(await roleQueries.findById(roleId))) throw new RoleNotFoundError()
+  await userQueries.assignRole(userId, roleId)
 }
 
 export async function deleteById(id: string): Promise<void> {

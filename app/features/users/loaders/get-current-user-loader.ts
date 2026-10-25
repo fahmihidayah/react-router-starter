@@ -5,7 +5,7 @@ import {
   createSuccessResponse,
   type LoaderArgs,
 } from '~/lib/types'
-import type { UserWithRoles } from '../types'
+import type { UserWithRole } from '../types'
 
 /**
  * Get current user loader
@@ -13,12 +13,12 @@ import type { UserWithRoles } from '../types'
  */
 export async function getCurrentUserLoader(
   args: LoaderArgs,
-): Promise<ApiResponse<{ user: UserWithRoles }>> {
+): Promise<ApiResponse<{ user: UserWithRole }>> {
   // Get user from context (set by withAuth or requireAuth middleware)
   const authSession = args.context.get(userContext)
 
   if (!authSession?.user) {
-    return createErrorResponse('Not Found', 400)
+    return createErrorResponse('Unauthorized', 401)
   }
 
   return createSuccessResponse({

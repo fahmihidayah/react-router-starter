@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { create } from './create'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { create } from './create'
 
 vi.mock('~/lib/database', () => ({
   db: {
@@ -30,7 +30,7 @@ describe('create', () => {
       returning: vi.fn().mockResolvedValue([{ id: mockUserId }]),
     }
 
-    vi.mocked(db.insert).mockReturnValue(mockInsert as any)
+    vi.mocked(db.insert).mockReturnValue(mockInsert as unknown as ReturnType<typeof db.insert>)
 
     const result = await create(userData)
 
@@ -57,7 +57,7 @@ describe('create', () => {
       returning: vi.fn().mockResolvedValue([{ id: mockUserId }]),
     }
 
-    vi.mocked(db.insert).mockReturnValue(mockInsert as any)
+    vi.mocked(db.insert).mockReturnValue(mockInsert as unknown as ReturnType<typeof db.insert>)
 
     const result = await create(userData)
 

@@ -11,15 +11,27 @@
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug'
 
-interface LogOptions {
-  component: string
-  action?: string
-  data?: any
-  error?: any
+const SENSITIVE_KEY = /^(authorization|cookie|dsn|password|passwd|secret|token|api[-_]?key)$/i
+
+function sanitize(value: unknown, seen = new WeakSet<object>()): unknown {
+  if (value instanceof Error) {
+    return { name: value.name, message: value.message, stack: value.stack }
+  }
+  if (!value || typeof value !== 'object') return value
+  if (seen.has(value)) return '[Circular]'
+  seen.add(value)
+  if (Array.isArray(value)) return value.map((item) => sanitize(item, seen))
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [
+      key,
+      SENSITIVE_KEY.test(key) ? '[REDACTED]' : sanitize(item, seen),
+    ]),
+  )
 }
 
 class Logger {
-  private isDev = import.meta.env.DEV
+  private isDev = import.meta.env?.DEV ?? process.env.NODE_ENV !== 'production'
   private isEnabled = true
 
   /**
@@ -32,28 +44,28 @@ class Logger {
   /**
    * Log info message
    */
-  info(component: string, message: string, data?: any) {
+  info(component: string, message: string, data?: unknown) {
     this.log('info', component, message, data)
   }
 
   /**
    * Log warning message
    */
-  warn(component: string, message: string, data?: any) {
+  warn(component: string, message: string, data?: unknown) {
     this.log('warn', component, message, data)
   }
 
   /**
    * Log error message
    */
-  error(component: string, message: string, error?: any) {
+  error(component: string, message: string, error?: unknown) {
     this.log('error', component, message, error)
   }
 
   /**
    * Log debug message (only in development)
    */
-  debug(component: string, message: string, data?: any) {
+  debug(component: string, message: string, data?: unknown) {
     if (this.isDev) {
       this.log('debug', component, message, data)
     }
@@ -62,26 +74,21 @@ class Logger {
   /**
    * Internal log method
    */
-  private log(level: LogLevel, component: string, message: string, data?: any) {
+  private log(level: LogLevel, component: string, message: string, data?: unknown) {
     if (!this.isEnabled) return
 
-    const timestamp = new Date().toISOString()
-    const prefix = `[${component}]`
+    const entry = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level,
+      component,
+      message,
+      ...(data === undefined ? undefined : { data: sanitize(data) }),
+    })
 
-    switch (level) {
-      case 'info':
-        console.log(`${prefix} ${message}`, data !== undefined ? data : '')
-        break
-      case 'warn':
-        console.warn(`${prefix} ${message}`, data !== undefined ? data : '')
-        break
-      case 'error':
-        console.error(`${prefix} ${message}`, data !== undefined ? data : '')
-        break
-      case 'debug':
-        console.debug(`${prefix} ${message}`, data !== undefined ? data : '')
-        break
-    }
+    if (level === 'error') console.error(entry)
+    else if (level === 'warn') console.warn(entry)
+    else if (level === 'debug') console.debug(entry)
+    else console.info(entry)
   }
 
   /**
@@ -89,24 +96,24 @@ class Logger {
    */
   scope(component: string) {
     return {
-      info: (message: string, data?: any) => this.info(component, message, data),
-      warn: (message: string, data?: any) => this.warn(component, message, data),
-      error: (message: string, error?: any) => this.error(component, message, error),
-      debug: (message: string, data?: any) => this.debug(component, message, data),
+      info: (message: string, data?: unknown) => this.info(component, message, data),
+      warn: (message: string, data?: unknown) => this.warn(component, message, data),
+      error: (message: string, error?: unknown) => this.error(component, message, error),
+      debug: (message: string, data?: unknown) => this.debug(component, message, data),
     }
   }
 
   /**
    * Log API request
    */
-  apiRequest(method: string, url: string, data?: any) {
+  apiRequest(method: string, url: string, data?: unknown) {
     this.debug('API', `${method} ${url}`, data)
   }
 
   /**
    * Log API response
    */
-  apiResponse(method: string, url: string, status: number, data?: any) {
+  apiResponse(method: string, url: string, status: number, data?: unknown) {
     const level = status >= 400 ? 'error' : status >= 200 && status < 300 ? 'info' : 'warn'
     this.log(level, 'API', `${method} ${url} → ${status}`, data)
   }

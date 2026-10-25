@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ActionArgs } from '~/lib/types'
 import { createCategoryAction } from './create-category-action'
 
@@ -10,8 +10,10 @@ import * as categoryService from '../services'
 
 function buildActionArgs(data: Record<string, string>): ActionArgs {
   const formData = new FormData()
-  Object.entries(data).forEach(([key, value]) => formData.append(key, value))
-  const request = new Request('http://localhost/dashboard/categories', {
+  Object.entries(data).forEach(([key, value]) => {
+    formData.append(key, value)
+  })
+  const request = new Request('http://localhost/admin/categories', {
     method: 'POST',
     body: formData,
   })
@@ -31,7 +33,7 @@ describe('createCategoryAction', () => {
     vi.mocked(categoryService.create).mockResolvedValue('generated-id')
 
     const args = buildActionArgs({ title: 'New Category' })
-    const result = await createCategoryAction(args)
+    const _result = await createCategoryAction(args)
 
     expect(categoryService.create).toHaveBeenCalledWith({ title: 'New Category' })
   })

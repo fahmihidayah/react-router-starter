@@ -11,10 +11,18 @@ import {
   PageHeader,
   TablePagination,
 } from '~/features/admin/components/table/table-list'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import { deleteManyPostsAction } from '~/features/posts/actions/delete-many-posts-action'
 import { deletePostAction } from '~/features/posts/actions/delete-post-action'
 import { getPostsLoader } from '~/features/posts/loaders/get-posts-loader'
 import type { Route } from './+types/posts._index'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.POSTS_DELETE,
+    loader: PERMISSION_KEYS.POSTS_READ,
+  }),
+]
 
 export function loader({ request }: Route.LoaderArgs) {
   return getPostsLoader(request)
@@ -49,7 +57,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function meta() {
-  return [{ title: 'Posts - Dashboard' }, { name: 'description', content: 'Manage blog posts' }]
+  return [{ title: 'Posts - Catat Progress' }, { name: 'description', content: 'Manage posts' }]
 }
 
 export default function PostsPage() {
@@ -129,7 +137,7 @@ export default function PostsPage() {
       <div className="space-y-6">
         <PageHeader
           title="Posts"
-          description="Create and manage your blog posts."
+          description="Create and manage public posts."
           addButtonText="Add post"
           addButtonLink="/admin/posts/new"
         />

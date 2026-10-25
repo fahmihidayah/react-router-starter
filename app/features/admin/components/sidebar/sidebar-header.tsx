@@ -8,13 +8,15 @@ interface DashboardSidebarHeaderProps {
 export function DashboardSidebarHeader({ config }: DashboardSidebarHeaderProps) {
   return (
     <SidebarHeader>
-      <div className="flex items-center gap-2 px-2 py-1">
-        <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-lg">{config.appInitial}</span>
+      <div className="flex min-w-0 items-center gap-2 overflow-hidden px-2 py-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
+          <span className="text-lg font-bold text-primary-foreground">{config.appInitial}</span>
         </div>
-        <div className="flex flex-col">
-          <span className="font-semibold text-sm">{config.appName}</span>
-          <span className="text-xs text-muted-foreground">{config.subtitle || 'Dashboard'}</span>
+        <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
+          <span className="truncate text-sm font-semibold">{config.appName}</span>
+          <span className="truncate text-xs text-muted-foreground">
+            {config.subtitle || 'Dashboard'}
+          </span>
         </div>
       </div>
     </SidebarHeader>

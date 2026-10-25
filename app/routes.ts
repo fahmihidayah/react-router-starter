@@ -6,7 +6,19 @@ export default [
     ':locale?',
     await flatRoutes({
       rootDirectory: './routes',
-      ignoredRouteFiles: ['api', 'api/**/*', 'admin', 'admin/**/*', 'admin.tsx'],
+      ignoredRouteFiles: [
+        'api',
+        'api/**/*',
+        'admin',
+        'admin/**/*',
+        'admin.tsx',
+        // The public admin sign-in lives outside the admin layout. Patterns are
+        // matched against the path relative to `app/`, hence the `routes/` prefix.
+        // 'routes/admin-login.tsx',
+        'track-app',
+        'track-app/**/*',
+        'track-app.tsx',
+      ],
     }),
   ),
 
@@ -15,6 +27,7 @@ export default [
     'api',
     await flatRoutes({
       rootDirectory: './routes/api',
+      ignoredRouteFiles: ['**/*.test.ts', '**/*.test.tsx'],
     }),
   ),
 
@@ -27,6 +40,20 @@ export default [
         'admin',
         await flatRoutes({
           rootDirectory: './routes/admin',
+        }),
+      ),
+    ],
+  },
+
+  // authenticated user app, no locale
+  {
+    id: 'track-app-layout',
+    file: './routes/track-app.tsx',
+    children: [
+      ...prefix(
+        'track-app',
+        await flatRoutes({
+          rootDirectory: './routes/track-app',
         }),
       ),
     ],

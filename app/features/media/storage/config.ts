@@ -1,19 +1,20 @@
 import { resolve } from 'node:path'
+import { env } from '~/env'
 import type { TStorageProvider } from './types'
 
 export const mediaStorageConfig = {
-  driver: (process.env.MEDIA_STORAGE_DRIVER || 'local') as TStorageProvider,
+  driver: env.MEDIA_STORAGE_DRIVER as TStorageProvider,
   local: {
-    directory: resolve(process.env.MEDIA_UPLOAD_DIR || './uploads/media'),
-    baseUrl: process.env.MEDIA_LOCAL_BASE_URL || '/api/media/files',
+    directory: resolve(env.MEDIA_UPLOAD_DIR),
+    baseUrl: env.MEDIA_LOCAL_BASE_URL,
   },
   s3: {
-    bucket: process.env.S3_BUCKET || '',
-    region: process.env.AWS_REGION || 'us-east-1',
-    endpoint: process.env.S3_ENDPOINT,
-    publicUrl: process.env.S3_PUBLIC_URL,
-    prefix: (process.env.S3_MEDIA_PREFIX || 'media').replace(/^\/+|\/+$/g, ''),
-    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
+    bucket: env.S3_BUCKET || '',
+    region: env.AWS_REGION,
+    endpoint: env.S3_ENDPOINT,
+    publicUrl: env.S3_PUBLIC_URL,
+    prefix: env.S3_MEDIA_PREFIX.replace(/^\/+|\/+$/g, ''),
+    forcePathStyle: env.S3_FORCE_PATH_STYLE,
   },
 } as const
 

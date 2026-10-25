@@ -1,13 +1,14 @@
+import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
-import { Menu } from 'lucide-react'
-import { HeaderLogo } from './header-logo'
-import { HeaderAuth } from './header-auth'
-import { HeaderUserMenu } from './header-user-menu'
+import { LanguageSwitcher } from '~/components/language-switcher'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet'
 import { cn } from '~/lib/utils'
+import { HeaderAuth } from './header-auth'
+import { HeaderLogo } from './header-logo'
+import { HeaderUserMenu } from './header-user-menu'
 
 interface HeaderProps {
   user?: {
@@ -66,6 +67,7 @@ export function Header({ user }: HeaderProps) {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher />
           {user ? <HeaderUserMenu user={user} /> : <HeaderAuth />}
         </div>
 
@@ -81,6 +83,8 @@ export function Header({ user }: HeaderProps) {
               <nav className="flex flex-col gap-4">
                 <NavLinks onClick={closeMobile} />
               </nav>
+              <Separator />
+              <LanguageSwitcher />
               <Separator />
               <div className="flex flex-col gap-3">
                 {user ? (

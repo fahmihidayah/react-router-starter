@@ -1,19 +1,20 @@
 import {
+  AudienceStrip,
   CtaSection,
   FaqSection,
-  FeaturesSection,
+  FeatureShowcaseSection,
   HeroSection,
   HowItWorksSection,
-  TestimonialsSection,
-} from '~/components/landing'
+  ProgressStorySection,
+} from '~/features/page/components/landing'
+import * as m from '~/paraglide/messages.js'
 
 export function meta() {
   return [
-    { title: 'Learning Group Tracker - Track Goals Together' },
+    { title: m.landing_meta_title() },
     {
       name: 'description',
-      content:
-        'Create learning groups, set daily goals, and track progress with your family, classroom, or club. Free for individuals and small groups.',
+      content: m.landing_meta_description(),
     },
   ]
 }
@@ -22,9 +23,10 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col">
       <HeroSection />
-      <FeaturesSection />
+      <AudienceStrip />
+      <FeatureShowcaseSection />
       <HowItWorksSection />
-      <TestimonialsSection />
+      <ProgressStorySection />
       <FaqSection />
       <CtaSection />
     </div>

@@ -7,7 +7,7 @@ export async function countAdmin(): Promise<number> {
     .select({ count: sql<number>`count(distinct ${userRoles.userId})` })
     .from(userRoles)
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(eq(roles.name, 'Admin'))
+    .where(eq(roles.key, 'admin'))
 
   return Number(result[0]?.count ?? 0)
 }

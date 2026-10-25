@@ -36,10 +36,5 @@ export async function addPermission(roleId: string, permissionId: string) {
 export async function removePermission(roleId: string, permissionId: string) {
   await db
     .delete(rolePermissions)
-    .where(
-      and(
-        eq(rolePermissions.roleId, roleId),
-        eq(rolePermissions.permissionId, permissionId),
-      ),
-    )
+    .where(and(eq(rolePermissions.roleId, roleId), eq(rolePermissions.permissionId, permissionId)))
 }

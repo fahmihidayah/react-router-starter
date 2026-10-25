@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -16,6 +16,7 @@
       "!**/.react-router",
       "!**/*.min.js",
       "!**/coverage",
+      "!**/drizzle/**/snapshot.json",
       "!**/.next",
       "!**/.vercel",
       "!**/public/build"
@@ -34,7 +35,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "a11y": {
         "noAutofocus": "warn",
         "useKeyWithClickEvents": "warn"
@@ -121,6 +122,16 @@
       "bracketSameLine": false,
       "quoteStyle": "single",
       "attributePosition": "auto"
+    }
+  },
+  "html": {
+    "parser": {
+      "interpolation": true
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "overrides": [

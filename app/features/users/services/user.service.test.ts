@@ -3,13 +3,14 @@ import * as queries from '../queries'
 import * as service from './user.service'
 
 const { createUser, signUpEmail } = vi.hoisted(() => ({
-  createUser: vi.fn<() => Promise<Response>>(),
-  signUpEmail: vi.fn<() => Promise<Response>>(),
+  createUser: vi.fn<(options: unknown) => Promise<Response>>(),
+  signUpEmail: vi.fn<(options: unknown) => Promise<Response>>(),
 }))
 vi.mock('~/lib/auth', () => ({ auth: { api: { createUser, signUpEmail } } }))
 vi.mock('../queries', () => ({
   countAdmin: vi.fn(),
-  assignRoleByName: vi.fn(),
+  assignRoleByKey: vi.fn(),
+  assignRole: vi.fn(),
   findPaginated: vi.fn(),
   findById: vi.fn(),
   findByEmail: vi.fn(),
@@ -17,6 +18,10 @@ vi.mock('../queries', () => ({
   deleteById: vi.fn(),
   deleteMany: vi.fn(),
 }))
+vi.mock('~/features/roles/queries', () => ({ findById: vi.fn() }))
+
+import * as roleQueries from '~/features/roles/queries'
+
 const user = {
   id: 'user',
   name: 'Test',
@@ -25,11 +30,14 @@ const user = {
   image: null,
   createdAt: new Date(),
   updatedAt: new Date(),
-  roles: [],
+  role: null,
 }
-const input = { name: user.name, email: user.email, password: 'password123' }
+const input = { name: user.name, email: user.email, password: 'password123', roleId: 'role-user' }
 describe('user service', () => {
-  beforeEach(() => vi.resetAllMocks())
+  beforeEach(() => {
+    vi.resetAllMocks()
+    vi.mocked(roleQueries.findById).mockResolvedValue({ id: input.roleId } as never)
+  })
   it('creates a user with the Better Auth admin API and assigns the app role', async () => {
     createUser.mockResolvedValue(Response.json({ user: { id: user.id } }))
 
@@ -38,10 +46,10 @@ describe('user service', () => {
       setCookie: null,
     })
     expect(createUser).toHaveBeenCalledWith({
-      body: { ...input, role: 'user' },
+      body: { name: input.name, email: input.email, password: input.password, role: 'user' },
       asResponse: true,
     })
-    expect(queries.assignRoleByName).toHaveBeenCalledWith(user.id, 'User')
+    expect(queries.assignRole).toHaveBeenCalledWith(user.id, input.roleId)
   })
   it.each([
     [400, 'Invalid user data'],
@@ -58,18 +66,52 @@ describe('user service', () => {
   it('rejects a signup response without a user', async () => {
     createUser.mockResolvedValue(Response.json({}))
     await expect(service.create(input)).rejects.toThrow('Failed to create user')
-    expect(queries.assignRoleByName).not.toHaveBeenCalled()
+    expect(queries.assignRole).not.toHaveBeenCalled()
   })
-  it('registers through Better Auth and returns its session cookie', async () => {
+  it('registers through Better Auth with the verification callback', async () => {
     signUpEmail.mockResolvedValue(
       Response.json({ user: { id: user.id } }, { headers: { 'set-cookie': 'session=example' } }),
     )
 
-    await expect(service.register(input)).resolves.toEqual({
+    const registrationInput = { name: input.name, email: input.email, password: input.password }
+    await expect(service.register(registrationInput)).resolves.toEqual({
       userId: user.id,
       setCookie: 'session=example',
     })
-    expect(queries.assignRoleByName).toHaveBeenCalledWith(user.id, 'User')
+    expect(signUpEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: {
+          name: input.name,
+          email: input.email,
+          password: input.password,
+          callbackURL: '/verify-email?status=success',
+        },
+      }),
+    )
+    expect(queries.assignRoleByKey).not.toHaveBeenCalled()
+  })
+  it('forwards a captcha response to Better Auth during registration', async () => {
+    signUpEmail.mockResolvedValue(Response.json({ user: { id: user.id } }))
+
+    const registrationInput = { name: input.name, email: input.email, password: input.password }
+    await service.register(registrationInput, 'captcha-token')
+
+    expect(signUpEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: expect.objectContaining({}),
+      }),
+    )
+    const request = signUpEmail.mock.calls[0]?.[0] as { headers: Headers }
+    expect(request.headers.get('x-captcha-response')).toBe('captcha-token')
+  })
+  it('forwards the selected locale to Better Auth during registration', async () => {
+    signUpEmail.mockResolvedValue(Response.json({ user: { id: user.id } }))
+
+    const registrationInput = { name: input.name, email: input.email, password: input.password }
+    await service.register(registrationInput, undefined, 'id')
+
+    const request = signUpEmail.mock.calls[0]?.[0] as { headers: Headers }
+    expect(request.headers.get('x-email-locale')).toBe('id')
   })
   it('returns paginated users', async () => {
     const page = {
@@ -117,6 +159,25 @@ describe('user service', () => {
     await expect(
       service.update(user.id, { name: user.name, email: 'new@example.com' }),
     ).resolves.toBeUndefined()
+  })
+  it('replaces the role of an existing user', async () => {
+    vi.mocked(queries.findById).mockResolvedValue(user)
+
+    await expect(service.updateRole(user.id, input.roleId)).resolves.toBeUndefined()
+
+    expect(roleQueries.findById).toHaveBeenCalledWith(input.roleId)
+    expect(queries.assignRole).toHaveBeenCalledWith(user.id, input.roleId)
+  })
+  it('rejects a role update for a missing user', async () => {
+    await expect(service.updateRole('missing', input.roleId)).rejects.toThrow('not found')
+    expect(queries.assignRole).not.toHaveBeenCalled()
+  })
+  it('rejects a role update for a missing role', async () => {
+    vi.mocked(queries.findById).mockResolvedValue(user)
+    vi.mocked(roleQueries.findById).mockResolvedValue(undefined)
+
+    await expect(service.updateRole(user.id, 'missing')).rejects.toThrow('Role not found')
+    expect(queries.assignRole).not.toHaveBeenCalled()
   })
   it('propagates update failures', async () => {
     vi.mocked(queries.findById).mockResolvedValue(user)

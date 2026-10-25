@@ -30,7 +30,7 @@ describe('getUserByIdLoader', () => {
       image: null,
       createdAt: new Date('2025-01-01'),
       updatedAt: new Date('2025-01-01'),
-      roles: [],
+      role: null,
     }
     vi.mocked(userService.findById).mockResolvedValue(mockUser)
 
@@ -56,7 +56,7 @@ describe('getUserByIdLoader', () => {
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      roles: [],
+      role: null,
     }
     vi.mocked(userService.findById).mockResolvedValue(mockUser)
 
@@ -66,7 +66,7 @@ describe('getUserByIdLoader', () => {
     expect(userService.findById).toHaveBeenCalledTimes(1)
   })
 
-  it('returns user with all fields intact including roles', async () => {
+  it('returns user with all fields intact including its role', async () => {
     const mockUser = {
       id: 'u1',
       name: 'Full User Data',
@@ -75,15 +75,15 @@ describe('getUserByIdLoader', () => {
       image: 'https://example.com/avatar.jpg',
       createdAt: new Date('2025-01-15'),
       updatedAt: new Date('2025-02-01'),
-      roles: [
-        {
-          id: 'role-1',
-          name: 'Admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ],
+      role: {
+        id: 'role-1',
+        key: 'admin',
+        name: 'Admin',
+        description: 'Administrator',
+        isSystem: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     }
     vi.mocked(userService.findById).mockResolvedValue(mockUser)
 
@@ -96,7 +96,6 @@ describe('getUserByIdLoader', () => {
     expect(result.email).toBe('full@example.com')
     expect(result.emailVerified).toBe(true)
     expect(result.image).toBe('https://example.com/avatar.jpg')
-    expect(result.roles).toHaveLength(1)
-    expect(result.roles[0].name).toBe('Admin')
+    expect(result.role?.name).toBe('Admin')
   })
 })

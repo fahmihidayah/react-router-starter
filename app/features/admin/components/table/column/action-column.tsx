@@ -1,5 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Edit, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Edit, type LucideIcon, MoreHorizontal, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
@@ -9,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { toast } from 'sonner'
 
 export interface ActionColumnConfig<T> {
   onEdit?: (item: T) => void
@@ -17,6 +17,11 @@ export interface ActionColumnConfig<T> {
   onCopyId?: (item: T) => void
   getItemId: (item: T) => string
   getItemName?: (item: T) => string
+  customActions?: Array<{
+    label: string
+    icon?: LucideIcon
+    onClick: (item: T) => void
+  }>
 }
 
 export function createActionColumn<T>(config: ActionColumnConfig<T>): ColumnDef<T> {
@@ -46,7 +51,18 @@ export function createActionColumn<T>(config: ActionColumnConfig<T>): ColumnDef<
                 Copy ID
               </DropdownMenuItem>
             )}
-            {(config.onEdit || config.onDelete) && <DropdownMenuSeparator />}
+            {(config.customActions?.length || config.onEdit || config.onDelete) && (
+              <DropdownMenuSeparator />
+            )}
+            {config.customActions?.map((action) => {
+              const Icon = action.icon
+              return (
+                <DropdownMenuItem key={action.label} onClick={() => action.onClick(item)}>
+                  {Icon && <Icon className="mr-2 size-4" />}
+                  {action.label}
+                </DropdownMenuItem>
+              )
+            })}
             {config.onEdit && (
               <DropdownMenuItem onClick={() => config.onEdit?.(item)}>
                 <Edit className="mr-2 size-4" />

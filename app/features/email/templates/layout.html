@@ -1,0 +1,102 @@
+<!doctype html>
+<!-- biome-ignore lint/a11y/useValidLang: the renderer only accepts the supported en/id locales -->
+<html lang="{{locale}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <title>{{subject}}</title>
+  </head>
+  <body class="m-0 bg-[#f8fbfc] p-0 font-sans text-[#101b2d]">
+    <div class="hidden max-h-0 overflow-hidden text-transparent opacity-0">{{preheader}}</div>
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      border="0"
+      class="w-full bg-[#f8fbfc]"
+    >
+      <tr>
+        <td align="center" class="pt-8 pr-4 pb-8 pl-4">
+          <table
+            role="presentation"
+            width="100%"
+            cellspacing="0"
+            cellpadding="0"
+            border="0"
+            class="w-full max-w-[600px]"
+          >
+            <tr>
+              <td
+                class="rounded-t-2xl border border-b-0 border-[#d5e2e7] bg-white pt-6 pr-8 pb-6 pl-8"
+              >
+                <a href="{{appUrl}}" class="inline-block text-[#17233e] no-underline">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <td
+                        width="44"
+                        height="44"
+                        align="center"
+                        valign="middle"
+                        class="h-11 w-11 rounded-xl bg-brand-indigo text-center align-middle font-sans text-[15px] font-extrabold tracking-[-0.4px] text-white"
+                      >
+                        {{#if logoUrl}}
+                          <img
+                            src="{{logoUrl}}"
+                            width="28"
+                            height="28"
+                            alt=""
+                            class="block h-7 w-7 border-0"
+                          />
+                        {{else}}
+                          LT
+                        {{/if}}
+                      </td>
+                      <td class="pl-3 font-sans">
+                        <div class="text-xl font-extrabold tracking-[-0.5px] text-[#17233e]">
+                          {{appName}}
+                        </div>
+                        <div class="pt-[3px] text-[11px] text-[#6c768b]">
+                          {{tagline}}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td
+                class="border-r border-l border-[#d5e2e7] bg-white pt-2 pr-8 pb-9 pl-8 font-sans"
+              >
+                {{{content}}}
+              </td>
+            </tr>
+            <tr>
+              <td
+                align="center"
+                class="rounded-b-2xl border border-[#d5e2e7] bg-[#edf4f6] pt-6 pr-8 pb-6 pl-8 text-center font-sans text-xs leading-[19px] text-[#526574]"
+              >
+                {{securityNotice}}<br />
+                {{needHelp}}
+                <a href="mailto:{{supportEmail}}" class="text-brand-indigo no-underline">
+                  {{contactSupport}}
+                </a>
+                <br />
+                <span class="text-[#778999]">&copy; {{currentYear}} {{appName}}</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

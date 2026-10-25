@@ -1,9 +1,17 @@
 import { useActionData, useLoaderData } from 'react-router'
+import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
 import { updateUserAction } from '~/features/users/actions/update-user-action'
 import { EditUserForm } from '~/features/users/components/admin/edit-user-form'
 import { getUserByIdLoader } from '~/features/users/loaders/get-user-by-id-loader'
 import { UserNotFoundError } from '~/features/users/types/errors'
 import type { Route } from './+types/users.$id'
+
+export const middleware: Route.MiddlewareFunction[] = [
+  enforceRoutePermissions({
+    action: PERMISSION_KEYS.USERS_UPDATE,
+    loader: PERMISSION_KEYS.USERS_READ,
+  }),
+]
 
 export async function loader(args: Route.LoaderArgs) {
   const response = await getUserByIdLoader(args)

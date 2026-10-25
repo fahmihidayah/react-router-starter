@@ -1,11 +1,12 @@
 // Export all table-list components
-export { PageHeader } from './page-header'
+
+export type { DataTableProps } from './data-table'
 export { DataTable } from './data-table'
-export { TablePagination } from './table-pagination'
+export type { DeleteDialogProps } from './delete-dialog'
 export { DeleteDialog } from './delete-dialog'
 
 // Export types
 export type { PageHeaderProps } from './page-header'
-export type { DataTableProps } from './data-table'
+export { PageHeader } from './page-header'
 export type { TablePaginationProps } from './table-pagination'
-export type { DeleteDialogProps } from './delete-dialog'
+export { TablePagination } from './table-pagination'

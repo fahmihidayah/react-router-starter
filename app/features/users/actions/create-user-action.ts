@@ -1,3 +1,4 @@
+import { RoleNotFoundError } from '~/features/roles/types/errors'
 import {
   type ActionArgs,
   type ApiResponse,
@@ -32,6 +33,7 @@ export async function createUserAction(
           name: [],
           email: [error.message],
           password: [],
+          roleId: [],
         },
         409,
       )
@@ -43,6 +45,7 @@ export async function createUserAction(
           name: [error.message],
           email: [],
           password: [],
+          roleId: [],
         },
         400,
       )
@@ -54,8 +57,16 @@ export async function createUserAction(
           name: [error.message],
           email: [],
           password: [],
+          roleId: [],
         },
         500,
+      )
+    }
+
+    if (error instanceof RoleNotFoundError) {
+      return createErrorResponse(
+        { name: [], email: [], password: [], roleId: [error.message] },
+        400,
       )
     }
 
@@ -64,6 +75,7 @@ export async function createUserAction(
         name: ['An unexpected error occurred. Please try again.'],
         email: [],
         password: [],
+        roleId: [],
       },
       500,
     )

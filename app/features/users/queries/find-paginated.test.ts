@@ -32,17 +32,17 @@ describe('findPaginated', () => {
         image: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        userRoles: [
-          {
-            role: {
-              id: 'role-1',
-              name: 'User',
-              description: 'Regular User',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
+        userRole: {
+          role: {
+            id: 'role-1',
+            key: 'user',
+            name: 'User',
+            description: 'Regular User',
+            isSystem: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
-        ],
+        },
       },
       {
         role: 'user',
@@ -56,7 +56,7 @@ describe('findPaginated', () => {
         image: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        userRoles: [],
+        userRole: null,
       },
     ]
 
@@ -66,7 +66,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 2 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({})
 
@@ -92,7 +92,7 @@ describe('findPaginated', () => {
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      userRoles: [],
+      userRole: null,
     }))
 
     vi.mocked(db.query.users.findMany).mockResolvedValue(mockUsers)
@@ -101,7 +101,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 50 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ page: 2, limit: 10 })
 
@@ -120,7 +120,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 100 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ page: 1, limit: 20 })
 
@@ -135,7 +135,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 100 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ page: 5, limit: 20 })
 
@@ -156,7 +156,7 @@ describe('findPaginated', () => {
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      userRoles: [],
+      userRole: null,
     }
 
     vi.mocked(db.query.users.findMany).mockResolvedValue([mockUser])
@@ -165,7 +165,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 1 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ email: 'john' })
 
@@ -180,7 +180,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 0 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({})
 
@@ -191,7 +191,7 @@ describe('findPaginated', () => {
     expect(result.hasPrevPage).toBe(false)
   })
 
-  it('should transform user roles correctly', async () => {
+  it('should transform the assigned user role correctly', async () => {
     const mockUser = {
       role: 'user',
       banned: false,
@@ -204,26 +204,17 @@ describe('findPaginated', () => {
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      userRoles: [
-        {
-          role: {
-            id: 'role-1',
-            name: 'Admin',
-            description: 'Administrator',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
+      userRole: {
+        role: {
+          id: 'role-1',
+          key: 'admin',
+          name: 'Admin',
+          description: 'Administrator',
+          isSystem: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
-        {
-          role: {
-            id: 'role-2',
-            name: 'User',
-            description: 'Regular User',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        },
-      ],
+      },
     }
 
     vi.mocked(db.query.users.findMany).mockResolvedValue([mockUser])
@@ -232,12 +223,10 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 1 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({})
 
-    expect(result.docs[0].roles).toHaveLength(2)
-    expect(result.docs[0].roles[0].name).toBe('Admin')
-    expect(result.docs[0].roles[1].name).toBe('User')
+    expect(result.docs[0].role?.name).toBe('Admin')
   })
 })

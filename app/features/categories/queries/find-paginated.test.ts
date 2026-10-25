@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { findPaginated } from './find-paginated'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '~/lib/database'
+import { findPaginated } from './find-paginated'
 
 vi.mock('~/lib/database', () => ({
   db: {
@@ -40,7 +40,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 2 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({})
 
@@ -67,7 +67,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 50 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ page: 2, limit: 10 })
 
@@ -93,7 +93,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 1 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ title: 'Tech' })
 
@@ -108,7 +108,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 0 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({})
 
@@ -141,7 +141,7 @@ describe('findPaginated', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{ count: 2 }]),
     }
-    vi.mocked(db.select).mockReturnValue(mockSelect as any)
+    vi.mocked(db.select).mockReturnValue(mockSelect as unknown as ReturnType<typeof db.select>)
 
     const result = await findPaginated({ sortBy: 'title', sortDir: 'asc' })
 

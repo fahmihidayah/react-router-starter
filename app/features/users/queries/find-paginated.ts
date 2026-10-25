@@ -2,8 +2,8 @@ import { and, eq, gte, like, lte, type SQL, sql } from 'drizzle-orm'
 import { users } from '~/db/schema'
 import { db } from '~/lib/database'
 import type { PaginateDocs } from '~/types/pagination'
-import type { UserWithRoles } from '../types'
-import { toUserWithRoles } from './utils'
+import type { UserWithRole } from '../types'
+import { toUserWithRole } from './utils'
 
 type SortField = 'createdAt' | 'name' | 'email' | 'updatedAt' | 'emailVerified'
 type SortDir = 'asc' | 'desc'
@@ -26,7 +26,7 @@ export type FindPaginatedParams = {
 }
 export async function findPaginated(
   params: FindPaginatedParams,
-): Promise<PaginateDocs<UserWithRoles>> {
+): Promise<PaginateDocs<UserWithRole>> {
   const {
     sortBy = 'createdAt',
     sortDir = 'desc',
@@ -65,7 +65,7 @@ export async function findPaginated(
       orderBy: { [sortBy]: sortDir },
       limit,
       offset,
-      with: { userRoles: { with: { role: true } } },
+      with: { userRole: { with: { role: true } } },
     }),
     db
       .select({ count: sql<number>`count(*)` })
@@ -77,7 +77,7 @@ export async function findPaginated(
   const totalPages = Math.ceil(totalDocs / limit)
 
   return {
-    docs: rows.map(toUserWithRoles),
+    docs: rows.map(toUserWithRole),
     page,
     limit,
     totalDocs,

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ActionArgs } from '~/lib/types'
 import { deleteUserAction } from './delete-user-action'
 
@@ -10,7 +10,7 @@ import * as userService from '../services'
 
 function buildActionArgs(id: string): ActionArgs {
   return {
-    request: new Request('http://localhost/admin/users/' + id, { method: 'DELETE' }),
+    request: new Request(`http://localhost/admin/users/${id}`, { method: 'DELETE' }),
     context: new Map(),
     params: { id },
   }
@@ -41,9 +41,7 @@ describe('deleteUserAction', () => {
 
   it('returns failure when user not found', async () => {
     const { UserNotFoundError } = await import('../types/errors/user-errors')
-    vi.mocked(userService.deleteById).mockRejectedValue(
-      new UserNotFoundError('User not found')
-    )
+    vi.mocked(userService.deleteById).mockRejectedValue(new UserNotFoundError('User not found'))
 
     const result = await deleteUserAction(buildActionArgs('u1'))
 
@@ -61,9 +59,7 @@ describe('deleteUserAction', () => {
   })
 
   it('handles server errors gracefully', async () => {
-    vi.mocked(userService.deleteById).mockRejectedValue(
-      new Error('An unexpected error occurred')
-    )
+    vi.mocked(userService.deleteById).mockRejectedValue(new Error('An unexpected error occurred'))
 
     const result = await deleteUserAction(buildActionArgs('u1'))
 
