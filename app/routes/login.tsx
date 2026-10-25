@@ -120,7 +120,7 @@ export default function Login({ loaderData }: Route.ComponentProps) {
         description: m.login_success_description(),
       })
 
-      navigate('/track-app', { replace: true })
+      navigate('/account', { replace: true })
     } catch {
       toast.error(m.login_failed_title(), {
         description: m.login_unexpected_error(),
@@ -141,7 +141,7 @@ export default function Login({ loaderData }: Route.ComponentProps) {
     try {
       const response = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/track-app',
+        callbackURL: '/account',
         errorCallbackURL: '/login',
         fetchOptions: loaderData.recaptcha.enabled
           ? { headers: { 'x-captcha-response': captchaResponse as string } }

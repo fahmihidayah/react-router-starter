@@ -5,8 +5,8 @@ import { auth } from '~/lib/auth'
 
 export function meta() {
   return [
-    { title: 'Learning Group Tracker' },
-    { name: 'description', content: 'Track goals and progress together with your learning group.' },
+    { title: 'Starter' },
+    { name: 'description', content: 'A production-ready starter for full-stack web applications.' },
   ]
 }
 

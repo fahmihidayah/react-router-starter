@@ -8,13 +8,13 @@ test.describe('Profile Management', () => {
   })
 
   test('should display user settings page', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     await expect(page.locator('body')).toContainText(/settings|profile/i)
   })
 
   test('should update profile name', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     const newName = `Updated Name ${Date.now()}`
 
@@ -37,7 +37,7 @@ test.describe('Profile Management', () => {
   })
 
   test('should validate empty name', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Try to submit empty name
     const nameInput = page.locator('input[name="name"]').first()
@@ -52,14 +52,14 @@ test.describe('Profile Management', () => {
   })
 
   test('should display current email', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Should show current user email
     await expect(page.locator('body')).toContainText(testUsers.user.email)
   })
 
   test.skip('should initiate email change process', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Look for email change button/section
     const emailSection = page.locator('text=Email').or(page.locator('text=Change email'))
@@ -73,7 +73,7 @@ test.describe('Profile Management', () => {
   })
 
   test.skip('should change password successfully', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Look for password/security section
     const passwordSection = page.locator('text=Password, text=Security, text=Change password')
@@ -105,7 +105,7 @@ test.describe('Profile Management', () => {
   })
 
   test('should have account deletion option', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Should have delete account option (usually at bottom or in danger zone)
     const deleteButton = page.locator(
@@ -116,7 +116,7 @@ test.describe('Profile Management', () => {
   })
 
   test.skip('should require confirmation for account deletion', async ({ page }) => {
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Click delete account button
     const deleteButton = page.locator('button:has-text("Delete account")').first()

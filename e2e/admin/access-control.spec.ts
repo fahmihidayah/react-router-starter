@@ -22,7 +22,7 @@ test.describe('Access Control', () => {
   })
 
   test('should require authentication for user routes', async ({ page }) => {
-    const userRoutes = ['/track-app', '/track-app/settings']
+    const userRoutes = ['/account', '/account/settings']
 
     for (const route of userRoutes) {
       await page.goto(route)
@@ -42,7 +42,7 @@ test.describe('Access Control', () => {
     const bodyText = await page.locator('body').textContent()
 
     expect(url.includes('admin') ? bodyText : url).toMatch(
-      /forbidden|403|not authorized|track-app/i,
+      /forbidden|403|not authorized|account/i,
     )
   })
 
@@ -123,13 +123,13 @@ test.describe('Access Control', () => {
 
   test('should redirect to login when session expires', async ({ page }) => {
     await loginAsUser(page)
-    await expect(page).toHaveURL(/track-app/)
+    await expect(page).toHaveURL(/account/)
 
     // Clear session cookies to simulate expiration
     await page.context().clearCookies()
 
     // Try to access protected route
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Should redirect to login
     await expect(page).toHaveURL(/login/, { timeout: 5000 })

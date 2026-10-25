@@ -12,12 +12,12 @@ export default [
         'admin',
         'admin/**/*',
         'admin.tsx',
+        'account',
+        'account/**/*',
+        'account.tsx',
         // The public admin sign-in lives outside the admin layout. Patterns are
         // matched against the path relative to `app/`, hence the `routes/` prefix.
         // 'routes/admin-login.tsx',
-        'track-app',
-        'track-app/**/*',
-        'track-app.tsx',
       ],
     }),
   ),
@@ -45,15 +45,15 @@ export default [
     ],
   },
 
-  // authenticated user app, no locale
+  // authenticated user account area, no locale
   {
-    id: 'track-app-layout',
-    file: './routes/track-app.tsx',
+    id: 'account-layout',
+    file: './routes/account.tsx',
     children: [
       ...prefix(
-        'track-app',
+        'account',
         await flatRoutes({
-          rootDirectory: './routes/track-app',
+          rootDirectory: './routes/account',
         }),
       ),
     ],

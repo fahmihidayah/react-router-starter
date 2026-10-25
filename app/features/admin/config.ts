@@ -7,7 +7,7 @@ function isNotAdmin(user: UserAdmin): boolean {
 }
 
 export const Config: AdminConfig = {
-  title: 'Catat Progres',
+  title: 'Admin',
   menus: [
     {
       slug: '/',

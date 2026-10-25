@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { auth } from '~/lib/auth'
-import { action } from '~/routes/track-app/settings'
+import { action } from '~/routes/account/settings'
 import { userContext } from '../contexts'
 import * as userService from '../services'
 
@@ -19,7 +19,7 @@ function actionArgs(confirmation: string) {
   formData.set('confirmation', confirmation)
 
   return {
-    request: new Request('http://localhost/track-app/settings', {
+    request: new Request('http://localhost/account/settings', {
       method: 'POST',
       body: formData,
       headers: { cookie: 'better-auth.session_token=token' },

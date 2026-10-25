@@ -41,10 +41,10 @@ describe('EmailVerificationCard', () => {
   })
 
   it('shows a verified continuation to the tracker', () => {
-    renderCard({ state: 'success', continuePath: '/track-app' })
+    renderCard({ state: 'success', continuePath: '/account' })
 
     const link = screen.getByRole('link', { name: /Continue to tracker/ })
-    expect(link.getAttribute('href')).toBe('/track-app')
+    expect(link.getAttribute('href')).toBe('/account')
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 

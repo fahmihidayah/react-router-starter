@@ -13,8 +13,8 @@ import type { SidebarNavigationGroup } from '../types/sidebar-navigation'
 
 // Default header configuration
 export const defaultHeaderConfig: SidebarHeader = {
-  appName: 'Learning Tracker',
-  appInitial: 'LT',
+  appName: 'Admin',
+  appInitial: 'A',
   subtitle: 'Admin Dashboard',
 }
 

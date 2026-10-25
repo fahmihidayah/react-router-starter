@@ -1,7 +1,7 @@
 import { APIError } from 'better-auth'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { auth } from '~/lib/auth'
-import { action } from '~/routes/track-app/settings'
+import { action } from '~/routes/account/settings'
 import { userContext } from '../contexts'
 import * as userService from '../services'
 
@@ -34,7 +34,7 @@ function actionArgs(newEmail: string, currentPassword = 'current-password') {
   formData.set('currentPassword', currentPassword)
 
   return {
-    request: new Request('https://app.example.com/track-app/settings', {
+    request: new Request('https://app.example.com/account/settings', {
       method: 'POST',
       body: formData,
       headers: { cookie: 'better-auth.session_token=token' },
@@ -67,7 +67,7 @@ describe('settings email change', () => {
     expect(auth.api.changeEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         body: {
-          callbackURL: '/track-app/settings?emailChanged=true',
+          callbackURL: '/account/settings?emailChanged=true',
           newEmail: 'new@example.com',
         },
       }),

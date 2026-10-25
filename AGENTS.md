@@ -1,7 +1,13 @@
-# Learning Tracker Agent Guide
+# Project Guide
 
 This file is the repository-wide source of truth for coding agents. Prefer the current code and
 `package.json` over older starter documentation when they disagree.
+
+This is a production-ready starter template for building full-stack web applications. It ships the
+foundations most projects need — authentication, role-based access control, an admin panel, Redis
+caching, RabbitMQ background jobs, transactional email with audit logging, reference CRUD features,
+and a complete test suite — so a new project starts from clean, working code instead of an empty
+scaffold.
 
 ## Project baseline
 
@@ -12,21 +18,44 @@ This file is the repository-wide source of truth for coding agents. Prefer the c
 - Authentication uses Better Auth. Authorization is enforced by React Router middleware and the
   request context.
 - UI uses Tailwind CSS 4, Radix primitives, and the components in `app/components/ui`.
-- Validation uses Zod. Existing feature forms primarily use native React Router forms.
+- Validation uses Zod. Forms use native React Router forms; React Hook Form is reserved for
+  interactions that genuinely need complex client-side state.
 - Localization uses Paraglide with source messages in `messages/en.json` and `messages/id.json`.
 - Environment variables are validated using t3-env in `app/env.ts`. Always import `{ env }` from
   `~/env` instead of accessing `process.env` directly.
 
+## Feature inventory
+
+The starter ships these common features under `app/features/`:
+
+- `auth` — login, register, forgot/reset password, email verification, and optional Google OAuth and
+  reCAPTCHA.
+- `users` — user CRUD, profile and account settings, and the auth/role/api-role middlewares.
+- `roles` and `permissions` — role-based access control with a seeded permission registry.
+- `admin` — the admin control panel shell: layout, sidebar, and reusable data-table components.
+- `posts`, `categories`, and `tags` — reference CRUD features. Use these as the template for new
+  resource features.
+- `email` — transactional email templates and SMTP/Resend delivery.
+- `queue` — generic RabbitMQ connection and publishing.
+- `audit-log` — structured audit log used by email delivery and other audited actions.
+- `security` — Redis-backed rate limiting, Redis health, and security headers.
+- `observability` — structured logging, Prometheus metrics, and optional Sentry.
+- `page` — the public landing, about, contact, privacy, and terms pages.
+- `privacy` — consent and terms-acceptance tracking for GDPR-style compliance.
+
+The `worker/` directory holds the RabbitMQ consumer (currently the email worker); `seeds/` seeds
+system roles and permissions and can bootstrap an administrator.
+
 ## Sources of truth and generated files
 
-- Treat `package.json`, `app/routes.ts`, `app/env.ts`, `drizzle.config.ts`, and current feature
-  code as authoritative.
-- Use `app/features/learners`, `app/features/goals`, `app/features/activities`, and
-  `app/features/schedules` as the clearest examples of the current application architecture.
-- Some admin CRUD code and older Markdown documents still contain starter-era patterns. Match the
-  surrounding feature when editing it, but do not propagate obsolete SQLite, `BaseRepository`,
-  `/dashboard`, or React Hook Form assumptions into new code.
-- Do not hand-edit generated output in `app/paraglide`, `.react-router`, `build`, or `dist`.
+- Treat `package.json`, `app/routes.ts`, `app/env.ts`, `drizzle.config.ts`, and current feature code
+  as authoritative.
+- Use `app/features/posts`, `app/features/categories`, and `app/features/tags` as the clearest
+  examples of the feature architecture.
+- Some admin CRUD code and older Markdown documents may still contain starter-era or pre-starter
+  patterns. Match the surrounding feature when editing, but do not propagate obsolete SQLite,
+  `BaseRepository`, `/dashboard`, or React Hook Form assumptions into new code.
+- Do not hand-edit generated output in `app/paraglide`, `.react-router`, `build`, `dist`, or `src`.
 - Never read values from `.env` into output or commit secrets. Update `.env.example` only with safe
   placeholders when a new variable is introduced.
 
@@ -36,10 +65,10 @@ This file is the repository-wide source of truth for coding agents. Prefer the c
 - Always import `{ env }` from `~/env` to access environment variables. Never use `process.env`
   directly in application code.
 - When adding a new environment variable:
-  1. Add it to the appropriate section in `app/env.ts` with its Zod schema and default if applicable
-  2. Add cross-field validation if the variable depends on other variables being set
-  3. Update `.env.example` with a safe placeholder and documentation
-  4. The variable will automatically be type-safe and validated at application startup
+  1. Add it to the appropriate section in `app/env.ts` with its Zod schema and default if applicable.
+  2. Add cross-field validation if the variable depends on other variables being set.
+  3. Update `.env.example` with a safe placeholder and documentation.
+  4. The variable will automatically be type-safe and validated at application startup.
 - Environment variables are validated once at import time. Failed validation stops the application
   with a clear error message listing all validation failures.
 
@@ -69,17 +98,16 @@ schemas/db + schemas/form
   shaping in `services/`.
 - Keep HTTP concerns in actions/loaders: read the request, obtain the authenticated user from
   context, validate input, call a service, and return or throw an HTTP result.
-- Route modules should be thin orchestration layers. They export route `meta`, `loader`, and
-  `action` functions as needed and default-export the route component.
+- Route modules are thin orchestration layers. They export route `meta`, `loader`, and `action`
+  functions as needed and default-export the route component.
 - Prefer named exports outside route modules and framework configuration files.
 - Cross-feature dependencies are allowed when the domain requires them. Prefer the depended-on
-  feature's public barrel (`services`, `queries`, `types`, or `components`) and avoid accidental
-  circular dependencies.
+  feature's public barrel and avoid accidental circular dependencies.
 
 ## Routing, authentication, and authorization
 
-- `app/routes.ts` is hybrid: public/auth routes are under optional `:locale?`; `/api`, `/admin`, and
-  `/track-app` are explicit non-localized route trees.
+- `app/routes.ts` is hybrid: public/auth routes live under the optional `:locale?` prefix; `/api` and
+  `/admin` are explicit non-localized route trees.
 - Protect route trees with existing middleware: `requireAdmin`, `requireUser`, or `requireApiAuth`.
   Do not repeat raw `auth.api.getSession()` calls in every child route.
 - Read the authenticated user from `userContext` in loaders/actions after middleware has run.
@@ -99,8 +127,41 @@ schemas/db + schemas/form
   unexpected infrastructure error merely to return a misleading success-shaped result.
 - Log useful server-side context without secrets, tokens, passwords, or full sensitive payloads.
   Use `logger.scope(...)` when adding new structured logs.
-- For new public and `/track-app` copy, add matching keys to both `messages/en.json` and
+- For new public and user-facing copy, add matching keys to both `messages/en.json` and
   `messages/id.json`, then import `~/paraglide/messages.js`. Do not edit compiled Paraglide files.
+
+## Caching with Redis
+
+- Redis is provided through the `redis` client and backs rate limiting, health checks, and shared
+  cache use cases.
+- Rate limiting lives in `app/features/security`. Configure `REDIS_URL` (or `RATE_LIMIT_REDIS_URL`),
+  `RATE_LIMIT_ENABLED`, and `RATE_LIMIT_REDIS_PREFIX`. When disabled, the app runs without Redis.
+- Add feature-specific caching as a dedicated service under that feature, namespace cache keys by
+  feature and resource id, and never cache secrets or user-specific data beyond a safe TTL.
+
+## Background jobs (RabbitMQ)
+
+- RabbitMQ is the message queue. The generic publisher lives in `app/features/queue` and exposes
+  `enqueue(queue, payload, options)`.
+- Consumers run from `worker/` and are built with `pnpm worker:build`. The email worker is the
+  reference consumer; add new workers there or alongside it.
+- Configure `RABBITMQ_URL`, `RABBITMQ_PREFETCH`, and `RABBITMQ_REQUEUE_ON_FAILURE` for the worker.
+- Jobs must be idempotent: a job may be delivered more than once.
+
+## Email
+
+- Email templates live in `app/features/email/templates` and are rendered with Handlebars + Juice.
+- Delivery uses Nodemailer (SMTP) or Resend, selected by `EMAIL_PROVIDER`.
+- `EMAIL_DELIVERY_MODE` selects direct delivery or queue-based delivery through the RabbitMQ worker.
+- Every delivery writes an audit-log entry and structured `[Email]` logs carrying a `traceId`. Never
+  log SMTP passwords, API keys, message bodies, or full recipient addresses.
+
+## Audit log
+
+- `app/features/audit-log` stores structured audit records. Use it for sensitive or
+  business-critical actions (for example, every email delivery and admin mutation).
+- Records reference the acting user, the action, and relevant metadata. Keep metadata small and free
+  of secrets.
 
 ## TypeScript, naming, and styling
 
@@ -108,9 +169,8 @@ schemas/db + schemas/form
 - Avoid `any` in new or changed code. Use concrete types, generics, `unknown` plus narrowing, or a
   narrow test-only cast.
 - Keep the established `T` prefix for Drizzle inferred row/insert types and many Zod input types
-  (`TLearner`, `TInsertLearner`, `TCreateLearner`). Do not force the prefix onto every domain,
-  result, or props type; current code uses descriptive names such as `LearnerListItem` and
-  `LearnerFormProps`.
+  (`TPost`, `TInsertPost`, `TCreatePost`). Do not force the prefix onto every domain, result, or
+  props type.
 - Reuse `app/components/ui` primitives before adding another base component. Put feature-specific
   composites under that feature.
 - Use semantic theme tokens and accessible labels. Preserve keyboard behavior, focus handling,
@@ -134,14 +194,15 @@ schemas/db + schemas/form
   action/loader tests mock services, and component tests exercise visible behavior.
 - Add `// @vitest-environment jsdom` to component tests that need a DOM; the default environment is
   Node.
-- Test authorization and ownership boundaries, validation failures, redirects/status codes,
+- Cover authorization and ownership boundaries, validation failures, redirects/status codes,
   rollback/cleanup behavior, and the main success path.
+- E2E tests live in `e2e/` and run with Playwright.
 - Run the smallest relevant checks first:
   - `pnpm exec vitest run <affected-test-files>`
   - `pnpm test` for the full unit/integration suite
+  - `pnpm test:e2e` for Playwright
   - `pnpm typecheck`
   - `pnpm check`
   - `pnpm build` when routing, bundling, SSR, worker, or deployment behavior changes
 - Fix failures caused by the requested change. Report unrelated pre-existing failures instead of
   silently broadening the task.
-

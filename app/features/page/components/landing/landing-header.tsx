@@ -59,7 +59,7 @@ function AccountActions({ user, mobile = false }: LandingHeaderProps & { mobile?
     return (
       <div className={cn('flex items-center gap-4', mobile && 'w-full flex-col items-stretch')}>
         <Link
-          to="/track-app"
+          to="/account"
           className={cn(
             'text-sm font-bold text-[#25324C] transition-colors hover:text-[#2F39A9]',
             mobile && 'rounded-xl border border-[#D8DEEB] px-4 py-3 text-center',
@@ -69,8 +69,8 @@ function AccountActions({ user, mobile = false }: LandingHeaderProps & { mobile?
         </Link>
         <HeaderUserMenu
           user={user}
-          dashboardPath="/track-app"
-          settingsPath="/track-app/settings"
+          dashboardPath="/account"
+          settingsPath="/account/settings"
           mobile={mobile}
         />
       </div>

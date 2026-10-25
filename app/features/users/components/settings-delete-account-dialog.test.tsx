@@ -40,7 +40,7 @@ vi.mock('~/lib/database', () => ({
   db: {},
 }))
 
-import TrackAppSettings from '~/routes/track-app/settings'
+import TrackAppSettings from '~/routes/account/settings'
 
 afterEach(cleanup)
 

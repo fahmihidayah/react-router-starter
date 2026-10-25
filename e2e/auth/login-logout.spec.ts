@@ -17,8 +17,8 @@ test.describe('Login and Logout', () => {
   test('should login with valid credentials and redirect to dashboard', async ({ page }) => {
     await login(page, testUsers.user.email, testUsers.user.password)
 
-    // Should redirect to track-app (user dashboard)
-    await expect(page).toHaveURL(/track-app/)
+    // Should redirect to account (user dashboard)
+    await expect(page).toHaveURL(/account/)
 
     // Should see user-specific content
     await expect(page.locator('body')).toContainText(testUsers.user.name, { timeout: 5000 })
@@ -63,7 +63,7 @@ test.describe('Login and Logout', () => {
   test('should logout successfully', async ({ page }) => {
     // First login
     await loginAsUser(page)
-    await expect(page).toHaveURL(/track-app/)
+    await expect(page).toHaveURL(/account/)
 
     // Then logout
     await logout(page)
@@ -73,7 +73,7 @@ test.describe('Login and Logout', () => {
     expect(url).toMatch(/\/(|login)$/)
 
     // Trying to access protected route should redirect to login
-    await page.goto('/track-app')
+    await page.goto('/account')
     await expect(page).toHaveURL(/login/, { timeout: 5000 })
   })
 
@@ -98,7 +98,7 @@ test.describe('Login and Logout', () => {
 
   test('should redirect to intended page after login', async ({ page }) => {
     // Try to access protected page while logged out
-    await page.goto('/track-app/settings')
+    await page.goto('/account/settings')
 
     // Should redirect to login with return URL
     await expect(page).toHaveURL(/login/)
@@ -109,6 +109,6 @@ test.describe('Login and Logout', () => {
     await page.click('button[type="submit"]')
 
     // Should redirect back to intended page (or dashboard)
-    await page.waitForURL(/track-app/, { timeout: 5000 })
+    await page.waitForURL(/account/, { timeout: 5000 })
   })
 })

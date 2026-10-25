@@ -38,7 +38,7 @@ function argsFor(emailVerified: boolean): Arguments {
     },
   })
   return {
-    request: new Request('http://localhost/track-app'),
+    request: new Request('http://localhost/account'),
     context,
     params: {},
   }

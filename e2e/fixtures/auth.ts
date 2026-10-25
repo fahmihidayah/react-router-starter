@@ -31,7 +31,7 @@ export async function login(page: Page, email: string, password: string) {
   await page.click('button[type="submit"]')
 
   // Wait for navigation after login
-  await page.waitForURL(/track-app|admin/, { timeout: 10000 })
+  await page.waitForURL(/account|admin/, { timeout: 10000 })
 }
 
 /**
@@ -77,9 +77,9 @@ export async function register(page: Page, name: string, email: string, password
  */
 export async function isLoggedIn(page: Page): Promise<boolean> {
   try {
-    // Check for dashboard or track-app in URL
+    // Check for dashboard or account in URL
     const url = page.url()
-    return url.includes('track-app') || url.includes('admin')
+    return url.includes('account') || url.includes('admin')
   } catch {
     return false
   }

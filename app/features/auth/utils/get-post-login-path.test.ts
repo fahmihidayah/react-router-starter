@@ -6,15 +6,15 @@ describe('getPostLoginPath', () => {
     expect(getPostLoginPath({ key: 'admin' })).toBe('/admin')
   })
 
-  it('redirects standard users to the tracker app', () => {
-    expect(getPostLoginPath({ key: 'user' })).toBe('/track-app')
+  it('redirects standard users to their account', () => {
+    expect(getPostLoginPath({ key: 'user' })).toBe('/account')
   })
 
-  it('redirects users without a role to the tracker app', () => {
-    expect(getPostLoginPath(null)).toBe('/track-app')
+  it('redirects users without a role to their account', () => {
+    expect(getPostLoginPath(null)).toBe('/account')
   })
 
   it('does not treat an unknown role as Admin', () => {
-    expect(getPostLoginPath({ key: 'content-editor' })).toBe('/track-app')
+    expect(getPostLoginPath({ key: 'content-editor' })).toBe('/account')
   })
 })

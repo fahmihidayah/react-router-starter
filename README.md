@@ -1,8 +1,8 @@
-# Catat Progress
+# Starter
 
-Catat Progress is a full-stack learning tracker for organizing learner profiles, goals, activities,
-schedules, reports, and shared learning records. It also includes an admin area for users, content,
-taxonomy, and media management.
+A production-ready starter template for full-stack web applications. It ships authentication,
+role-based access control, an admin panel, Redis caching, RabbitMQ background jobs, transactional
+email with audit logging, example CRUD features (posts, categories, tags), and a complete test suite.
 
 ## Stack
 
@@ -59,7 +59,7 @@ use `pnpm db:generate`, inspect the SQL in `drizzle/`, and apply it with `pnpm d
 
 ## Architecture
 
-Current tracker features follow this dependency direction:
+Features follow this dependency direction:
 
 ```text
 schemas/db + schemas/form
@@ -73,15 +73,14 @@ schemas/db + schemas/form
  routes and components
 ```
 
-The clearest examples are under `app/features/learners`, `app/features/goals`,
-`app/features/activities`, and `app/features/schedules`. Route configuration lives in
-`app/routes.ts`; shared UI primitives live in `app/components/ui`; source translations live in
-`messages/`.
+The clearest examples are under `app/features/posts`, `app/features/categories`, and
+`app/features/tags`. Route configuration lives in `app/routes.ts`; shared UI primitives live in
+`app/components/ui`; source translations live in `messages/`.
 
 The application has three main route trees:
 
 - public and authentication pages under the optional locale prefix
-- authenticated learner workflows under `/track-app`
+- authenticated account pages under `/account`
 - administrator workflows under `/admin`
 
 Every route under `/api` declares its access level on the server; the audit table and the rules for
