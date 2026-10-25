@@ -25,6 +25,10 @@ export const Config: AdminConfig = {
       hide: isNotAdmin,
     },
     {
+      slug: 'roles',
+      icon: LucideReact.ShieldCheck,
+    },
+    {
       slug: 'media',
       icon: LucideReact.Images,
       hide: isNotAdmin,

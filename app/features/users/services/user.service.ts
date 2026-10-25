@@ -4,10 +4,15 @@ import { recordTermsAcceptanceService } from '~/features/privacy/services/terms.
 import * as roleQueries from '~/features/roles/queries'
 import { RoleNotFoundError } from '~/features/roles/types/errors'
 import { auth } from '~/lib/auth'
+
+import * as roleQueries from '~/features/roles/queries'
+import { RoleNotFoundError } from '~/features/roles/types/errors'
+import { auth } from '~/lib/auth'
 import type { PaginateDocs } from '~/types/pagination'
 import * as userQueries from '../queries'
 import type { TCreateUser, TRegisterUser, TUpdateUser } from '../schemas/form/user-schema'
 import type { UserWithRole } from '../types'
+
 import {
   CaptchaVerificationError,
   EmailAlreadyExistsError,
@@ -57,6 +62,7 @@ export async function register(
   data: TRegisterUser,
   captchaResponse?: string,
   locale: TEmailLocale = 'en',
+
 ): Promise<{ userId: string; setCookie: string | null }> {
   const { name, email, password } = data
   const headers = withEmailLocale(undefined, locale)

@@ -21,6 +21,7 @@ import type { UserWithRole } from '../../types'
 
 type ChangeUserRoleDialogProps = {
   user: UserWithRole | null
+
   roles: TRole[]
   onOpenChange: (open: boolean) => void
   onSubmit: (roleId: string) => void
@@ -36,6 +37,7 @@ export function ChangeUserRoleDialog({
 
   useEffect(() => {
     setRoleId(user?.role?.id ?? '')
+
   }, [user])
 
   return (

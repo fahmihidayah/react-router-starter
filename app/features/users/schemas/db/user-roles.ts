@@ -3,11 +3,13 @@ import { roles } from '~/features/roles/schemas/db/roles'
 import { users } from './users'
 
 // A role can belong to many users, while each user has exactly one app role assignment.
+
 export const userRoles = pgTable(
   'user_roles',
   {
     userId: text('userId')
       .primaryKey()
+
       .references(() => users.id, {
         onDelete: 'cascade',
       }),

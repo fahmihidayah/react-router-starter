@@ -10,6 +10,7 @@ import {
   TablePagination,
 } from '~/features/admin/components/table/table-list'
 import { enforceRoutePermissions, PERMISSION_KEYS } from '~/features/permissions'
+
 import { getAllRolesLoader } from '~/features/roles/loaders/get-all-roles-loader'
 import { deleteManyUsersAction } from '~/features/users/actions/delete-many-user-action'
 import { deleteUserAction } from '~/features/users/actions/delete-user-action'
@@ -17,6 +18,7 @@ import { updateUserRoleAction } from '~/features/users/actions/update-user-role-
 import { ChangeUserRoleDialog } from '~/features/users/components/admin/change-user-role-dialog'
 import { getUsersLoader } from '~/features/users/loaders/get-users-loader'
 import type { UserWithRole } from '~/features/users/types'
+
 import type { Route } from './+types/users._index'
 
 export const middleware: Route.MiddlewareFunction[] = [
@@ -88,6 +90,7 @@ export default function DashboardUsersPage() {
   const [deletingMultiple, setDeletingMultiple] = useState<UserWithRole[]>([])
   const [changingRoleFor, setChangingRoleFor] = useState<UserWithRole | null>(null)
 
+
   useEffect(() => {
     if (!actionData) return
 
@@ -102,6 +105,7 @@ export default function DashboardUsersPage() {
   const columns = useMemo(
     () =>
       createColumn<UserWithRole>({
+
         tableName: 'users',
 
         columnConfig: [
@@ -132,6 +136,7 @@ export default function DashboardUsersPage() {
             fallback: 'No role',
             isBold: false,
             format: (assignedRole) => (assignedRole as UserWithRole['role'])?.name ?? 'No role',
+
           },
           {
             type: 'date',
@@ -192,6 +197,7 @@ export default function DashboardUsersPage() {
 
   // Handle selected rows for bulk delete
   const handleDeleteSelected = (selectedUsers: UserWithRole[]) => {
+
     setDeletingMultiple(selectedUsers)
   }
 

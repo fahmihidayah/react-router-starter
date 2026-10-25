@@ -20,6 +20,7 @@ export async function create(data: TCreateRole): Promise<string> {
   if (!key) throw new InvalidRoleDataError('Role name must contain letters or numbers')
 
   if ((await roleQueries.findByName(data.name)) || (await roleQueries.findByKey(key))) {
+
     throw new RoleAlreadyExistsError()
   }
 
@@ -29,6 +30,7 @@ export async function create(data: TCreateRole): Promise<string> {
     key,
     ...data,
     isSystem: false,
+
     createdAt: now,
     updatedAt: now,
   })

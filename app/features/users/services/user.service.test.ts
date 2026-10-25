@@ -10,6 +10,9 @@ vi.mock('~/lib/auth', () => ({ auth: { api: { createUser, signUpEmail } } }))
 vi.mock('../queries', () => ({
   countAdmin: vi.fn(),
   assignRoleByKey: vi.fn(),
+  assignRoleByName: vi.fn(),
+  assignRole: vi.fn(),
+
   assignRole: vi.fn(),
   findPaginated: vi.fn(),
   findById: vi.fn(),
