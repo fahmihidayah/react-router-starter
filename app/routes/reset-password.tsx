@@ -93,20 +93,10 @@ export default function ResetPassword() {
   const actionData = useActionData<TResetPasswordActionData>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
-  const shellProps = {
-    eyebrow: m.forgot_password_info_eyebrow(),
-    infoTitle: m.forgot_password_info_title(),
-    infoDescription: m.forgot_password_info_description(),
-    highlights: [
-      m.forgot_password_info_highlight_1(),
-      m.forgot_password_info_highlight_2(),
-      m.forgot_password_info_highlight_3(),
-    ],
-  }
 
   if (invalid || !token) {
     return (
-      <AuthShell {...shellProps}>
+      <AuthShell>
         <AuthCard
           title={m.reset_password_link_invalid_title()}
           description={m.reset_password_link_invalid_description()}
@@ -123,7 +113,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <AuthShell {...shellProps}>
+    <AuthShell>
       <AuthCard title={m.reset_password_title()} description={m.reset_password_description()}>
         <Form method="post" className="space-y-5">
           <input type="hidden" name="token" value={token} />

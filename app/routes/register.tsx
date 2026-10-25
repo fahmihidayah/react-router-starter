@@ -135,16 +135,7 @@ export default function Register({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <AuthShell
-      eyebrow={m.register_info_eyebrow()}
-      infoTitle={m.register_info_title()}
-      infoDescription={m.register_info_description()}
-      highlights={[
-        m.register_info_highlight_1(),
-        m.register_info_highlight_2(),
-        m.register_info_highlight_3(),
-      ]}
-    >
+    <AuthShell>
       <AuthCard
         title={m.register_title()}
         description={m.register_description()}

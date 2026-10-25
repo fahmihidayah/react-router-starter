@@ -57,16 +57,7 @@ export default function VerifyEmail({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation()
 
   return (
-    <AuthShell
-      eyebrow={m.verification_info_eyebrow()}
-      infoTitle={m.verification_info_title()}
-      infoDescription={m.verification_info_description()}
-      highlights={[
-        m.verification_info_highlight_1(),
-        m.verification_info_highlight_2(),
-        m.verification_info_highlight_3(),
-      ]}
-    >
+    <AuthShell>
       <EmailVerificationCard
         state={loaderData.state}
         email={loaderData.email}

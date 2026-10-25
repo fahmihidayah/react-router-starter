@@ -171,16 +171,7 @@ export default function Login({ loaderData }: Route.ComponentProps) {
   const isBusy = isLoading || isGoogleLoading
 
   return (
-    <AuthShell
-      eyebrow={m.login_info_eyebrow()}
-      infoTitle={m.login_info_title()}
-      infoDescription={m.login_info_description()}
-      highlights={[
-        m.login_info_highlight_1(),
-        m.login_info_highlight_2(),
-        m.login_info_highlight_3(),
-      ]}
-    >
+    <AuthShell>
       <AuthCard
         title={m.login_title()}
         description={m.login_description()}

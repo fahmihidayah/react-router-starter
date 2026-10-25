@@ -1,34 +1,12 @@
-import {
-  AudienceStrip,
-  CtaSection,
-  FaqSection,
-  FeatureShowcaseSection,
-  HeroSection,
-  HowItWorksSection,
-  ProgressStorySection,
-} from '~/features/page/components/landing'
-import * as m from '~/paraglide/messages.js'
+import { LandingPage } from '~/features/page/components/landing'
 
 export function meta() {
   return [
-    { title: m.landing_meta_title() },
-    {
-      name: 'description',
-      content: m.landing_meta_description(),
-    },
+    { title: 'Starter — Full-stack starter template' },
+    { name: 'description', content: 'A production-ready starter for full-stack web applications.' },
   ]
 }
 
-export default function LandingPage() {
-  return (
-    <div className="flex flex-col">
-      <HeroSection />
-      <AudienceStrip />
-      <FeatureShowcaseSection />
-      <HowItWorksSection />
-      <ProgressStorySection />
-      <FaqSection />
-      <CtaSection />
-    </div>
-  )
+export default function LandingIndexPage() {
+  return <LandingPage />
 }

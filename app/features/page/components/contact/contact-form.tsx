@@ -6,7 +6,7 @@ import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import * as m from '~/paraglide/messages.js'
 
-const CONTACT_EMAIL = 'hello@learningtracker.app'
+const CONTACT_EMAIL = 'hello@example.com'
 
 export function ContactForm() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {

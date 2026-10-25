@@ -28,10 +28,10 @@ export function ContactPageContent() {
                   {m.contact_email_label()}
                 </p>
                 <a
-                  href="mailto:hello@learningtracker.app"
+                  href="mailto:hello@example.com"
                   className="mt-1 block break-all text-sm font-semibold hover:underline"
                 >
-                  hello@learningtracker.app
+                  hello@example.com
                 </a>
               </div>
             </div>

@@ -1,5 +1,5 @@
+import { Rocket } from 'lucide-react'
 import { Link } from 'react-router'
-import * as m from '~/paraglide/messages.js'
 
 interface BrandProps {
   compact?: boolean
@@ -7,28 +7,17 @@ interface BrandProps {
 
 export function Brand({ compact = false }: BrandProps) {
   return (
-    <Link
-      to="/"
-      className="flex shrink-0 items-center gap-3 transition-opacity hover:opacity-80"
-      aria-label={m.landing_brand_name()}
-    >
-      <img
-        src="/favicon.webp"
-        alt=""
-        aria-hidden="true"
-        className={`shrink-0 rounded-xl ${compact ? 'size-[34px]' : 'size-[42px]'}`}
-      />
-      <span className="flex flex-col gap-0.5 leading-none">
+    <Link to="/" className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80">
+      <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <Rocket className="size-5" aria-hidden="true" />
+      </span>
+      <span className="flex flex-col leading-none">
         <span
-          className={`font-extrabold tracking-[-0.6px] text-[#17233E] ${
-            compact ? 'text-[17px]' : 'text-[21px]'
-          }`}
+          className={`font-bold tracking-tight text-foreground ${compact ? 'text-base' : 'text-lg'}`}
         >
-          {m.landing_brand_name()}
+          Starter
         </span>
-        <span className="text-[11px] leading-none text-[#6C768B]">
-          {m.landing_brand_endorsement()}
-        </span>
+        <span className="text-[11px] text-muted-foreground">Full-stack boilerplate</span>
       </span>
     </Link>
   )

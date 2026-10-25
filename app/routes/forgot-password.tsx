@@ -32,16 +32,7 @@ export default function ForgotPassword() {
   const isSubmitting = navigation.state === 'submitting'
 
   return (
-    <AuthShell
-      eyebrow={m.forgot_password_info_eyebrow()}
-      infoTitle={m.forgot_password_info_title()}
-      infoDescription={m.forgot_password_info_description()}
-      highlights={[
-        m.forgot_password_info_highlight_1(),
-        m.forgot_password_info_highlight_2(),
-        m.forgot_password_info_highlight_3(),
-      ]}
-    >
+    <AuthShell>
       <AuthCard
         title={m.forgot_password_title()}
         description={m.forgot_password_description()}
