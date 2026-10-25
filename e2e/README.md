@@ -32,7 +32,7 @@ e2e/
 
 1. Install Playwright browsers:
    ```bash
-   pnpm exec playwright install
+   bunx playwright install
    ```
 
 2. Ensure the application is running or will be started automatically (configured in `playwright.config.ts`)
@@ -41,24 +41,24 @@ e2e/
 
 ```bash
 # Run all E2E tests
-pnpm test:e2e
+bun run test:e2e
 
 # Run tests with UI mode (interactive)
-pnpm test:e2e:ui
+bun run test:e2e:ui
 
 # Run tests in debug mode
-pnpm test:e2e:debug
+bun run test:e2e:debug
 
 # Run specific test file
-pnpm exec playwright test e2e/auth/login-logout.spec.ts
+bunx playwright test e2e/auth/login-logout.spec.ts
 ```
 
 ### Test Scripts
 
-- `pnpm test:e2e` - Run all E2E tests in headless mode
-- `pnpm test:e2e:ui` - Open Playwright UI for interactive testing
-- `pnpm test:e2e:debug` - Run tests in debug mode with browser visible
-- `pnpm test:e2e:codegen` - Generate test code by recording browser interactions
+- `bun run test:e2e` - Run all E2E tests in headless mode
+- `bun run test:e2e:ui` - Open Playwright UI for interactive testing
+- `bun run test:e2e:debug` - Run tests in debug mode with browser visible
+- `bun run test:e2e:codegen` - Generate test code by recording browser interactions
 
 ## Test Coverage
 
@@ -200,7 +200,7 @@ E2E tests are configured in `playwright.config.ts`:
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   webServer: {
-    command: 'pnpm dev',
+    command: 'bun run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
   },

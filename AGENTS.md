@@ -11,7 +11,7 @@ scaffold.
 
 ## Project baseline
 
-- Use `pnpm` and Node.js 20.19 or newer.
+- Use `bun` and Node.js 20.19 or newer.
 - The application is React Router 7 with SSR, React 19, TypeScript, Vite, and Biome.
 - Persistence is PostgreSQL through Drizzle ORM and `postgres-js`. Do not introduce SQLite or
   `better-sqlite3` patterns.
@@ -143,7 +143,7 @@ schemas/db + schemas/form
 
 - RabbitMQ is the message queue. The generic publisher lives in `app/features/queue` and exposes
   `enqueue(queue, payload, options)`.
-- Consumers run from `worker/` and are built with `pnpm worker:build`. The email worker is the
+- Consumers run from `worker/` and are built with `bun run worker:build`. The email worker is the
   reference consumer; add new workers there or alongside it.
 - Configure `RABBITMQ_URL`, `RABBITMQ_PREFETCH`, and `RABBITMQ_REQUEUE_ON_FAILURE` for the worker.
 - Jobs must be idempotent: a job may be delivered more than once.
@@ -181,7 +181,7 @@ schemas/db + schemas/form
 ## Database changes
 
 - Use PostgreSQL APIs from `drizzle-orm/pg-core`.
-- Update feature schemas first, then generate a migration with `pnpm db:generate`.
+- Update feature schemas first, then generate a migration with `bun run db:generate`.
 - Review generated SQL in `drizzle/` before applying it. Preserve data deliberately for destructive
   or non-null changes.
 - Do not run `db:push`, `db:drop`, `db:reset`, migrations, restores, or seeds against an unknown or
@@ -198,11 +198,11 @@ schemas/db + schemas/form
   rollback/cleanup behavior, and the main success path.
 - E2E tests live in `e2e/` and run with Playwright.
 - Run the smallest relevant checks first:
-  - `pnpm exec vitest run <affected-test-files>`
-  - `pnpm test` for the full unit/integration suite
-  - `pnpm test:e2e` for Playwright
-  - `pnpm typecheck`
-  - `pnpm check`
-  - `pnpm build` when routing, bundling, SSR, worker, or deployment behavior changes
+  - `bunx vitest run <affected-test-files>`
+  - `bun run test` for the full unit/integration suite
+  - `bun run test:e2e` for Playwright
+  - `bun run typecheck`
+  - `bun run check`
+  - `bun run build` when routing, bundling, SSR, worker, or deployment behavior changes
 - Fix failures caused by the requested change. Report unrelated pre-existing failures instead of
   silently broadening the task.

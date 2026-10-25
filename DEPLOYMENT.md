@@ -374,7 +374,7 @@ docker compose restart app
 ### Database Backup
 ```bash
 # Run from VPS
-docker compose exec -T app pnpm db:backup
+docker compose exec -T app bun run db:backup
 ```
 
 ## Security Checklist

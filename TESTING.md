@@ -8,16 +8,16 @@ This document provides a quick start guide for running tests in the Learning Tra
 
 ```bash
 # Run all unit tests
-pnpm test
+bun run test
 
 # Run tests in watch mode
-pnpm test:watch
+bun run test:watch
 
 # Run with coverage report
-pnpm test:coverage
+bun run test:coverage
 
 # Run specific feature tests
-pnpm exec vitest run app/features/users
+bunx vitest run app/features/users
 ```
 
 **Current Status:** ✅ 92 passing / 4 failing (minor issues)
@@ -26,19 +26,19 @@ pnpm exec vitest run app/features/users
 
 ```bash
 # First time setup - install browsers
-pnpm exec playwright install
+bunx playwright install
 
 # Run all E2E tests
-pnpm test:e2e
+bun run test:e2e
 
 # Run with interactive UI (recommended)
-pnpm test:e2e:ui
+bun run test:e2e:ui
 
 # Debug mode
-pnpm test:e2e:debug
+bun run test:e2e:debug
 
 # Generate new tests by recording
-pnpm test:e2e:codegen
+bun run test:e2e:codegen
 ```
 
 **Current Status:** ✅ 34 E2E tests implemented (5 test files)
@@ -121,21 +121,21 @@ The project uses Vitest with V8 coverage provider. Coverage thresholds are enfor
 
 ```bash
 # Generate coverage report
-pnpm test:coverage
+bun run test:coverage
 
 # Watch mode with coverage
-pnpm test:coverage:watch
+bun run test:coverage:watch
 
 # Interactive UI with coverage
-pnpm test:coverage:ui
+bun run test:coverage:ui
 
 # Coverage for specific feature
-pnpm test:coverage:users
+bun run test:coverage:users
 ```
 
 ### Coverage Reports
 
-After running `pnpm test:coverage`, reports are generated in the `coverage/` directory:
+After running `bun run test:coverage`, reports are generated in the `coverage/` directory:
 
 - **HTML Report:** `coverage/index.html` - Open in browser for interactive view
 - **LCOV Report:** `coverage/lcov.info` - For CI/IDE integration
@@ -180,7 +180,7 @@ Focus areas for improvement:
 To improve coverage for a specific area:
 ```bash
 # Check current coverage for users feature
-pnpm test:coverage:users
+bun run test:coverage:users
 
 # Write tests for uncovered files
 # Run coverage again to verify improvement
@@ -190,25 +190,25 @@ pnpm test:coverage:users
 
 ```bash
 # Unit Tests
-pnpm test                              # Run all unit tests
-pnpm test:watch                        # Watch mode
-pnpm test:coverage                     # With coverage report
-pnpm test:coverage:ui                  # Interactive coverage UI
-pnpm test:coverage:watch               # Watch mode with coverage
-pnpm test:coverage:users               # Coverage for users feature
+bun run test                              # Run all unit tests
+bun run test:watch                        # Watch mode
+bun run test:coverage                     # With coverage report
+bun run test:coverage:ui                  # Interactive coverage UI
+bun run test:coverage:watch               # Watch mode with coverage
+bun run test:coverage:users               # Coverage for users feature
 
 # E2E Tests
-pnpm test:e2e                          # Run all E2E tests
-pnpm test:e2e:ui                       # Interactive mode
-pnpm test:e2e:debug                    # Debug mode
-pnpm exec playwright test e2e/auth/    # Run specific directory
+bun run test:e2e                          # Run all E2E tests
+bun run test:e2e:ui                       # Interactive mode
+bun run test:e2e:debug                    # Debug mode
+bunx playwright test e2e/auth/    # Run specific directory
 
 # Type Checking
-pnpm typecheck                         # Type check all files
+bun run typecheck                         # Type check all files
 
 # Linting & Formatting
-pnpm check                             # Check code style
-pnpm check:fix                         # Fix code style issues
+bun run check                             # Check code style
+bun run check:fix                         # Fix code style issues
 ```
 
 ## Troubleshooting

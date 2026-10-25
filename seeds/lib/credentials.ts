@@ -41,7 +41,7 @@ function looksLikeEmail(value: string): boolean {
 }
 
 /**
- * Reads the administrator credentials used by `pnpm db:bootstrap-admin` from the environment.
+ * Reads the administrator credentials used by `bun run db:bootstrap-admin` from the environment.
  * The function never prints or logs its inputs and only reports which variable is invalid.
  */
 export function resolveBootstrapAdminCredentials(
@@ -52,7 +52,7 @@ export function resolveBootstrapAdminCredentials(
   const password = environment.ADMIN_PASSWORD
   const name = environment.ADMIN_NAME?.trim() || DEFAULT_ADMIN_NAME
   const setupHint =
-    'Set ADMIN_EMAIL and ADMIN_PASSWORD for this command only, then run `pnpm db:bootstrap-admin`.'
+    'Set ADMIN_EMAIL and ADMIN_PASSWORD for this command only, then run `bun run db:bootstrap-admin`.'
 
   if (!email) throw new BootstrapCredentialError(`ADMIN_EMAIL is required. ${setupHint}`)
   if (!looksLikeEmail(email)) {

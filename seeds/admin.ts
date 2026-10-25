@@ -51,7 +51,7 @@ export async function seedBootstrapAdmin(
   const adminRole = await roleQueries.findByKey('admin')
 
   if (!adminRole) {
-    throw new Error('The admin role is missing. Run `pnpm db:seed` before bootstrapping an admin.')
+    throw new Error('The admin role is missing. Run `bun run db:seed` before bootstrapping an admin.')
   }
 
   const existingUser = await db.query.users.findFirst({ where: { email: credentials.email } })

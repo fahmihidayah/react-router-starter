@@ -73,9 +73,9 @@ publishes durable jobs to `EMAIL_QUEUE_NAME` (`emails` by default), and the work
 the selected SMTP or Resend provider.
 
 ```sh
-pnpm worker:dev    # TypeScript development worker; loads .env
-pnpm build         # Builds both the web app and worker
-pnpm worker:start  # Runs build/worker/email.worker.js
+bun run worker:dev    # TypeScript development worker; loads .env
+bun run build         # Builds both the web app and worker
+bun run worker:start  # Runs build/worker/email.worker.js
 ```
 
 The worker processes up to `RABBITMQ_PREFETCH` jobs concurrently. Invalid jobs are discarded.

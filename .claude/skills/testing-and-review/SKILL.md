@@ -14,7 +14,7 @@ Read `../../../AGENTS.md` first.
 - Use `// @vitest-environment jsdom` only for tests that need the DOM.
 - Cover the main success path plus validation, auth/ownership, absence, and rollback cases that the
   change can affect.
-- Run the smallest focused Vitest command first, then `pnpm typecheck`, `pnpm check`, and `pnpm build`
+- Run the smallest focused Vitest command first, then `bun run typecheck`, `bun run check`, and `bun run build`
   when routing, SSR, bundling, worker, or deployment behavior changed.
 - Report findings with exact file/line evidence and distinguish newly introduced failures from
   unrelated baseline issues.

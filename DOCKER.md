@@ -9,7 +9,7 @@ The Dockerfile uses a 5-stage build process optimized for React Router:
 ```
 ┌─────────────────────────────────────────────────┐
 │ Stage 1: Base                                   │
-│ - Install pnpm via corepack                     │
+│ - Use the oven/bun base image                      │
 │ - Copy package files                            │
 └─────────────────────────────────────────────────┘
                     ↓
@@ -25,7 +25,7 @@ The Dockerfile uses a 5-stage build process optimized for React Router:
 ┌─────────────────────────────┐│
 │ Stage 4: Build              ││
 │ - Copy source code          ││
-│ - Run pnpm build            ││
+│ - Run bun run build            ││
 └─────────────────────────────┘│
         │                       │
         ↓                       ↓
@@ -149,17 +149,16 @@ docker build --target build -t react-router-app:dev .
 docker build --target runner -t react-router-app:prod .
 ```
 
-### Build with specific pnpm version
+### Pin the bun version
 
-```bash
-docker build --build-arg PNPM_VERSION=8.15.0 -t react-router-app .
-```
+The base image is pinned in the `Dockerfile` (`FROM oven/bun:1.4-alpine`). Change that line to a
+different tag and rebuild.
 
 ## 📊 Image Size Optimization
 
 The multi-stage build ensures minimal final image size:
 
-- **Base image**: node:20-alpine (~50MB)
+- **Base image**: oven/bun:1.4-alpine
 - **Production dependencies**: Only what's needed to run
 - **No devDependencies**: Build tools excluded
 - **No source code**: Only built output included
@@ -307,28 +306,28 @@ jobs:
       - name: Build Docker image
         run: docker build -t react-router-app .
       - name: Run tests in container
-        run: docker run react-router-app pnpm test
+        run: docker run react-router-app bun run test
 ```
 
 ## 📚 Additional Resources
 
 - [Docker Documentation](https://docs.docker.com/)
 - [React Router Deployment](https://reactrouter.com/en/main/guides/deployment)
-- [pnpm in Docker](https://pnpm.io/docker)
+- [bun in Docker](https://bun.sh/guides/ecosystem/docker)
 - [Multi-stage builds](https://docs.docker.com/build/building/multi-stage/)
 
 ## ⚡ Performance Tips
 
 1. **Layer caching**: Package files are copied before source code
-2. **pnpm**: Faster installs with hard links
+2. **bun**: Fast installs with a single binary
 3. **Alpine Linux**: Smaller image size
 4. **.dockerignore**: Excludes unnecessary files
 5. **Multi-stage**: Only production artifacts in final image
 
 ## 🎓 Best Practices
 
-- ✅ Use specific Node version (node:20-alpine)
-- ✅ Enable corepack for pnpm
+- ✅ Use the oven/bun Alpine base image
+- ✅ Pin the bun version in the Dockerfile
 - ✅ Separate build and production dependencies
 - ✅ Run as non-root user
 - ✅ Include health checks

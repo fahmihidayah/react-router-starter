@@ -41,39 +41,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: latest
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Type check
-        run: pnpm typecheck
+        run: bun run typecheck
 
       - name: Lint & Format check
-        run: pnpm biome:ci
+        run: bun run biome:ci
 
       - name: Validate database schema
-        run: pnpm db:validate
+        run: bun run db:validate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/learning_tracker_test
 
       - name: Run unit tests with coverage
-        run: pnpm test:coverage
+        run: bun run test:coverage
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/learning_tracker_test
           NODE_ENV: test
 
       - name: Build application
-        run: pnpm build
+        run: bun run build
         env:
           # Minimal env for build verification
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/learning_tracker_test
@@ -130,23 +124,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: latest
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Get Playwright version
         id: playwright-version
-        run: echo "version=$(pnpm list @playwright/test --depth=0 --json | jq -r '.[0].devDependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+        run: echo "version=$(jq -r '.devDependencies["@playwright/test"]' package.json)" >> $GITHUB_OUTPUT
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -159,22 +147,22 @@ jobs:
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium
 
       - name: Install Playwright dependencies only
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+        run: bunx playwright install-deps chromium
 
       - name: Setup test database
         run: |
-          pnpm db:push
+          bun run db:push
           # TODO: Create test users (admin@test.local, user@test.local)
-          # pnpm db:seed:test
+          # bun run db:seed:test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/learning_tracker_test
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: bun run test:e2e
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/learning_tracker_test
           E2E_BASE_URL: http://localhost:5173

@@ -18,7 +18,7 @@ code instead of an empty scaffold.
 ## Requirements
 
 - Node.js 20.19 or newer
-- pnpm
+- bun
 - PostgreSQL
 
 ## Quick start
@@ -26,7 +26,7 @@ code instead of an empty scaffold.
 1. Install dependencies and create your environment file:
 
    ```bash
-   pnpm install
+   bun install
    cp .env.example .env
    ```
 
@@ -36,51 +36,71 @@ code instead of an empty scaffold.
 3. Prepare the database and create an admin:
 
    ```bash
-   pnpm db:push
-   pnpm db:seed:local
+   bun run db:push
+   bun run db:seed:local
    ```
 
    ```bash
    ADMIN_EMAIL=you@example.com \
    ADMIN_PASSWORD='a-long-unique-passphrase' \
-   pnpm db:bootstrap-admin
+   bun run db:bootstrap-admin
    ```
 
 4. Start the development server:
 
    ```bash
-   pnpm dev
+   bun run dev
    ```
 
 The app runs at `http://localhost:5173` by default.
+
+## Docker
+
+A multi-stage [`Dockerfile`](./Dockerfile) and [`docker-compose.yml`](./docker-compose.yml) are
+included. Compose defines three services:
+
+- `app` — the React Router server (built with Bun in an `oven/bun` image)
+- `db` — PostgreSQL 16 with a persistent volume
+- `migrate` — one-off migration runner (enabled with the `tools` profile)
+
+```bash
+docker compose up -d db                           # start the database
+docker compose up -d app                          # start the app (reads .env)
+
+docker compose build                              # build the app image
+docker compose --profile tools run --rm migrate   # apply migrations
+```
+
+The app serves on `PORT` (default `3000`) and keeps media uploads in a named `media-uploads`
+volume. See [`DOCKER.md`](./DOCKER.md) for the full guide.
 
 ## Common commands
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` | Start the development server |
-| `pnpm build` | Build the app and background worker |
-| `pnpm start` | Serve the production build |
-| `pnpm typecheck` | Generate route types and run TypeScript |
-| `pnpm test` | Run all tests once |
-| `pnpm test:watch` | Run tests in watch mode |
-| `pnpm test:e2e` | Run Playwright end-to-end tests |
-| `pnpm check` | Run Biome checks |
-| `pnpm check:fix` | Apply safe Biome formatting and fixes |
-| `pnpm lint` | Run the linter |
+| `bun run dev` | Start the development server |
+| `bun run build` | Build the app and background worker |
+| `bun run start` | Serve the production build |
+| `bun run typecheck` | Generate route types and run TypeScript |
+| `bun run test` | Run all tests once |
+| `bun run test:watch` | Run tests in watch mode |
+| `bun run test:e2e` | Run Playwright end-to-end tests |
+| `bun run check` | Run Biome checks |
+| `bun run check:fix` | Apply safe Biome formatting and fixes |
+| `bun run lint` | Run the linter |
 
 ### Database
 
 | Command | Description |
 | --- | --- |
-| `pnpm db:push` | Push the schema (good for disposable local DBs) |
-| `pnpm db:generate` | Generate a migration from schema changes |
-| `pnpm db:migrate` | Apply migrations |
-| `pnpm db:seed` | Sync roles and permissions (production-safe) |
-| `pnpm db:seed:local` | Seed local development data |
-| `pnpm db:seed:demo` | Add sample records |
-| `pnpm db:bootstrap-admin` | Create or rotate an admin from env credentials |
-| `pnpm db:studio` | Open Drizzle Studio |
+| `bun run db:push` | Push the schema (good for disposable local DBs) |
+| `bun run db:generate` | Generate a migration from schema changes |
+| `bun run db:migrate` | Apply migrations |
+| `bun run db:seed` | Sync roles and permissions (production-safe) |
+| `bun run db:seed:local` | Seed local development data |
+| `bun run db:seed:demo` | Add sample records |
+| `bun run db:bootstrap-admin` | Create or rotate an admin from env credentials |
+| `bun run db:studio` | Open Drizzle Studio |
 
 > Database reset, restore, migration, and seed commands target `DATABASE_URL`. Always confirm the
 > target before running destructive commands against an unknown or production database.

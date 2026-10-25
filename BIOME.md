@@ -40,22 +40,22 @@ That's it! Now when you save a file (Cmd+S), it will automatically:
 
 ```bash
 # Lint all files
-pnpm lint
+bun run lint
 
 # Lint and auto-fix
-pnpm lint:fix
+bun run lint:fix
 
 # Format all files
-pnpm format
+bun run format
 
 # Check (lint + format)
-pnpm check
+bun run check
 
 # Check and fix everything
-pnpm check:fix
+bun run check:fix
 
 # CI check (fails on issues)
-pnpm biome:ci
+bun run biome:ci
 ```
 
 ## ⚙️ Configuration
@@ -162,17 +162,17 @@ These are automatically ignored (configured in `biome.json`):
 
 ### Format a specific file
 ```bash
-pnpm biome format --write path/to/file.ts
+bunx biome format --write path/to/file.ts
 ```
 
 ### Lint a specific directory
 ```bash
-pnpm biome lint app/
+bunx biome lint app/
 ```
 
 ### Check a single file
 ```bash
-pnpm biome check path/to/file.ts
+bunx biome check path/to/file.ts
 ```
 
 ## ⌨️ Keyboard Shortcuts
@@ -218,7 +218,7 @@ Disable them in `.vscode/settings.json`:
 
 Run:
 ```bash
-pnpm install
+bun install
 ```
 
 ## 📊 Performance Comparison
@@ -242,18 +242,18 @@ Biome is significantly faster! ⚡
 
 1. **Use `check:fix` for quick cleanup**:
    ```bash
-   pnpm check:fix
+   bun run check:fix
    ```
 
 2. **Run in CI**:
    ```bash
-   pnpm biome:ci
+   bun run biome:ci
    ```
 
 3. **Format before committing**:
    Add to your git hooks:
    ```bash
-   pnpm format
+   bun run format
    ```
 
 4. **VSCode Command Palette**:

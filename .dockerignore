@@ -6,7 +6,6 @@ dist
 
 # Dependencies
 node_modules
-.pnpm-store
 
 # Environment files
 .env
@@ -17,7 +16,7 @@ node_modules
 logs
 *.log
 npm-debug.log*
-pnpm-debug.log*
+bun-debug.log*
 yarn-debug.log*
 
 # Testing
