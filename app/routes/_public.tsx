@@ -23,7 +23,7 @@ export default function Home({ loaderData }: { loaderData: Awaited<ReturnType<ty
   const data = loaderData
 
   return (
-    <div className="flex min-h-screen flex-col bg-white font-sans text-[#17233E]">
+    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
       <LandingHeader user={data?.user} />
       <main className="flex-1">
         <Outlet />

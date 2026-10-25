@@ -17,7 +17,7 @@ export function PrivacyPageContent() {
   ]
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <PublicPageHero
         icon={Shield}
         eyebrow={m.privacy_eyebrow()}
@@ -26,10 +26,10 @@ export function PrivacyPageContent() {
       />
 
       <div className="mx-auto max-w-[900px] px-5 py-12 lg:px-8 lg:py-20">
-        <div className="rounded-2xl border border-[#DFE5EF] bg-[#F8FAFD] px-5 py-4 text-sm text-[#5F6D83]">
-          <span className="font-bold text-[#2A3854]">{m.privacy_last_updated_label()}</span>{' '}
+        <div className="rounded-2xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
+          <span className="font-bold text-foreground">{m.privacy_last_updated_label()}</span>{' '}
           {m.privacy_last_updated_date()} •{' '}
-          <span className="font-bold text-[#2A3854]">{m.privacy_version_label()}</span>{' '}
+          <span className="font-bold text-foreground">{m.privacy_version_label()}</span>{' '}
           {m.privacy_version()}
         </div>
 
@@ -43,7 +43,7 @@ export function PrivacyPageContent() {
           ))}
         </div>
 
-        <p className="mt-8 rounded-2xl bg-[#EEF0FF] px-6 py-5 text-sm leading-7 text-[#485574]">
+        <p className="mt-8 rounded-2xl bg-primary-soft px-6 py-5 text-sm leading-7 text-muted-foreground">
           {m.privacy_contact_note()}
         </p>
       </div>

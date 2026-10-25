@@ -5,7 +5,7 @@ import { ContactForm } from './contact-form'
 
 export function ContactPageContent() {
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <PublicPageHero
         icon={MessageCircleMore}
         eyebrow={m.contact_eyebrow()}
@@ -14,17 +14,19 @@ export function ContactPageContent() {
       />
 
       <section className="mx-auto grid max-w-[1120px] gap-8 px-5 py-14 lg:grid-cols-[0.7fr_1.3fr] lg:gap-14 lg:px-8 lg:py-20">
-        <aside className="rounded-2xl bg-[#202B56] p-7 text-white sm:p-8">
+        <aside className="rounded-2xl bg-foreground p-7 text-background sm:p-8">
           <h2 className="text-2xl font-extrabold">{m.contact_details_title()}</h2>
-          <p className="mt-3 text-sm leading-7 text-[#D9DDF1]">{m.contact_details_description()}</p>
+          <p className="mt-3 text-sm leading-7 text-background/70">
+            {m.contact_details_description()}
+          </p>
 
           <div className="mt-8 space-y-6">
             <div className="flex gap-4">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#72E7D1]">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background/10 text-brand-mint">
                 <Mail className="size-5" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-xs font-bold tracking-wide text-[#BFC6E5]">
+                <p className="text-xs font-bold tracking-wide text-background/60">
                   {m.contact_email_label()}
                 </p>
                 <a
@@ -37,11 +39,11 @@ export function ContactPageContent() {
             </div>
 
             <div className="flex gap-4">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#72E7D1]">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background/10 text-brand-mint">
                 <Clock3 className="size-5" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-xs font-bold tracking-wide text-[#BFC6E5]">
+                <p className="text-xs font-bold tracking-wide text-background/60">
                   {m.contact_response_title()}
                 </p>
                 <p className="mt-1 text-sm font-semibold">{m.contact_response_value()}</p>
@@ -50,9 +52,9 @@ export function ContactPageContent() {
           </div>
         </aside>
 
-        <div className="rounded-2xl border border-[#E0E5EF] bg-[#F8FAFD] p-6 sm:p-8">
-          <h2 className="text-2xl font-extrabold text-[#22314D]">{m.contact_form_title()}</h2>
-          <p className="mt-3 mb-7 text-sm leading-7 text-[#68758B]">
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <h2 className="text-2xl font-extrabold text-foreground">{m.contact_form_title()}</h2>
+          <p className="mt-3 mb-7 text-sm leading-7 text-muted-foreground">
             {m.contact_form_description()}
           </p>
           <ContactForm />

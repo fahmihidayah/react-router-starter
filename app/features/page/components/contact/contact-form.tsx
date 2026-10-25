@@ -29,7 +29,7 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="contact-name" className="text-[#2A3854]">
+          <Label htmlFor="contact-name" className="text-foreground">
             {m.contact_name_label()}
           </Label>
           <Input
@@ -38,11 +38,11 @@ export function ContactForm() {
             autoComplete="name"
             placeholder={m.contact_name_placeholder()}
             required
-            className="h-11 border-[#D8DFEA] bg-white"
+            className="h-11"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contact-email" className="text-[#2A3854]">
+          <Label htmlFor="contact-email" className="text-foreground">
             {m.contact_email_label()}
           </Label>
           <Input
@@ -52,13 +52,13 @@ export function ContactForm() {
             autoComplete="email"
             placeholder={m.contact_email_placeholder()}
             required
-            className="h-11 border-[#D8DFEA] bg-white"
+            className="h-11"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="contact-phone" className="text-[#2A3854]">
+        <Label htmlFor="contact-phone" className="text-foreground">
           {m.contact_phone_label()}
         </Label>
         <Input
@@ -67,12 +67,12 @@ export function ContactForm() {
           type="tel"
           autoComplete="tel"
           placeholder={m.contact_phone_placeholder()}
-          className="h-11 border-[#D8DFEA] bg-white"
+          className="h-11"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="contact-comment" className="text-[#2A3854]">
+        <Label htmlFor="contact-comment" className="text-foreground">
           {m.contact_comment_label()}
         </Label>
         <Textarea
@@ -81,15 +81,15 @@ export function ContactForm() {
           placeholder={m.contact_comment_placeholder()}
           rows={6}
           required
-          className="resize-y border-[#D8DFEA] bg-white"
+          className="resize-y"
         />
       </div>
 
-      <p className="text-xs leading-5 text-[#7A869B]">{m.contact_form_note()}</p>
+      <p className="text-xs leading-5 text-muted-foreground">{m.contact_form_note()}</p>
 
       <Button
         type="submit"
-        className="h-12 w-full bg-[#2F39A9] font-bold hover:bg-[#252E91] sm:w-auto sm:px-7"
+        className="h-12 w-full bg-primary font-bold hover:bg-primary-hover sm:w-auto sm:px-7"
       >
         {m.contact_submit()}
         <Send className="size-4" aria-hidden="true" />

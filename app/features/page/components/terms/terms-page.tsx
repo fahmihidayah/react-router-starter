@@ -16,7 +16,7 @@ export function TermsPageContent() {
   ]
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <PublicPageHero
         icon={FileCheck2}
         eyebrow={m.terms_eyebrow()}
@@ -25,8 +25,8 @@ export function TermsPageContent() {
       />
 
       <div className="mx-auto max-w-[900px] px-5 py-12 lg:px-8 lg:py-20">
-        <div className="rounded-2xl border border-[#DFE5EF] bg-[#F8FAFD] px-5 py-4 text-sm text-[#5F6D83]">
-          <span className="font-bold text-[#2A3854]">{m.terms_last_updated_label()}</span>{' '}
+        <div className="rounded-2xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
+          <span className="font-bold text-foreground">{m.terms_last_updated_label()}</span>{' '}
           {m.terms_last_updated_date()}
         </div>
 
@@ -40,7 +40,7 @@ export function TermsPageContent() {
           ))}
         </div>
 
-        <p className="mt-8 rounded-2xl bg-[#EEF0FF] px-6 py-5 text-sm leading-7 text-[#485574]">
+        <p className="mt-8 rounded-2xl bg-primary-soft px-6 py-5 text-sm leading-7 text-muted-foreground">
           {m.terms_contact_note()}
         </p>
       </div>

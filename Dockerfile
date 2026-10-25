@@ -1,16 +1,13 @@
 # ============================================
-# Stage 1: Base - Install pnpm
+# Stage 1: Base - Install bun
 # ============================================
-FROM node:24-alpine AS base
-
-# Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM oven/bun:1.4-alpine AS base
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .pnpmfile.cjs ./
+COPY package.json bun.lock ./
 
 # ============================================
 # Stage 2: Development Dependencies
@@ -18,7 +15,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .pnpmfile.cjs ./
 FROM base AS deps
 
 # Install all dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile
+RUN bun install --frozen-lockfile
 
 # ============================================
 # Stage 3: Production Dependencies
@@ -26,7 +23,7 @@ RUN pnpm install --frozen-lockfile
 FROM base AS prod-deps
 
 # Install only production dependencies
-RUN pnpm install --frozen-lockfile --prod
+RUN bun install --frozen-lockfile --production
 
 # ============================================
 # Stage 4: Build
@@ -46,15 +43,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build the React Router app
-RUN pnpm run build
+RUN bun run build
 
 # ============================================
 # Stage 5: Production Runner
 # ============================================
-FROM node:24-alpine AS runner
-
-# Enable corepack for pnpm in production
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM oven/bun:1.4-alpine AS runner
 
 WORKDIR /app
 
@@ -65,7 +59,7 @@ ENV NODE_ENV=production \
     PORT=${PORT}
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json bun.lock ./
 
 # Copy production dependencies
 COPY --from=prod-deps /app/node_modules ./node_modules
@@ -86,10 +80,10 @@ EXPOSE ${PORT}
 
 # Health check (liveness)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:${PORT:-3000}/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD bun -e "const p = process.env.PORT || 3000; fetch('http://localhost:' + p + '/api/health').then(r => process.exit(r.status === 200 ? 0 : 1)).catch(() => process.exit(1))"
 
 # Start the React Router server
-CMD ["pnpm", "run", "start"]
+CMD ["bun", "run", "start"]
 
 # ============================================
 # Stage 6: Database migrator
@@ -102,4 +96,4 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY drizzle.config.ts ./
 COPY drizzle ./drizzle
 
-CMD ["pnpm", "run", "db:migrate"]
+CMD ["bun", "run", "db:migrate"]
